@@ -14,6 +14,32 @@
 		84008BA023603A5100BD633F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 84008B9E23603A5100BD633F /* LaunchScreen.storyboard */; };
 		84008BAB23603A5100BD633F /* just_exploring_3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84008BAA23603A5100BD633F /* just_exploring_3Tests.swift */; };
 		84008BB623603A5100BD633F /* just_exploring_3UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84008BB523603A5100BD633F /* just_exploring_3UITests.swift */; };
+		84008BC523604D7000BD633F /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84008BC423604D7000BD633F /* AVFoundation.framework */; };
+		84008BC723604D8000BD633F /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84008BC623604D8000BD633F /* AVKit.framework */; };
+		84559EE1237A9FB0005B8342 /* TableViewMusicCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84559EE0237A9FB0005B8342 /* TableViewMusicCell.swift */; };
+		84559EE4237BFFFB005B8342 /* AVAudioSessionPatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 84559EE3237BFFFB005B8342 /* AVAudioSessionPatch.m */; };
+		8464709E23701C1B0079A411 /* libcares.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8464709D23701C1B0079A411 /* libcares.a */; };
+		846470A023701C2E0079A411 /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8464709F23701C2E0079A411 /* libcryptopp.a */; };
+		846470A223701C350079A411 /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 846470A123701C350079A411 /* libcurl.a */; };
+		846470A423701C420079A411 /* libmediainfo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 846470A323701C420079A411 /* libmediainfo.a */; };
+		846470A723701C4D0079A411 /* libsodium.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 846470A523701C4D0079A411 /* libsodium.a */; };
+		846470A823701C4D0079A411 /* libuv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 846470A623701C4D0079A411 /* libuv.a */; };
+		846470AB23701C590079A411 /* libwebsockets.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 846470A923701C590079A411 /* libwebsockets.a */; };
+		846470AC23701C590079A411 /* libzen.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 846470AA23701C590079A411 /* libzen.a */; };
+		846470AE23701D520079A411 /* librtc_sdk_objc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 846470AD23701D510079A411 /* librtc_sdk_objc.a */; };
+		8498DB89236524F90036B1F6 /* LoginVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8498DB88236524F90036B1F6 /* LoginVC.swift */; };
+		8498DB8B236559830036B1F6 /* RequestHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8498DB8A236559830036B1F6 /* RequestHandler.swift */; };
+		8498DB8D23661DF80036B1F6 /* BrowseTVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8498DB8C23661DF80036B1F6 /* BrowseTVC.swift */; };
+		8498DB8F236651080036B1F6 /* TransferHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8498DB8E236651080036B1F6 /* TransferHandler.swift */; };
+		8498DB91236652D00036B1F6 /* AVPlayerVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8498DB90236652D00036B1F6 /* AVPlayerVC.swift */; };
+		8498DB9923669FA50036B1F6 /* PlayQueueTVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8498DB9823669FA50036B1F6 /* PlayQueueTVC.swift */; };
+		84D137C82363EE36006A2DE0 /* libMEGASDK.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137C72363EE36006A2DE0 /* libMEGASDK.a */; };
+		84D137D82363F0C0006A2DE0 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137D72363F0BF006A2DE0 /* libc++.tbd */; };
+		84D137DC2363F145006A2DE0 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137DB2363F145006A2DE0 /* libz.tbd */; };
+		84D137DE2363F172006A2DE0 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137DD2363F172006A2DE0 /* libsqlite3.tbd */; };
+		84D137E22363F272006A2DE0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E12363F272006A2DE0 /* libresolv.tbd */; };
+		84D137E42363F344006A2DE0 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E32363F343006A2DE0 /* CoreServices.framework */; };
+		84D137E62363F37F006A2DE0 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E52363F37F006A2DE0 /* CoreMedia.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,7 +60,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		84008B9223603A4400BD633F /* just-exploring-3.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "just-exploring-3.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		84008B9223603A4400BD633F /* SongMe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SongMe.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		84008B9523603A4400BD633F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		84008B9723603A4400BD633F /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		84008B9A23603A4400BD633F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -47,6 +73,36 @@
 		84008BB123603A5100BD633F /* just-exploring-3UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "just-exploring-3UITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		84008BB523603A5100BD633F /* just_exploring_3UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = just_exploring_3UITests.swift; sourceTree = "<group>"; };
 		84008BB723603A5100BD633F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		84008BC423604D7000BD633F /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		84008BC623604D8000BD633F /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
+		842092B22363D60000DDE338 /* just-exploring-3-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "just-exploring-3-Bridging-Header.h"; sourceTree = "<group>"; };
+		8439AD9123A8C6DD00BC550A /* SongMe.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SongMe.entitlements; sourceTree = "<group>"; };
+		84559EDF2372A737005B8342 /* just-exploring-3.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "just-exploring-3.entitlements"; sourceTree = "<group>"; };
+		84559EE0237A9FB0005B8342 /* TableViewMusicCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewMusicCell.swift; sourceTree = "<group>"; };
+		84559EE2237BFFE4005B8342 /* AVAudioSessionPatch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AVAudioSessionPatch.h; sourceTree = "<group>"; };
+		84559EE3237BFFFB005B8342 /* AVAudioSessionPatch.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AVAudioSessionPatch.m; sourceTree = "<group>"; };
+		8464709D23701C1B0079A411 /* libcares.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcares.a; path = SDK/bindings/ios/3rdparty/lib/libcares.a; sourceTree = "<group>"; };
+		8464709F23701C2E0079A411 /* libcryptopp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcryptopp.a; path = SDK/bindings/ios/3rdparty/lib/libcryptopp.a; sourceTree = "<group>"; };
+		846470A123701C350079A411 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = SDK/bindings/ios/3rdparty/lib/libcurl.a; sourceTree = "<group>"; };
+		846470A323701C420079A411 /* libmediainfo.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmediainfo.a; path = SDK/bindings/ios/3rdparty/lib/libmediainfo.a; sourceTree = "<group>"; };
+		846470A523701C4D0079A411 /* libsodium.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsodium.a; path = SDK/bindings/ios/3rdparty/lib/libsodium.a; sourceTree = "<group>"; };
+		846470A623701C4D0079A411 /* libuv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libuv.a; path = SDK/bindings/ios/3rdparty/lib/libuv.a; sourceTree = "<group>"; };
+		846470A923701C590079A411 /* libwebsockets.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebsockets.a; path = SDK/bindings/ios/3rdparty/lib/libwebsockets.a; sourceTree = "<group>"; };
+		846470AA23701C590079A411 /* libzen.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzen.a; path = SDK/bindings/ios/3rdparty/lib/libzen.a; sourceTree = "<group>"; };
+		846470AD23701D510079A411 /* librtc_sdk_objc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = librtc_sdk_objc.a; path = SDK/bindings/ios/3rdparty/lib/librtc_sdk_objc.a; sourceTree = "<group>"; };
+		8498DB88236524F90036B1F6 /* LoginVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginVC.swift; sourceTree = "<group>"; };
+		8498DB8A236559830036B1F6 /* RequestHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestHandler.swift; sourceTree = "<group>"; };
+		8498DB8C23661DF80036B1F6 /* BrowseTVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseTVC.swift; sourceTree = "<group>"; };
+		8498DB8E236651080036B1F6 /* TransferHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferHandler.swift; sourceTree = "<group>"; };
+		8498DB90236652D00036B1F6 /* AVPlayerVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPlayerVC.swift; sourceTree = "<group>"; };
+		8498DB9823669FA50036B1F6 /* PlayQueueTVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayQueueTVC.swift; sourceTree = "<group>"; };
+		84D137C72363EE36006A2DE0 /* libMEGASDK.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libMEGASDK.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		84D137D72363F0BF006A2DE0 /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
+		84D137DB2363F145006A2DE0 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		84D137DD2363F172006A2DE0 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		84D137E12363F272006A2DE0 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
+		84D137E32363F343006A2DE0 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		84D137E52363F37F006A2DE0 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +110,24 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				846470A423701C420079A411 /* libmediainfo.a in Frameworks */,
+				84D137E62363F37F006A2DE0 /* CoreMedia.framework in Frameworks */,
+				84D137E42363F344006A2DE0 /* CoreServices.framework in Frameworks */,
+				846470A823701C4D0079A411 /* libuv.a in Frameworks */,
+				84D137E22363F272006A2DE0 /* libresolv.tbd in Frameworks */,
+				846470A723701C4D0079A411 /* libsodium.a in Frameworks */,
+				84D137DE2363F172006A2DE0 /* libsqlite3.tbd in Frameworks */,
+				84D137DC2363F145006A2DE0 /* libz.tbd in Frameworks */,
+				846470A223701C350079A411 /* libcurl.a in Frameworks */,
+				846470A023701C2E0079A411 /* libcryptopp.a in Frameworks */,
+				84D137D82363F0C0006A2DE0 /* libc++.tbd in Frameworks */,
+				8464709E23701C1B0079A411 /* libcares.a in Frameworks */,
+				846470AE23701D520079A411 /* librtc_sdk_objc.a in Frameworks */,
+				84D137C82363EE36006A2DE0 /* libMEGASDK.a in Frameworks */,
+				846470AC23701C590079A411 /* libzen.a in Frameworks */,
+				84008BC723604D8000BD633F /* AVKit.framework in Frameworks */,
+				84008BC523604D7000BD633F /* AVFoundation.framework in Frameworks */,
+				846470AB23701C590079A411 /* libwebsockets.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -77,17 +151,20 @@
 		84008B8923603A4400BD633F = {
 			isa = PBXGroup;
 			children = (
+				8439AD9123A8C6DD00BC550A /* SongMe.entitlements */,
+				842092B22363D60000DDE338 /* just-exploring-3-Bridging-Header.h */,
 				84008B9423603A4400BD633F /* just-exploring-3 */,
 				84008BA923603A5100BD633F /* just-exploring-3Tests */,
 				84008BB423603A5100BD633F /* just-exploring-3UITests */,
 				84008B9323603A4400BD633F /* Products */,
+				84008BC323604D6F00BD633F /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
 		84008B9323603A4400BD633F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				84008B9223603A4400BD633F /* just-exploring-3.app */,
+				84008B9223603A4400BD633F /* SongMe.app */,
 				84008BA623603A5100BD633F /* just-exploring-3Tests.xctest */,
 				84008BB123603A5100BD633F /* just-exploring-3UITests.xctest */,
 			);
@@ -97,9 +174,19 @@
 		84008B9423603A4400BD633F /* just-exploring-3 */ = {
 			isa = PBXGroup;
 			children = (
+				84559EDF2372A737005B8342 /* just-exploring-3.entitlements */,
 				84008B9523603A4400BD633F /* AppDelegate.swift */,
+				84559EE2237BFFE4005B8342 /* AVAudioSessionPatch.h */,
+				84559EE3237BFFFB005B8342 /* AVAudioSessionPatch.m */,
+				8498DB8A236559830036B1F6 /* RequestHandler.swift */,
+				8498DB8E236651080036B1F6 /* TransferHandler.swift */,
 				84008B9723603A4400BD633F /* ViewController.swift */,
 				84008B9923603A4400BD633F /* Main.storyboard */,
+				84559EE0237A9FB0005B8342 /* TableViewMusicCell.swift */,
+				8498DB9823669FA50036B1F6 /* PlayQueueTVC.swift */,
+				8498DB90236652D00036B1F6 /* AVPlayerVC.swift */,
+				8498DB8C23661DF80036B1F6 /* BrowseTVC.swift */,
+				8498DB88236524F90036B1F6 /* LoginVC.swift */,
 				84008B9C23603A5100BD633F /* Assets.xcassets */,
 				84008B9E23603A5100BD633F /* LaunchScreen.storyboard */,
 				84008BA123603A5100BD633F /* Info.plist */,
@@ -125,12 +212,37 @@
 			path = "just-exploring-3UITests";
 			sourceTree = "<group>";
 		};
+		84008BC323604D6F00BD633F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				84D137E52363F37F006A2DE0 /* CoreMedia.framework */,
+				84D137E32363F343006A2DE0 /* CoreServices.framework */,
+				84D137E12363F272006A2DE0 /* libresolv.tbd */,
+				84D137DD2363F172006A2DE0 /* libsqlite3.tbd */,
+				84D137DB2363F145006A2DE0 /* libz.tbd */,
+				84D137D72363F0BF006A2DE0 /* libc++.tbd */,
+				84D137C72363EE36006A2DE0 /* libMEGASDK.a */,
+				8464709D23701C1B0079A411 /* libcares.a */,
+				8464709F23701C2E0079A411 /* libcryptopp.a */,
+				846470A123701C350079A411 /* libcurl.a */,
+				846470A323701C420079A411 /* libmediainfo.a */,
+				846470A523701C4D0079A411 /* libsodium.a */,
+				846470A623701C4D0079A411 /* libuv.a */,
+				846470A923701C590079A411 /* libwebsockets.a */,
+				846470AA23701C590079A411 /* libzen.a */,
+				846470AD23701D510079A411 /* librtc_sdk_objc.a */,
+				84008BC623604D8000BD633F /* AVKit.framework */,
+				84008BC423604D7000BD633F /* AVFoundation.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		84008B9123603A4400BD633F /* just-exploring-3 */ = {
+		84008B9123603A4400BD633F /* SongMe */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 84008BBA23603A5100BD633F /* Build configuration list for PBXNativeTarget "just-exploring-3" */;
+			buildConfigurationList = 84008BBA23603A5100BD633F /* Build configuration list for PBXNativeTarget "SongMe" */;
 			buildPhases = (
 				84008B8E23603A4400BD633F /* Sources */,
 				84008B8F23603A4400BD633F /* Frameworks */,
@@ -140,9 +252,9 @@
 			);
 			dependencies = (
 			);
-			name = "just-exploring-3";
+			name = SongMe;
 			productName = "just-exploring-3";
-			productReference = 84008B9223603A4400BD633F /* just-exploring-3.app */;
+			productReference = 84008B9223603A4400BD633F /* SongMe.app */;
 			productType = "com.apple.product-type.application";
 		};
 		84008BA523603A5100BD633F /* just-exploring-3Tests */ = {
@@ -193,6 +305,14 @@
 				TargetAttributes = {
 					84008B9123603A4400BD633F = {
 						CreatedOnToolsVersion = 10.1;
+						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
+							com.apple.DataProtection = {
+								enabled = 1;
+							};
+						};
 					};
 					84008BA523603A5100BD633F = {
 						CreatedOnToolsVersion = 10.1;
@@ -217,7 +337,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				84008B9123603A4400BD633F /* just-exploring-3 */,
+				84008B9123603A4400BD633F /* SongMe */,
 				84008BA523603A5100BD633F /* just-exploring-3Tests */,
 				84008BB023603A5100BD633F /* just-exploring-3UITests */,
 			);
@@ -256,8 +376,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8498DB9923669FA50036B1F6 /* PlayQueueTVC.swift in Sources */,
+				84559EE4237BFFFB005B8342 /* AVAudioSessionPatch.m in Sources */,
 				84008B9823603A4400BD633F /* ViewController.swift in Sources */,
 				84008B9623603A4400BD633F /* AppDelegate.swift in Sources */,
+				8498DB8B236559830036B1F6 /* RequestHandler.swift in Sources */,
+				8498DB91236652D00036B1F6 /* AVPlayerVC.swift in Sources */,
+				84559EE1237A9FB0005B8342 /* TableViewMusicCell.swift in Sources */,
+				8498DB8F236651080036B1F6 /* TransferHandler.swift in Sources */,
+				8498DB89236524F90036B1F6 /* LoginVC.swift in Sources */,
+				8498DB8D23661DF80036B1F6 /* BrowseTVC.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -282,12 +410,12 @@
 /* Begin PBXTargetDependency section */
 		84008BA823603A5100BD633F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 84008B9123603A4400BD633F /* just-exploring-3 */;
+			target = 84008B9123603A4400BD633F /* SongMe */;
 			targetProxy = 84008BA723603A5100BD633F /* PBXContainerItemProxy */;
 		};
 		84008BB323603A5100BD633F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 84008B9123603A4400BD633F /* just-exploring-3 */;
+			target = 84008B9123603A4400BD633F /* SongMe */;
 			targetProxy = 84008BB223603A5100BD633F /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -432,16 +560,25 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SongMe.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = FF48ESATNC;
+				ENABLE_BITCODE = NO;
+				HEADER_SEARCH_PATHS = "/Users/matt/Desktop/just-exploring-3/SDK/bindings/ios";
 				INFOPLIST_FILE = "just-exploring-3/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/SDK/bindings/ios/3rdparty/lib",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.just-exploring-3";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "just-exploring-3-Bridging-Header.h";
 				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -449,16 +586,25 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SongMe.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = FF48ESATNC;
+				ENABLE_BITCODE = NO;
+				HEADER_SEARCH_PATHS = "/Users/matt/Desktop/just-exploring-3/SDK/bindings/ios";
 				INFOPLIST_FILE = "just-exploring-3/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/SDK/bindings/ios/3rdparty/lib",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.just-exploring-3";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "just-exploring-3-Bridging-Header.h";
 				SWIFT_VERSION = 4.2;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -552,7 +698,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		84008BBA23603A5100BD633F /* Build configuration list for PBXNativeTarget "just-exploring-3" */ = {
+		84008BBA23603A5100BD633F /* Build configuration list for PBXNativeTarget "SongMe" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				84008BBB23603A5100BD633F /* Debug */,
