@@ -16,7 +16,7 @@ class AVPlayerVC: AVPlayerViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.player = app().player;
+        self.player = app().playQueue.player;
         self.updatesNowPlayingInfoCenter = true;
         //self.appliesPrefferredDisplayCriteriaAutomatically = true;
     }

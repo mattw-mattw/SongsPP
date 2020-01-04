@@ -31,21 +31,25 @@ class BrowseTVC: UITableViewController {
         currentFolder = node;
         nodeList = node == nil ? nil : mega().children(forParent: currentFolder!, order: 1)
         tableView.reloadData();
+        var text : String? = nil;
         if (node != nil)
         {
-            var text = mega().nodePath(for: node!);
-            print("listing for " + text!);
-            if (text != nil) {
-                let n = text!.firstIndex(of: "/");
-                if (n != nil)
-                {
-                    text! = String.init(text!.suffix( from: n!));
+            text = mega().nodePath(for: node!);
+            if (text != nil)
+            {
+                print("listing for " + text!);
+                if (text != nil) {
+                    let n = text!.firstIndex(of: "/");
+                    if (n != nil)
+                    {
+                        text! = String.init(text!.suffix( from: n!));
+                    }
                 }
             }
-            if (folderPathLabelCtrl != nil)
-            {
-                folderPathLabelCtrl.text = text;
-            }
+        }
+        if (folderPathLabelCtrl != nil)
+        {
+            folderPathLabelCtrl.text = text == nil ? "" : text;
         }
     }
     
@@ -77,14 +81,7 @@ class BrowseTVC: UITableViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated);
-
-        var loadNode = rootFolder();
-        
-        if (loadNode == nil)
-        {
-            loadNode = mega().node(forPath: "/");
-        }
-        load(node: loadNode);
+        load(node: rootFolder());
     }
 
     // MARK: - Table view data source

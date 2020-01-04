@@ -40,6 +40,10 @@
 		84D137E22363F272006A2DE0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E12363F272006A2DE0 /* libresolv.tbd */; };
 		84D137E42363F344006A2DE0 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E32363F343006A2DE0 /* CoreServices.framework */; };
 		84D137E62363F37F006A2DE0 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E52363F37F006A2DE0 /* CoreMedia.framework */; };
+		C96F3AD523BFC799008BF07D /* LoginStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD423BFC799008BF07D /* LoginStateModel.swift */; };
+		C96F3AD723BFC995008BF07D /* PlayQueueModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD623BFC995008BF07D /* PlayQueueModel.swift */; };
+		C96F3AD923BFDB87008BF07D /* MenuVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD823BFDB87008BF07D /* MenuVC.swift */; };
+		C96F3ADD23C01A07008BF07D /* StorageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3ADC23C01A07008BF07D /* StorageModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -103,6 +107,10 @@
 		84D137E12363F272006A2DE0 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		84D137E32363F343006A2DE0 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		84D137E52363F37F006A2DE0 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		C96F3AD423BFC799008BF07D /* LoginStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginStateModel.swift; sourceTree = "<group>"; };
+		C96F3AD623BFC995008BF07D /* PlayQueueModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayQueueModel.swift; sourceTree = "<group>"; };
+		C96F3AD823BFDB87008BF07D /* MenuVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuVC.swift; sourceTree = "<group>"; };
+		C96F3ADC23C01A07008BF07D /* StorageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -182,14 +190,18 @@
 				8498DB8E236651080036B1F6 /* TransferHandler.swift */,
 				84008B9723603A4400BD633F /* ViewController.swift */,
 				84008B9923603A4400BD633F /* Main.storyboard */,
+				C96F3AD823BFDB87008BF07D /* MenuVC.swift */,
 				84559EE0237A9FB0005B8342 /* TableViewMusicCell.swift */,
 				8498DB9823669FA50036B1F6 /* PlayQueueTVC.swift */,
 				8498DB90236652D00036B1F6 /* AVPlayerVC.swift */,
 				8498DB8C23661DF80036B1F6 /* BrowseTVC.swift */,
 				8498DB88236524F90036B1F6 /* LoginVC.swift */,
+				C96F3AD423BFC799008BF07D /* LoginStateModel.swift */,
+				C96F3AD623BFC995008BF07D /* PlayQueueModel.swift */,
 				84008B9C23603A5100BD633F /* Assets.xcassets */,
 				84008B9E23603A5100BD633F /* LaunchScreen.storyboard */,
 				84008BA123603A5100BD633F /* Info.plist */,
+				C96F3ADC23C01A07008BF07D /* StorageModel.swift */,
 			);
 			path = "just-exploring-3";
 			sourceTree = "<group>";
@@ -376,10 +388,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C96F3ADD23C01A07008BF07D /* StorageModel.swift in Sources */,
 				8498DB9923669FA50036B1F6 /* PlayQueueTVC.swift in Sources */,
 				84559EE4237BFFFB005B8342 /* AVAudioSessionPatch.m in Sources */,
 				84008B9823603A4400BD633F /* ViewController.swift in Sources */,
+				C96F3AD723BFC995008BF07D /* PlayQueueModel.swift in Sources */,
+				C96F3AD523BFC799008BF07D /* LoginStateModel.swift in Sources */,
 				84008B9623603A4400BD633F /* AppDelegate.swift in Sources */,
+				C96F3AD923BFDB87008BF07D /* MenuVC.swift in Sources */,
 				8498DB8B236559830036B1F6 /* RequestHandler.swift in Sources */,
 				8498DB91236652D00036B1F6 /* AVPlayerVC.swift in Sources */,
 				84559EE1237A9FB0005B8342 /* TableViewMusicCell.swift in Sources */,

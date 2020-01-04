@@ -27,7 +27,7 @@ class PlayQueueTVC: UITableViewController {
         pvc = AVPlayerViewController();
         playerPlaceholder.addSubview(pvc!.view);
         pvc!.view.frame = playerPlaceholder.bounds;
-        pvc!.player = app().player;
+        pvc!.player = app().playQueue.player;
         app().playQueueTVC = self;
         tableView.estimatedSectionHeaderHeight = 40;
         tableView.isEditing = true;
@@ -51,7 +51,7 @@ class PlayQueueTVC: UITableViewController {
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return app().nextSongs.count;
+        return app().playQueue.nextSongs.count;
     }
     
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -68,15 +68,14 @@ class PlayQueueTVC: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MusicCell", for: indexPath)
         
-        cell.textLabel?.text = app().nextSongs[indexPath.row].name
+        cell.textLabel?.text = app().playQueue.nextSongs[indexPath.row].name
         
         let musicCell = cell as? TableViewMusicCell
         if (musicCell != nil)
         {
-            musicCell!.node = app().nextSongs[indexPath.row];
+            musicCell!.node = app().playQueue.nextSongs[indexPath.row];
             
-            let filename = cachePath() + "/nextsongs/" + musicCell!.node!.name;
-            let exists = FileManager.default.fileExists(atPath: filename);
+            let exists = app().storageModel.fileDownloaded(musicCell!.node!);
             
             if (musicCell!.progressBar != nil)
             {
@@ -117,7 +116,7 @@ class PlayQueueTVC: UITableViewController {
 
     override func tableView(_ tableView: UITableView, shouldShowMenuForRowAt indexPath: IndexPath) -> Bool {
 
-        let queue = app().nextSongs;
+        let queue = app().playQueue.nextSongs;
         // long press to show menu for song
         if (indexPath.row < queue.count)
         {
@@ -125,21 +124,21 @@ class PlayQueueTVC: UITableViewController {
 
             let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "Advance queue to this item", style: .default, handler:
-                { (UIAlertAction) -> () in app().advanceQueueTo(indexPath.row); tableView.reloadData()  }));
+                { (UIAlertAction) -> () in app().playQueue.advanceQueueTo(indexPath.row); tableView.reloadData()  }));
             
             alert.addAction(UIAlertAction(title: "Delete queue up to this item", style: .default, handler:
-                { (UIAlertAction) -> () in app().deleteQueueTo(indexPath.row); tableView.reloadData() }));
+                { (UIAlertAction) -> () in app().playQueue.deleteQueueTo(indexPath.row); tableView.reloadData() }));
             
             alert.addAction(UIAlertAction(title: "Delete queue after this item", style: .default, handler:
-                { (UIAlertAction) -> () in app().deleteQueueAfter(indexPath.row); tableView.reloadData() }));
+                { (UIAlertAction) -> () in app().playQueue.deleteQueueAfter(indexPath.row); tableView.reloadData() }));
             
             alert.addAction(UIAlertAction(title: "Play right now", style: .default, handler:
-                { (UIAlertAction) -> () in app().playRightNow(indexPath.row); tableView.reloadData() }));
+                { (UIAlertAction) -> () in app().playQueue.playRightNow(indexPath.row); tableView.reloadData() }));
             
             if (node.type != MEGANodeType.file)
             {
                 alert.addAction(UIAlertAction(title: "Expand folder", style: .default, handler:
-                    { (UIAlertAction) -> () in app().expandQueueItem(indexPath.row); tableView.reloadData() }));
+                    { (UIAlertAction) -> () in app().playQueue.expandQueueItem(indexPath.row); tableView.reloadData() }));
             }
             alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
             self.present(alert, animated: false, completion: nil)
@@ -163,17 +162,17 @@ class PlayQueueTVC: UITableViewController {
     // Override to support editing the table view.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            app().nextSongs.remove(at: indexPath.row)
-            app().StartAnyDownloads();
+            app().playQueue.nextSongs.remove(at: indexPath.row)
+            app().playQueue.StartAnyDownloads();
             tableView.reloadData();
         }
     }
 
     // Override to support rearranging the table view.
     override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-        let item = app().nextSongs.remove(at: fromIndexPath.row);
-        app().nextSongs.insert(item, at: to.row);
-        app().StartAnyDownloads();
+        let item = app().playQueue.nextSongs.remove(at: fromIndexPath.row);
+        app().playQueue.nextSongs.insert(item, at: to.row);
+        app().playQueue.StartAnyDownloads();
         tableView.reloadData();
     }
 
