@@ -69,7 +69,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     var mega : MEGASdk? = nil;
-    var currentLoginVC : LoginVC? = nil;
+//    var currentLoginVC : LoginVC? = nil;
     var loginState = LoginState();
     var playQueue = PlayQueue();
     var storageModel = StorageModel();

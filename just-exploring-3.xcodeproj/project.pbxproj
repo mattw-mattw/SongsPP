@@ -317,6 +317,7 @@
 				TargetAttributes = {
 					84008B9123603A4400BD633F = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1130;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
 								enabled = 1;
@@ -582,6 +583,7 @@
 				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = "/Users/matt/Desktop/just-exploring-3/SDK/bindings/ios";
 				INFOPLIST_FILE = "just-exploring-3/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -593,7 +595,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.just-exploring-3";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "just-exploring-3-Bridging-Header.h";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
@@ -608,6 +610,7 @@
 				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = "/Users/matt/Desktop/just-exploring-3/SDK/bindings/ios";
 				INFOPLIST_FILE = "just-exploring-3/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -619,7 +622,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.just-exploring-3";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "just-exploring-3-Bridging-Header.h";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;

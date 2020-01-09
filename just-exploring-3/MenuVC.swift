@@ -34,7 +34,7 @@ class MenuVC: UIViewController {
     func startSpinnerControl(message : String)
     {
         busyControl = UIAlertController(title: nil, message: message + "\n\n", preferredStyle: .alert)
-        let spinnerIndicator = UIActivityIndicatorView(style: .whiteLarge)
+        let spinnerIndicator = UIActivityIndicatorView(style: .large)
         spinnerIndicator.center = CGPoint(x: 135.0, y: 65.5)
         spinnerIndicator.color = UIColor.black
         spinnerIndicator.startAnimating()
