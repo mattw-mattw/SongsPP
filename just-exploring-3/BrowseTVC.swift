@@ -14,14 +14,25 @@ class BrowseTVC: UITableViewController {
     var nodeList : MEGANodeList? = nil;
     var currentFolder : MEGANode? = nil;
     
+    var parentTap : UITapGestureRecognizer?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        parentTap = UITapGestureRecognizer(target: self, action: #selector(onParentTap))
+        parentTap!.numberOfTapsRequired = 1
+        folderPathLabelCtrl.addGestureRecognizer(parentTap!)
+        folderPathLabelCtrl.isUserInteractionEnabled = true;
+        
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
+    }
+    
+    @objc func onParentTap(sender : UITapGestureRecognizer) {
+        loadParentFolder()
     }
     
     @IBOutlet weak var folderPathLabelCtrl: UILabel!
@@ -122,15 +133,20 @@ class BrowseTVC: UITableViewController {
         return cell
     }
     
-    override func tableView(_ tableView: UITableView, shouldShowMenuForRowAt indexPath: IndexPath) -> Bool {
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        // tap a row to drill into it, if it's a folder
+        tableView.deselectRow(at: indexPath, animated: false)
         if (indexPath.row < nodeList!.size.intValue)
         {
-            // long press to drill into folder:
             let node = nodeList?.node(at: indexPath.row)
             if (node?.type == MEGANodeType.folder)
             {
                 DispatchQueue.main.async( execute: { self.load(node: node) } );
             }
+        }
+    }
+    
+    override func tableView(_ tableView: UITableView, shouldShowMenuForRowAt indexPath: IndexPath) -> Bool {
             
 //            let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
 //            if (node!.type == MEGANodeType.file)
@@ -144,7 +160,6 @@ class BrowseTVC: UITableViewController {
 //            }
 //            alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
 //            self.present(alert, animated: false, completion: nil)
-        }
         
         
         return false;

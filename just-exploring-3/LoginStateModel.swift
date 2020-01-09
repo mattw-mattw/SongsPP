@@ -81,7 +81,7 @@ class LoginState //: ObservableObject
                             self.processing = false;
                             self.printState("fetchnodes success")
                             self.loadRoots(onFinish: onFinish)
-                            app().playQueue.StartAnyDownloads()
+                            app().playQueue.onNextSongsEdited()
                         } else {
                             self.errorMessage = "Login succeeded but FetchNodes failed: " + e.nameWithErrorCode(e.type.rawValue);
                             self.processing = false;

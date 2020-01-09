@@ -163,8 +163,7 @@ class PlayQueueTVC: UITableViewController {
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             app().playQueue.nextSongs.remove(at: indexPath.row)
-            app().playQueue.StartAnyDownloads();
-            tableView.reloadData();
+            app().playQueue.onNextSongsEdited();
         }
     }
 
@@ -172,8 +171,7 @@ class PlayQueueTVC: UITableViewController {
     override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
         let item = app().playQueue.nextSongs.remove(at: fromIndexPath.row);
         app().playQueue.nextSongs.insert(item, at: to.row);
-        app().playQueue.StartAnyDownloads();
-        tableView.reloadData();
+        app().playQueue.onNextSongsEdited();
     }
 
     /*

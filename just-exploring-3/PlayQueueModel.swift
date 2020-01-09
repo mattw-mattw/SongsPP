@@ -91,41 +91,39 @@ class PlayQueue /*: ObservableObject*/ {
             }
         }
         
-        nextSongs.append(node);
-        
-        StartAnyDownloads();
-        if (nextSongs.count > 0 && handleInPlayer == 0)
-        {
-            playNext(startIt: shouldBePlaying);
+        if isPlayable(node) {
+            nextSongs.append(node);
+            onNextSongsEdited();
+            if (nextSongs.count > 0 && handleInPlayer == 0)
+            {
+                playNext(startIt: shouldBePlaying);
+            }
         }
     }
     
     func queueSongNext(node : MEGANode)
     {
-        nextSongs.insert(node, at: 0);
-        StartAnyDownloads();
-        if (nextSongs.count > 0 && handleInPlayer == 0)
-        {
-            playNext(startIt: shouldBePlaying);
+        if isPlayable(node) {
+            nextSongs.insert(node, at: 0);
+            onNextSongsEdited();
+            if (nextSongs.count > 0 && handleInPlayer == 0)
+            {
+                playNext(startIt: shouldBePlaying);
+            }
         }
     }
 
     func advanceQueueTo(_ row: Int)
     {
         // songs skipped go into the 'played' list
-        for i in 0...row
+        for _ in 1..<row
         {
-            if (i > 0 && i < row && 1 < nextSongs.count)
+            if (1 < nextSongs.count)
             {
-                playedSongs.insert(nextSongs[1], at: 0);
-                nextSongs.remove(at: 1);
-                if (playedSongs.count > 100)
-                {
-                    playedSongs.remove(at: playedSongs.count-1);
-                }
+                moveSongToHistory(index: 1)
             }
         }
-        StartAnyDownloads();
+        onNextSongsEdited();
     }
     
     func deleteQueueTo(_ row: Int)
@@ -137,7 +135,7 @@ class PlayQueue /*: ObservableObject*/ {
                 nextSongs.remove(at: 1);
             }
         }
-        StartAnyDownloads();
+        onNextSongsEdited();
     }
 
     func deleteQueueAfter(_ row: Int)
@@ -146,19 +144,19 @@ class PlayQueue /*: ObservableObject*/ {
         {
             nextSongs.remove(at: row+1);
         }
-        StartAnyDownloads();
+        onNextSongsEdited();
     }
     
     func playRightNow(_ row: Int)
     {
         if row < nextSongs.count
         {
-            playedSongs.append(nextSongs[0]);
-            nextSongs[0] = nextSongs[row];
-            if (row > 0) { nextSongs.remove(at: row);}
-            handleInPlayer = nextSongs[0].handle;
+            let node = nextSongs[row];
+            nextSongs.remove(at: row);
+            if (row > 0) { moveSongToHistory(index: 0) }
+            nextSongs.insert(node, at: 0);
         }
-        StartAnyDownloads();
+        onNextSongsEdited();
         playNext(startIt: true);
     }
 
@@ -186,6 +184,11 @@ class PlayQueue /*: ObservableObject*/ {
         nextSongs.remove(at: row);
     }
     
+    func isPlayable(_ n : MEGANode) -> Bool
+    {
+        return !n.name.hasSuffix(".jpg")
+    }
+    
     func expandQueueItem(_ row: Int)
     {
         if (row >= 0 && row < nextSongs.count)
@@ -197,7 +200,11 @@ class PlayQueue /*: ObservableObject*/ {
                 let nodeList = mega().children(forParent: node, order: 1)
                 for i in 0...(nodeList.size.intValue-1)
                 {
-                    nextSongs.insert(nodeList.node(at: i), at: row+i)
+                    if let n = nodeList.node(at: i) {
+                        if isPlayable(n) {
+                            nextSongs.insert(n, at: row+i)
+                        }
+                    }
                 }
             }
             else if (node.name.hasSuffix(".playlist") && app().storageModel.fileDownloaded(nextSongs[0]))
@@ -212,7 +219,7 @@ class PlayQueue /*: ObservableObject*/ {
         return node.type != MEGANodeType.file || node.name.hasSuffix(".playlist") && app().storageModel.fileDownloaded(node);
     }
 
-    func StartAnyDownloads()
+    func onNextSongsEdited()
     {
         while (nextSongs.count > 0 && isExpandable(node: nextSongs[0]))
         {
@@ -232,6 +239,8 @@ class PlayQueue /*: ObservableObject*/ {
                 }
             }
         }
+        
+        app().playQueueTVC?.tableView.reloadData();
     }
     
     func playNext(startIt: Bool)
@@ -258,7 +267,7 @@ class PlayQueue /*: ObservableObject*/ {
                 }
                 return;
             }
-            else
+            else if (app().loginState.loggedInOffline)
             {
                 reportMessage(uic: app().playQueueTVC!, message: "Please go online to get the next song")
             }
@@ -277,22 +286,27 @@ class PlayQueue /*: ObservableObject*/ {
         }
     }
     
+    func moveSongToHistory(index: Int)
+    {
+        playedSongs.append(nextSongs[index]);
+        nextSongs.remove(at: index);
+        if (playedSongs.count > 100)
+        {
+            playedSongs.remove(at: 0);
+        }
+    }
+    
     func onSongFinishedPlaying()
     {
         if (nextSongs.count > 0)
         {
             if (nextSongs[0].handle == handleInPlayer)
             {
-                playedSongs.append(nextSongs[0]);
-                nextSongs.remove(at: 0);
-                if (playedSongs.count > 100)
-                {
-                    playedSongs.remove(at: 0);
-                }
+                moveSongToHistory(index: 0);
                 handleInPlayer = 0;
             }
         }
-        StartAnyDownloads();
+        onNextSongsEdited();
         playNext(startIt: true);
     }
 
