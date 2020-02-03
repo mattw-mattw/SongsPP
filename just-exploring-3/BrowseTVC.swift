@@ -16,6 +16,8 @@ class BrowseTVC: UITableViewController {
     
     var parentTap : UITapGestureRecognizer?
     
+    var topRightButton : UIButton? = nil;
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -29,12 +31,48 @@ class BrowseTVC: UITableViewController {
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        
+//        topRightButton = UIButton(type: .custom);
+//        topRightButton!.setTitle("Option", for: .normal)
+//        topRightButton!.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+//        topRightButton!.addTarget(self, action: #selector(onTopRightButton), for: .touchUpInside)
+//        let item1 = UIBarButtonItem(customView: topRightButton!)
+//        self.navigationItem.rightBarButtonItem = item1;
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        if (app().tabBarContoller != nil) {
+            app().tabBarContoller!.navigationItem.rightBarButtonItem =
+                  UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
+        }
     }
     
     @objc func onParentTap(sender : UITapGestureRecognizer) {
         loadParentFolder()
     }
+
+    @objc func optionButton(sender : UITapGestureRecognizer) {
+        let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "Queue all", style: .default, handler:
+            { (UIAlertAction) -> () in self.QueueAll() }));
+              
+        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+        self.present(alert, animated: false, completion: nil)
+    }
     
+    func QueueAll()
+    {
+        if (nodeList != nil)
+        {
+            var nodes : [MEGANode] = [];
+            for i in 0..<nodeList!.size.intValue {
+                nodes.append(nodeList!.node(at: i))
+            }
+            app().playQueue.queueSongs(nodes: nodes)
+        }
+    }
+
     @IBOutlet weak var folderPathLabelCtrl: UILabel!
     
     func load(node : MEGANode?)

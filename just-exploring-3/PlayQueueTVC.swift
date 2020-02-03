@@ -22,7 +22,8 @@ class PlayQueueTVC: UITableViewController {
         // self.clearsSelectionOnViewWillAppear = false
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+ //       self.navigationItem.rightBarButtonItem = self.editButtonItem
+//            UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
         
         pvc = AVPlayerViewController();
         playerPlaceholder.addSubview(pvc!.view);
@@ -30,7 +31,41 @@ class PlayQueueTVC: UITableViewController {
         pvc!.player = app().playQueue.player;
         app().playQueueTVC = self;
         tableView.estimatedSectionHeaderHeight = 40;
-        tableView.isEditing = true;
+        tableView.isEditing = false;
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        if (app().tabBarContoller != nil) {
+            app().tabBarContoller!.navigationItem.rightBarButtonItem =
+                  UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
+        }
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        if (app().tabBarContoller != nil) {
+            app().tabBarContoller!.navigationItem.rightBarButtonItem = nil;
+        }
+    }
+   
+    @objc func optionButton() {
+        
+        let alert = UIAlertController(title: nil, message: "Options", preferredStyle: .alert)
+        let b = app().playQueue.downloadNextOnly;
+        
+        alert.addAction(UIAlertAction(title: b ? "Download entire queue" : "Download next only", style: .default, handler:
+            { (UIAlertAction) -> () in app().playQueue.downloadNextOnly.toggle() ; app().playQueue.onNextSongsEdited(reloadView: true) }));
+        
+        alert.addAction(UIAlertAction(title: "Shuffle queue", style: .default, handler:
+            { (UIAlertAction) -> () in app().playQueue.shuffleQueue() }));
+        
+        alert.addAction(UIAlertAction(title: "Expand all", style: .default, handler:
+            { (UIAlertAction) -> () in app().playQueue.expandAll() }));
+        
+        alert.addAction(UIAlertAction(title: tableView.isEditing ? "Disable Edit" : "Enable Edit", style: .default, handler:
+            { (UIAlertAction) -> () in self.tableView.isEditing.toggle() }));
+
+        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+        self.present(alert, animated: false, completion: nil)
     }
 
     // MARK: - Table view data source
@@ -116,6 +151,8 @@ class PlayQueueTVC: UITableViewController {
 
     override func tableView(_ tableView: UITableView, shouldShowMenuForRowAt indexPath: IndexPath) -> Bool {
 
+        if (tableView.isEditing) { return false; }
+        
         let queue = app().playQueue.nextSongs;
         // long press to show menu for song
         if (indexPath.row < queue.count)
@@ -123,14 +160,15 @@ class PlayQueueTVC: UITableViewController {
             let node = queue[indexPath.row];
 
             let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Advance queue to this item", style: .default, handler:
-                { (UIAlertAction) -> () in app().playQueue.advanceQueueTo(indexPath.row); tableView.reloadData()  }));
             
-            alert.addAction(UIAlertAction(title: "Delete queue up to this item", style: .default, handler:
-                { (UIAlertAction) -> () in app().playQueue.deleteQueueTo(indexPath.row); tableView.reloadData() }));
+            alert.addAction(UIAlertAction(title: "Delete to top", style: .default, handler:
+                { (UIAlertAction) -> () in app().playQueue.deleteToTop(indexPath.row); tableView.reloadData() }));
             
-            alert.addAction(UIAlertAction(title: "Delete queue after this item", style: .default, handler:
-                { (UIAlertAction) -> () in app().playQueue.deleteQueueAfter(indexPath.row); tableView.reloadData() }));
+            alert.addAction(UIAlertAction(title: "Delete to bottom", style: .default, handler:
+                { (UIAlertAction) -> () in app().playQueue.deleteToBottom(indexPath.row); tableView.reloadData() }));
+            
+            alert.addAction(UIAlertAction(title: "Play next", style: .default, handler:
+                { (UIAlertAction) -> () in app().playQueue.moveSongNext(indexPath.row); tableView.reloadData() }));
             
             alert.addAction(UIAlertAction(title: "Play right now", style: .default, handler:
                 { (UIAlertAction) -> () in app().playQueue.playRightNow(indexPath.row); tableView.reloadData() }));
@@ -163,7 +201,7 @@ class PlayQueueTVC: UITableViewController {
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             app().playQueue.nextSongs.remove(at: indexPath.row)
-            app().playQueue.onNextSongsEdited();
+            app().playQueue.onNextSongsEdited(reloadView: true);
         }
     }
 
@@ -171,7 +209,7 @@ class PlayQueueTVC: UITableViewController {
     override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
         let item = app().playQueue.nextSongs.remove(at: fromIndexPath.row);
         app().playQueue.nextSongs.insert(item, at: to.row);
-        app().playQueue.onNextSongsEdited();
+        app().playQueue.onNextSongsEdited(reloadView: true);
     }
 
     /*

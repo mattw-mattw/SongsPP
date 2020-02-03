@@ -50,7 +50,7 @@ class BrowseNode /*: ObservableObject*/ {
     }
 }
 
-class PlayQueue /*: ObservableObject*/ {
+class PlayQueue : NSObject /*(ObservableObject*/ {
     /*@Published*/ var nextSongs : [MEGANode] = [];
     /*@Published*/ var playedSongs : [MEGANode] = [];
     
@@ -62,9 +62,27 @@ class PlayQueue /*: ObservableObject*/ {
 
     var player : AVPlayer = AVPlayer();
     var handleInPlayer : UInt64 = 0;
+    var isPlaying : Bool = false;
     var shouldBePlaying : Bool = false;
     var timeObservation : Any? = nil;
-        
+    
+    override init() {
+        super.init()
+        player.addObserver(self, forKeyPath: "rate", options: NSKeyValueObservingOptions.new, context: nil)
+    }
+
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == "rate" {
+            if player.rate > 0 && nextSongs.count > 0 {
+                handleInPlayer = nextSongs[0].handle;
+                isPlaying = true;
+            }
+            if (player.rate == 0)
+            {
+                isPlaying = false;
+            }
+        }
+    }
     func StringTime(_ nn : Double) -> String
     {
         let n = nn + 0.5
@@ -72,8 +90,13 @@ class PlayQueue /*: ObservableObject*/ {
         let secs = Int(n) - (mins*60)
         return String(format: "%d:%02d", mins, secs)
     }
-    
+
     func queueSong(node : MEGANode)
+    {
+        queueSongs(nodes: [node]);
+    }
+    
+    func queueSongs(nodes : [MEGANode])
     {
         if (timeObservation == nil)
         {
@@ -91,60 +114,75 @@ class PlayQueue /*: ObservableObject*/ {
             }
         }
         
-        if isPlayable(node) {
-            nextSongs.append(node);
-            onNextSongsEdited();
-            if (nextSongs.count > 0 && handleInPlayer == 0)
-            {
-                playNext(startIt: shouldBePlaying);
+        var playableNodes = nodes;
+        var i: Int = 0;
+        while (i < playableNodes.count) {
+            if isPlayable(playableNodes[i]) {
+                i += 1;
             }
+            else {
+                playableNodes.remove(at: i);
+            }
+        }
+        nextSongs += playableNodes;
+        onNextSongsEdited(reloadView: true);
+        if (nextSongs.count > 0 && handleInPlayer == 0)
+        {
+            playNow(startIt: shouldBePlaying);
         }
     }
     
     func queueSongNext(node : MEGANode)
     {
         if isPlayable(node) {
-            nextSongs.insert(node, at: 0);
-            onNextSongsEdited();
-            if (nextSongs.count > 0 && handleInPlayer == 0)
-            {
-                playNext(startIt: shouldBePlaying);
-            }
+            nextSongs.insert(node, at: nextSongs.count > 0 && handleInPlayer == nextSongs[0].handle ? 1 : 0);
+            onNextSongsEdited(reloadView: true);
         }
-    }
-
-    func advanceQueueTo(_ row: Int)
-    {
-        // songs skipped go into the 'played' list
-        for _ in 1..<row
-        {
-            if (1 < nextSongs.count)
-            {
-                moveSongToHistory(index: 1)
-            }
-        }
-        onNextSongsEdited();
     }
     
-    func deleteQueueTo(_ row: Int)
+    func moveSongNext(_ row: Int)
     {
-        for i in 0...row
+        if row > 1 && row < nextSongs.count
         {
-            if (i > 0 && i < row && 1 < nextSongs.count)
+            let node = nextSongs[row];
+            nextSongs.remove(at: row);
+            nextSongs.insert(node, at: nextSongs.count > 0 && handleInPlayer == nextSongs[0].handle ? 1 : 0);
+            onNextSongsEdited(reloadView: true);
+        }
+    }
+    
+    func shuffleQueue()
+    {
+        let start = nextSongs.count > 0 && handleInPlayer != 0 ? 1 : 0;
+        var newQueue : [MEGANode] = []
+        while nextSongs.count > start {
+            let row = Int.random(in: start..<nextSongs.count)
+            newQueue.append(nextSongs[row])
+            nextSongs.remove(at: row)
+        }
+        nextSongs.append(contentsOf: newQueue);
+        onNextSongsEdited(reloadView: true)
+    }
+    
+    func deleteToTop(_ row: Int)
+    {
+        for _ in 1...row
+        {
+            if (1 < nextSongs.count)
             {
                 nextSongs.remove(at: 1);
             }
         }
-        onNextSongsEdited();
+        onNextSongsEdited(reloadView: true);
     }
 
-    func deleteQueueAfter(_ row: Int)
+    func deleteToBottom(_ row: Int)
     {
-        while row + 1 < nextSongs.count
+        while row < nextSongs.count
         {
-            nextSongs.remove(at: row+1);
+            nextSongs.remove(at: row);
         }
-        onNextSongsEdited();
+        onNextSongsEdited(reloadView: true);
     }
     
     func playRightNow(_ row: Int)
@@ -156,8 +194,8 @@ class PlayQueue /*: ObservableObject*/ {
             if (row > 0) { moveSongToHistory(index: 0) }
             nextSongs.insert(node, at: 0);
         }
-        onNextSongsEdited();
-        playNext(startIt: true);
+        onNextSongsEdited(reloadView: true);
+        playNow(startIt: true);
     }
 
     func expandPlaylist(_ row: Int)
@@ -189,6 +227,20 @@ class PlayQueue /*: ObservableObject*/ {
         return !n.name.hasSuffix(".jpg")
     }
     
+    func expandAll()
+    {
+        var row : Int = 0;
+        while (row < nextSongs.count)
+        {
+            if (isExpandable(node: nextSongs[row])) {
+                expandQueueItem(row);
+            }
+            else {
+                row += 1;
+            }
+        }
+    }
+    
     func expandQueueItem(_ row: Int)
     {
         if (row >= 0 && row < nextSongs.count)
@@ -198,11 +250,13 @@ class PlayQueue /*: ObservableObject*/ {
             {
                 nextSongs.remove(at: row);
                 let nodeList = mega().children(forParent: node, order: 1)
-                for i in 0...(nodeList.size.intValue-1)
+                var insertPos = row;
+                for i in 0..<nodeList.size.intValue
                 {
                     if let n = nodeList.node(at: i) {
                         if isPlayable(n) {
-                            nextSongs.insert(n, at: row+i)
+                            nextSongs.insert(n, at: insertPos)
+                            insertPos += 1;
                         }
                     }
                 }
@@ -219,38 +273,63 @@ class PlayQueue /*: ObservableObject*/ {
         return node.type != MEGANodeType.file || node.name.hasSuffix(".playlist") && app().storageModel.fileDownloaded(node);
     }
 
-    func onNextSongsEdited()
-    {
-        while (nextSongs.count > 0 && isExpandable(node: nextSongs[0]))
-        {
-            expandQueueItem(0);
-        }
-        while (nextSongs.count > 1 && isExpandable(node: nextSongs[1]))
-        {
-            expandQueueItem(1);
-        }
+    var downloadNextOnly = true;
 
-        if app().loginState.loggedInOnline {
-            for i in 0...1
+    func onNextSongsEdited(reloadView : Bool)
+    {
+        var reloadTableView : Bool = reloadView;
+        var index = 0;
+        var numDownloading = 0;
+        while (index < nextSongs.count) {
+            if (downloadNextOnly && index >= 2) { break }
+            
+            while (nextSongs.count > index && isExpandable(node: nextSongs[index]))
             {
-                if (i < nextSongs.count)
-                {
-                    app().storageModel.startDownloadIfAbsent(nextSongs[i])
-                }
+                expandQueueItem(index);
+                reloadTableView = true;
+            }
+            if (app().storageModel.isDownloading(nextSongs[index]) ||
+                app().storageModel.startDownloadIfAbsent(nextSongs[index]))
+            {
+                numDownloading += 1;
+            }
+            if (numDownloading >= 3) { break }
+            
+            index += 1;
+        }
+        
+        if (nextSongs.count > 0 && !isPlaying && handleInPlayer != nextSongs[0].handle)
+        {
+            if let fileURL = app().storageModel.getDownloadedFileURL(nextSongs[0]) {
+                player.replaceCurrentItem(with: AVPlayerItem(url: fileURL));
             }
         }
         
-        app().playQueueTVC?.tableView.reloadData();
+//        if app().loginState.loggedInOnline {
+//            for i in 0...1
+//            {
+//                if (i < nextSongs.count)
+//                {
+//                    app().storageModel.startDownloadIfAbsent(nextSongs[i])
+//                }
+//            }
+//        }
+        
+        if (reloadTableView) {
+            app().playQueueTVC?.tableView.reloadData();
+        }
     }
     
-    func playNext(startIt: Bool)
+    func playNow(startIt: Bool)
     {
         if (nextSongs.count > 0)
         {
             if let fileURL = app().storageModel.getDownloadedFileURL(nextSongs[0]) {
                 player.replaceCurrentItem(with: AVPlayerItem(url: fileURL));
-                if (startIt) { self.player.play(); }
-                handleInPlayer = nextSongs[0].handle;
+                if (startIt) {
+                    self.player.play();
+                    handleInPlayer = nextSongs[0].handle;
+                }
                 
                 do {
                     try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [.mixWithOthers, .allowAirPlay])
@@ -280,9 +359,10 @@ class PlayQueue /*: ObservableObject*/ {
 
     func songDownloaded(_ handle : UInt64)
     {
+        onNextSongsEdited(reloadView: false)  // reloading the view interrupts users moving tracks around in edit mode
         if (nextSongs.count > 0 && handle == nextSongs[0].handle && handleInPlayer == 0)
         {
-            playNext(startIt: true);
+            playNow(startIt: true);
         }
     }
     
@@ -306,8 +386,8 @@ class PlayQueue /*: ObservableObject*/ {
                 handleInPlayer = 0;
             }
         }
-        onNextSongsEdited();
-        playNext(startIt: true);
+        onNextSongsEdited(reloadView: true);
+        playNow(startIt: true);
     }
 
 }

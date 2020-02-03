@@ -41,7 +41,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         NotificationCenter.default.addObserver(self, selector: #selector(mediaDidEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil);
-        
+
         loginState.goOffline(onProgress: { str in }, onFinish: {b in })
         return true
     }
@@ -87,6 +87,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     
     var playQueueTVC : PlayQueueTVC? = nil;
+    var tabBarContoller : MainTabBarController? = nil;
     
 //    func advanceQueueTo(_ row: Int)
 //    {

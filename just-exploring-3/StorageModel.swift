@@ -34,13 +34,15 @@ class TransferHandler: NSObject, MEGATransferDelegate {
 class StorageModel {
     
     var downloading : Set<UInt64> = [];
-    var downloaded : Set<UInt64> = [];
+    //var downloaded : Set<UInt64> = [];
 
     var transferDelegate = TransferHandler();
 
     func fileDownloaded(_ node: MEGANode) -> Bool
     {
-        return downloaded.contains(node.handle)
+        //return downloaded.contains(node.handle)
+        guard let filename = fileFingerprintPath(node: node) else { return false }
+        return FileManager.default.fileExists(atPath: filename);
     }
     
     func fileFingerprintPath(node: MEGANode) -> String?
@@ -78,23 +80,29 @@ class StorageModel {
         }
         return nil;
     }
-    
-    func startDownloadIfAbsent(_ node: MEGANode)
+
+    func isDownloading(_ node : MEGANode) -> Bool
     {
-        if !downloading.contains(node.handle) && !downloaded.contains(node.handle)
+        return downloading.contains(node.handle)
+    }
+    
+    func startDownloadIfAbsent(_ node: MEGANode) -> Bool
+    {
+        if !isDownloading(node) && !fileDownloaded(node)
         {
             if let filename = fileFingerprintPath(node: node) {
                 mega().startDownloadNode(node, localPath: filename);
                 downloading.insert(node.handle);
                 print("downloading \(filename)")
+                return true
             }
         }
+        return false
     }
     
    func fileArrived(handle : UInt64)
    {
        downloading.remove(handle);
-       downloaded.insert(handle);
        app().playQueue.songDownloaded(handle)
    }
    
@@ -161,8 +169,8 @@ class StorageModel {
     
     func cachePath() -> String
     {
-        // choosing applicationSupportDirectory means the files will not be accessib	le from other apps,
-        // won't be removed by the system (unlike cache diretories) and we can set flags to prevent
+        // choosing applicationSupportDirectory means the files will not be accessible from other apps,
+        // won't be removed by the system (unlike cache directories) and we can set flags to prevent
         // the files being synced by iTunes or iCloud.
         // https://developer.apple.com/library/archive/qa/qa1719/_index.html
         let folderUrls = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask);
