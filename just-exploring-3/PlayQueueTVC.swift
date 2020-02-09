@@ -14,7 +14,7 @@ class PlayQueueTVC: UITableViewController {
 
     var pvc : AVPlayerViewController? = nil;
     var headerControl : UISegmentedControl? = nil;
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -30,8 +30,23 @@ class PlayQueueTVC: UITableViewController {
         pvc!.view.frame = playerPlaceholder.bounds;
         pvc!.player = app().playQueue.player;
         app().playQueueTVC = self;
-        tableView.estimatedSectionHeaderHeight = 40;
+        //tableView.estimatedSectionHeaderHeight = 40;
         tableView.isEditing = false;
+        
+        segmentedControl.addTarget(self, action: #selector(segmentedIndexChanged(_:)), for: .valueChanged)
+
+    }
+
+    var showHistory : Bool = false;
+    
+    @objc func segmentedIndexChanged(_ value : Int) {
+        showHistory = segmentedControl.selectedSegmentIndex == 1;
+        tableView.reloadData();
+    }
+    
+    func displaySongs() -> [MEGANode]
+    {
+        return showHistory ? app().playQueue.playedSongs : app().playQueue.nextSongs;
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -71,11 +86,18 @@ class PlayQueueTVC: UITableViewController {
     // MARK: - Table view data source
 
     @IBOutlet weak var playerPlaceholder: UIView!
-    
+    @IBOutlet weak var songCountLabel : UILabel!;
+    @IBOutlet weak var segmentedControl : UISegmentedControl!;
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated);
         
         tableView.reloadData();
+        var sum = 0;
+        for n in displaySongs() {
+            if (n.duration > 0) { sum += n.duration; }
+        }
+        songCountLabel.text = String(format: "%d Songs %02d:%02d:%02d", app().playQueue.nextSongs.count, sum/3600, (sum/60)%60, sum%60)
     }
     
     // MARK: - Table view data source
@@ -86,29 +108,42 @@ class PlayQueueTVC: UITableViewController {
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return app().playQueue.nextSongs.count;
+        return displaySongs().count;
     }
     
-    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if (headerControl == nil)
-        {
-            headerControl = UISegmentedControl(frame: CGRect(x: 10, y:5, width: tableView.frame.width - 20, height: 30));
-            headerControl!.insertSegment(withTitle: "<<", at: 0, animated: false);
-            headerControl!.insertSegment(withTitle: "<Current>", at: 1, animated: false);
-            headerControl!.insertSegment(withTitle: ">>", at: 2, animated: false);
-        }
-        return headerControl!;
-    }
+//    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+////        if (headerControl == nil)
+////        {
+////            headerControl = UISegmentedControl(frame: CGRect(x: 10, y:5, width: tableView.frame.width - 20, height: 30));
+////            headerControl!.insertSegment(withTitle: "<<", at: 0, animated: false);
+////            headerControl!.insertSegment(withTitle: "<Current>", at: 1, animated: false);
+////            headerControl!.insertSegment(withTitle: ">>", at: 2, animated: false);
+////        }
+////        return headerControl!;
+//        return nil;
+//    }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MusicCell", for: indexPath)
         
-        cell.textLabel?.text = app().playQueue.nextSongs[indexPath.row].name
+        let node = displaySongs()[indexPath.row];
+        
+        cell.textLabel?.numberOfLines = 0;
+        cell.textLabel?.lineBreakMode = .byWordWrapping;
+        
+        var title : String? = node.customArtist;
+        if (title == nil) { title = node.name; }
+        var bpm : String? = node.customBPM;
+        if (bpm == nil) { bpm = ""; }
+        var artist : String? = node.customArtist;
+        if (artist == nil) { artist = "" }
+        
+        cell.textLabel?.text = String(format: "%02d:%02d | ", node.duration / 60, node.duration % 60) + node.name + "\n" + bpm! + " | " + artist!;
         
         let musicCell = cell as? TableViewMusicCell
         if (musicCell != nil)
         {
-            musicCell!.node = app().playQueue.nextSongs[indexPath.row];
+            musicCell!.node = displaySongs()[indexPath.row];
             
             let exists = app().storageModel.fileDownloaded(musicCell!.node!);
             
@@ -153,34 +188,60 @@ class PlayQueueTVC: UITableViewController {
 
         if (tableView.isEditing) { return false; }
         
-        let queue = app().playQueue.nextSongs;
-        // long press to show menu for song
-        if (indexPath.row < queue.count)
-        {
-            let node = queue[indexPath.row];
-
-            let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
-            
-            alert.addAction(UIAlertAction(title: "Delete to top", style: .default, handler:
-                { (UIAlertAction) -> () in app().playQueue.deleteToTop(indexPath.row); tableView.reloadData() }));
-            
-            alert.addAction(UIAlertAction(title: "Delete to bottom", style: .default, handler:
-                { (UIAlertAction) -> () in app().playQueue.deleteToBottom(indexPath.row); tableView.reloadData() }));
-            
-            alert.addAction(UIAlertAction(title: "Play next", style: .default, handler:
-                { (UIAlertAction) -> () in app().playQueue.moveSongNext(indexPath.row); tableView.reloadData() }));
-            
-            alert.addAction(UIAlertAction(title: "Play right now", style: .default, handler:
-                { (UIAlertAction) -> () in app().playQueue.playRightNow(indexPath.row); tableView.reloadData() }));
-            
-            if (node.type != MEGANodeType.file)
+        if (showHistory) {
+            let queue = app().playQueue.playedSongs;
+            // long press to show menu for song
+            if (indexPath.row < queue.count)
             {
-                alert.addAction(UIAlertAction(title: "Expand folder", style: .default, handler:
-                    { (UIAlertAction) -> () in app().playQueue.expandQueueItem(indexPath.row); tableView.reloadData() }));
+                let node = queue[indexPath.row];
+
+                let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
+                
+                alert.addAction(UIAlertAction(title: "Play next", style: .default, handler:
+                    { (UIAlertAction) -> () in app().playQueue.queueSongNext(node: node); tableView.reloadData() }));
+                
+                alert.addAction(UIAlertAction(title: "Queue song", style: .default, handler:
+                    { (UIAlertAction) -> () in app().playQueue.queueSong(node: node); tableView.reloadData() }));
+                
+                alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+                self.present(alert, animated: false, completion: nil)
             }
-            alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
-            self.present(alert, animated: false, completion: nil)
         }
+        else {
+            let queue = app().playQueue.nextSongs;
+            // long press to show menu for song
+            if (indexPath.row < queue.count)
+            {
+                let node = queue[indexPath.row];
+
+                let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
+                
+                alert.addAction(UIAlertAction(title: "Play next", style: .default, handler:
+                    { (UIAlertAction) -> () in app().playQueue.moveSongNext(indexPath.row); tableView.reloadData() }));
+                
+                alert.addAction(UIAlertAction(title: "Play right now", style: .default, handler:
+                    { (UIAlertAction) -> () in app().playQueue.playRightNow(indexPath.row); tableView.reloadData() }));
+                
+                alert.addAction(UIAlertAction(title: "Send to bottom", style: .default, handler:
+                    { (UIAlertAction) -> () in app().playQueue.moveSongLast(indexPath.row); tableView.reloadData() }));
+                
+                if (node.type != MEGANodeType.file)
+                {
+                    alert.addAction(UIAlertAction(title: "Expand folder", style: .default, handler:
+                        { (UIAlertAction) -> () in app().playQueue.expandQueueItem(indexPath.row); tableView.reloadData() }));
+                }
+
+                alert.addAction(UIAlertAction(title: "Delete to top", style: .default, handler:
+                    { (UIAlertAction) -> () in app().playQueue.deleteToTop(indexPath.row); tableView.reloadData() }));
+                
+                alert.addAction(UIAlertAction(title: "Delete to bottom", style: .default, handler:
+                    { (UIAlertAction) -> () in app().playQueue.deleteToBottom(indexPath.row); tableView.reloadData() }));
+                
+                alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+                self.present(alert, animated: false, completion: nil)
+            }
+        }
+        
         return false;
     }
     

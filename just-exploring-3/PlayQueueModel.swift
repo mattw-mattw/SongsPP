@@ -151,6 +151,17 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         }
     }
     
+    func moveSongLast(_ row: Int)
+    {
+        if row < nextSongs.count
+        {
+            let node = nextSongs[row];
+            nextSongs.remove(at: row);
+            nextSongs.insert(node, at: nextSongs.count);
+            onNextSongsEdited(reloadView: true);
+        }
+    }
+    
     func shuffleQueue()
     {
         let start = nextSongs.count > 0 && handleInPlayer != 0 ? 1 : 0;
@@ -229,16 +240,19 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     
     func expandAll()
     {
+        var expanded = false
         var row : Int = 0;
         while (row < nextSongs.count)
         {
             if (isExpandable(node: nextSongs[row])) {
                 expandQueueItem(row);
+                expanded = true;
             }
             else {
                 row += 1;
             }
         }
+        if expanded { onNextSongsEdited(reloadView : true) }
     }
     
     func expandQueueItem(_ row: Int)
@@ -368,11 +382,11 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     
     func moveSongToHistory(index: Int)
     {
-        playedSongs.append(nextSongs[index]);
+        playedSongs.insert(nextSongs[index], at: 0);
         nextSongs.remove(at: index);
-        if (playedSongs.count > 100)
+        while (playedSongs.count > 100)
         {
-            playedSongs.remove(at: 0);
+            playedSongs.remove(at: 100);
         }
     }
     

@@ -34,15 +34,17 @@ class TransferHandler: NSObject, MEGATransferDelegate {
 class StorageModel {
     
     var downloading : Set<UInt64> = [];
-    //var downloaded : Set<UInt64> = [];
+    var downloaded : Set<UInt64> = [];
 
     var transferDelegate = TransferHandler();
 
     func fileDownloaded(_ node: MEGANode) -> Bool
     {
-        //return downloaded.contains(node.handle)
+        if downloaded.contains(node.handle) { return true; }
         guard let filename = fileFingerprintPath(node: node) else { return false }
-        return FileManager.default.fileExists(atPath: filename);
+        let exists = FileManager.default.fileExists(atPath: filename);
+        if (exists) { downloaded.insert(node.handle); }
+        return exists;
     }
     
     func fileFingerprintPath(node: MEGANode) -> String?
