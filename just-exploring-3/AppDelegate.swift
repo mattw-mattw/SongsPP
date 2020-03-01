@@ -17,19 +17,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        do {
-            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [.mixWithOthers, .allowAirPlay])
-            print("Playback OK")
-            try AVAudioSession.sharedInstance().setActive(true)
-            print("Session is Active")
-            //try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback);
-            
-            //try AVAudioSessionPatch.setSession(AVAudioSession.sharedInstance(), category: .playback, with: [.defaultToSpeaker, .mixWithOthers])
-
-            application.beginReceivingRemoteControlEvents();
-        } catch {
-            print(error)
-        }
+//        do {
+////            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [.mixWithOthers, .allowAirPlay])
+////            print("Playback OK")
+//  //          try AVAudioSession.sharedInstance().setActive(true)
+// //           print("Session is Active")
+//            //try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback);
+//
+//            //try AVAudioSessionPatch.setSession(AVAudioSession.sharedInstance(), category: .playback, with: [.defaultToSpeaker, .mixWithOthers])
+//
+// //           application.beginReceivingRemoteControlEvents();
+//        } catch {
+//            print(error)
+//        }
         return true
     }
 
@@ -77,153 +77,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var musicBrowseFolder : MEGANode? = nil;
     var playlistBrowseFolder : MEGANode? = nil;
     
-//    var player : AVPlayer = AVPlayer();
-//    var handleInPlayer : UInt64 = 0;
-//    var shouldBePlaying : Bool = false;
-    
-//    var nextSongs : [MEGANode] = [];
-//    var playedSongs : [MEGANode] = [];
     var swipedRightSet : [MEGANode] = [];
-
     
     var playQueueTVC : PlayQueueTVC? = nil;
     var tabBarContoller : MainTabBarController? = nil;
-    
-//    func advanceQueueTo(_ row: Int)
-//    {
-//        // songs skipped go into the 'played' list
-//        for i in 0...row
-//        {
-//            if (i > 0 && i < row && 1 < nextSongs.count)
-//            {
-//                playedSongs.insert(nextSongs[1], at: 0);
-//                nextSongs.remove(at: 1);
-//                if (playedSongs.count > 100)
-//                {
-//                    playedSongs.remove(at: playedSongs.count-1);
-//                }
-//            }
-//        }
-//        StartAnyDownloads();
-//    }
-//
-//    func deleteQueueTo(_ row: Int)
-//    {
-//        for i in 0...row
-//        {
-//            if (i > 0 && i < row && 1 < nextSongs.count)
-//            {
-//                nextSongs.remove(at: 1);
-//            }
-//        }
-//        StartAnyDownloads();
-//    }
-//
-//    func deleteQueueAfter(_ row: Int)
-//    {
-//        while row + 1 < nextSongs.count
-//        {
-//            nextSongs.remove(at: row+1);
-//        }
-//        StartAnyDownloads();
-//    }
-//
-//    func playRightNow(_ row: Int)
-//    {
-//        if row < nextSongs.count
-//        {
-//            playedSongs.append(app().nextSongs[0]);
-//            nextSongs[0] = nextSongs[row];
-//            if (row > 0) { nextSongs.remove(at: row);}
-//            handleInPlayer = nextSongs[0].handle;
-//        }
-//        StartAnyDownloads();
-//        playNext(startIt: true);
-//    }
-//
-//    func expandPlaylist(_ row: Int)
-//    {
-//        var newrow = row+1;
-//        do {
-//            let filename = cachePath() + "/nextsongs/" + nextSongs[row].name;
-//            let content = try String(contentsOf: URL(string: "file://" + filename)!, encoding: .utf8);
-//            let contentData = content.data(using: .utf8);
-//            let json = try JSONSerialization.jsonObject(with: contentData!, options: []);
-//            if let array = json as? [Any] {
-//                for object in array {
-//                    print("array entry");
-//                    if let attribs = object as? [String : Any] {
-//                        print("as object");
-//                        if let handleStr = attribs["h"] {
-//                            print(handleStr);
-//                            let node = mega!.node(forHandle: MEGASdk.handle(forBase64Handle: handleStr as! String));
-//                            if (node != nil) {
-//                                nextSongs.insert(node!, at: newrow);
-//                                newrow += 1;
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        catch {
-//
-//        }
-//        nextSongs.remove(at: row);
-//    }
-//
-//    func expandQueueItem(_ row: Int)
-//    {
-//        if (row >= 0 && row < nextSongs.count)
-//        {
-//            let node = nextSongs[row];
-//            if (node.type != MEGANodeType.file)
-//            {
-//                nextSongs.remove(at: row);
-//                let nodeList = mega!.children(forParent: node, order: 1)
-//                for i in 0...(nodeList.size.intValue-1)
-//                {
-//                    nextSongs.insert(nodeList.node(at: i), at: row+i)
-//                }
-//            }
-//            else if (node.name.hasSuffix(".playlist") && downloaded.contains(nextSongs[0].handle))
-//            {
-//                expandPlaylist(row);
-//            }
-//        }
-//        StartAnyDownloads()
-//    }
-//
-//    func isExpandable(node: MEGANode) -> Bool
-//    {
-//        return node.type != MEGANodeType.file || node.name.hasSuffix(".playlist") && downloaded.contains(node.handle);
-//    }
-//
-//    func StartAnyDownloads()
-//    {
-//        while (nextSongs.count > 0 && isExpandable(node: nextSongs[0]))
-//        {
-//            expandQueueItem(0);
-//        }
-//        while (nextSongs.count > 1 && isExpandable(node: nextSongs[1]))
-//        {
-//            expandQueueItem(1);
-//        }
-//        for i in 0...1
-//        {
-//            if (i < nextSongs.count)
-//            {
-//                let node = nextSongs[i];
-//                if !downloading.contains(node.handle) && !downloaded.contains(node.handle)
-//                {
-//                    let filename = cachePath()+"/nextsongs/" + node.name;
-//                    mega!.startDownloadNode(node, localPath: filename);
-//                    downloading.insert(node.handle);
-//                    print("downloading \(filename)")
-//                }
-//            }
-//        }
-//    }
 
     func downloadProgress(nodeHandle : UInt64, percent : NSNumber )
     {
@@ -232,80 +89,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             playQueueTVC!.downloadProgress(nodeHandle, percent);
         }
     }
-
-//    func onSongFinishedPlaying()
-//    {
-//        if (nextSongs.count > 0)
-//        {
-//            if (nextSongs[0].handle == handleInPlayer)
-//            {
-//                playedSongs.append(app().nextSongs[0]);
-//                nextSongs.remove(at: 0);
-//                if (playedSongs.count > 100)
-//                {
-//                    playedSongs.remove(at: 0);
-//                }
-//                handleInPlayer = 0;
-//            }
-//            playQueueTVC?.tableView.reloadData();
-//        }
-//        StartAnyDownloads();
-//        playNext(startIt: true);
-//    }
-//
-//    func playNext(startIt: Bool)
-//    {
-//        if (nextSongs.count > 0 && downloaded.contains(nextSongs[0].handle))
-//        {
-//            let filename = cachePath() + "/nextsongs/" + nextSongs[0].name;
-//            let file = URL(fileURLWithPath: filename);
-//            player.replaceCurrentItem(with: AVPlayerItem(url: file));
-//            if (startIt) { self.player.play(); }
-//            handleInPlayer = app().nextSongs[0].handle;
-//
-//            do {
-//                try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [.mixWithOthers, .allowAirPlay])
-//                print("Playback OK")
-//                try AVAudioSession.sharedInstance().setActive(true)
-//                print("Session is Active")
-//                //try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback);
-//
-//                //try AVAudioSessionPatch.setSession(AVAudioSession.sharedInstance(), category: .playback, with: [.defaultToSpeaker, .mixWithOthers])
-//
-//                //application.beginReceivingRemoteControlEvents();
-//            } catch {
-//                print(error)
-//            }
-//
-//        }
-//        else
-//        {
-//            shouldBePlaying = nextSongs.count > 1;
-//            handleInPlayer = 0;
-//            self.player.replaceCurrentItem(with: nil);
-//        }
-//    }
-//
-//    @objc func mediaDidEnd(notification: NSNotification)
-//    {
-//        onSongFinishedPlaying();
-//        playNext(startIt: true);
-//    }
-
-    
-
- 
-//    func queueSong(node : MEGANode)
-//    {
-//        nextSongs.append(node);
-//        StartAnyDownloads();
-//    }
-//
-//    func queueSongNext(node : MEGANode)
-//    {
-//        nextSongs.insert(node, at: 0);
-//        StartAnyDownloads();
-//    }
     
     var swipeRightPlaysSong : Bool = true;
     

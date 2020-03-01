@@ -10,7 +10,12 @@ import UIKit
 
 class TableViewMusicCell: UITableViewCell {
 
-    @IBOutlet weak var progressBar: UIProgressView?
+    @IBOutlet weak var progressBar: UIProgressView!
+    @IBOutlet weak var durationLabel: UILabel!
+    @IBOutlet weak var bpmLabel: UILabel!
+    @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var artistLabel: UILabel!
+    @IBOutlet weak var thumbnailView: UIImageView!
     
     var node : MEGANode?
     

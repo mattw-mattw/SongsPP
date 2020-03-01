@@ -56,7 +56,10 @@ class BrowseTVC: UITableViewController {
         
         alert.addAction(UIAlertAction(title: "Queue all", style: .default, handler:
             { (UIAlertAction) -> () in self.QueueAll() }));
-              
+
+        alert.addAction(UIAlertAction(title: "Queue+Expand+Shuffle all", style: .default, handler:
+            { (UIAlertAction) -> () in self.QueueExpandShuffleAll() }));
+
         alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
         self.present(alert, animated: false, completion: nil)
     }
@@ -70,6 +73,20 @@ class BrowseTVC: UITableViewController {
                 nodes.append(nodeList!.node(at: i))
             }
             app().playQueue.queueSongs(nodes: nodes)
+        }
+    }
+
+    func QueueExpandShuffleAll()
+    {
+        if (nodeList != nil)
+        {
+            var nodes : [MEGANode] = [];
+            for i in 0..<nodeList!.size.intValue {
+                nodes.append(nodeList!.node(at: i))
+            }
+            app().playQueue.queueSongs(nodes: nodes)
+            app().playQueue.expandAll()
+            app().playQueue.shuffleQueue()
         }
     }
 

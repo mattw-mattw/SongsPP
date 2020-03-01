@@ -7,7 +7,7 @@
 //
 
 import Foundation
-
+import MediaPlayer
 
 class BrowseNode /*: ObservableObject*/ {
     /*@Published*/ var node : MEGANode? = nil;
@@ -117,7 +117,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         var playableNodes = nodes;
         var i: Int = 0;
         while (i < playableNodes.count) {
-            if isPlayable(playableNodes[i]) {
+            if isPlayable(playableNodes[i], orMightContainPlayable: true) {
                 i += 1;
             }
             else {
@@ -134,7 +134,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     
     func queueSongNext(node : MEGANode)
     {
-        if isPlayable(node) {
+        if isPlayable(node, orMightContainPlayable: true) {
             nextSongs.insert(node, at: nextSongs.count > 0 && handleInPlayer == nextSongs[0].handle ? 1 : 0);
             onNextSongsEdited(reloadView: true);
         }
@@ -177,11 +177,13 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     
     func deleteToTop(_ row: Int)
     {
-        for _ in 1...row
-        {
-            if (1 < nextSongs.count)
+        if (row > 0) {
+            for _ in 1...row
             {
-                nextSongs.remove(at: 1);
+                if (1 < nextSongs.count)
+                {
+                    nextSongs.remove(at: 1);
+                }
             }
         }
         onNextSongsEdited(reloadView: true);
@@ -233,9 +235,22 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         nextSongs.remove(at: row);
     }
     
-    func isPlayable(_ n : MEGANode) -> Bool
+    var playableExtensions = [ ".mp3", ".m4a", ".aac", ".wav", ".flac", ".aiff", ".au", ".pcm", ".ac3", ".aa", ".aax"];
+    
+    func isPlayable(_ n : MEGANode, orMightContainPlayable : Bool) -> Bool
     {
-        return !n.name.hasSuffix(".jpg")
+        if orMightContainPlayable {
+            if (n.isFile() && n.name.hasSuffix(".playlist")) { return true; }
+            if (n.isFolder()) { return true; }
+        }
+        if (n.isFile()) {
+            if let name = n.name {
+                for ext in playableExtensions {
+                    if name.hasSuffix(ext) { return true; }
+                }
+            }
+        }
+        return false;
     }
     
     func expandAll()
@@ -268,14 +283,14 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 for i in 0..<nodeList.size.intValue
                 {
                     if let n = nodeList.node(at: i) {
-                        if isPlayable(n) {
+                        if isPlayable(n, orMightContainPlayable: true) {
                             nextSongs.insert(n, at: insertPos)
                             insertPos += 1;
                         }
                     }
                 }
             }
-            else if (node.name.hasSuffix(".playlist") && app().storageModel.fileDownloaded(nextSongs[0]))
+            else if (node.name.hasSuffix(".playlist") && app().storageModel.fileDownloaded(nextSongs[row]))
             {
                 expandPlaylist(row);
             }
@@ -302,8 +317,9 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 expandQueueItem(index);
                 reloadTableView = true;
             }
-            if (app().storageModel.isDownloading(nextSongs[index]) ||
-                app().storageModel.startDownloadIfAbsent(nextSongs[index]))
+            if (index < nextSongs.count &&
+                (app().storageModel.isDownloading(nextSongs[index]) ||
+                app().storageModel.startDownloadIfAbsent(nextSongs[index])))
             {
                 numDownloading += 1;
             }
@@ -334,6 +350,28 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         }
     }
     
+    var nowPlayingInfoCenter = MPNowPlayingInfoCenter.default()
+    var remoCommandCenter = MPRemoteCommandCenter.shared()
+    func updateNowPlayingInfo(trackName:String,artistName:String/*,img:UIImage*/) {
+
+//        var art = MPMediaItemArtwork(image: img)
+//        if #available(iOS 10.0, *) {
+//            art = MPMediaItemArtwork(boundsSize: CGSize(width: 200, height: 200)) { (size) -> UIImage in
+//                return img
+//            }
+//        }
+
+        nowPlayingInfoCenter.nowPlayingInfo = [MPMediaItemPropertyTitle: trackName,
+                                               MPMediaItemPropertyArtist: artistName
+                                               /*MPMediaItemPropertyArtwork : art*/ ]
+
+        remoCommandCenter.seekForwardCommand.isEnabled = false
+        remoCommandCenter.seekBackwardCommand.isEnabled = false
+        remoCommandCenter.previousTrackCommand.isEnabled = true
+        remoCommandCenter.nextTrackCommand.isEnabled = true
+        remoCommandCenter.togglePlayPauseCommand.isEnabled = true
+    }
+    	
     func playNow(startIt: Bool)
     {
         if (nextSongs.count > 0)
@@ -343,6 +381,11 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 if (startIt) {
                     self.player.play();
                     handleInPlayer = nextSongs[0].handle;
+                    var title = nextSongs[0].customTitle;
+                    var artist = nextSongs[0].customArtist;
+                    if title == nil { title = nextSongs[0].name };
+                    if artist == nil { artist = ""; }
+                    updateNowPlayingInfo(trackName: title!, artistName: artist!)
                 }
                 
                 do {
@@ -389,6 +432,19 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             playedSongs.remove(at: 100);
         }
     }
+
+    func timeTravel(index: Int)
+    {
+        if (index < playedSongs.count)
+        {
+            for i in 0...index {
+                nextSongs.insert(playedSongs[i], at: 0);
+            }
+            playedSongs.removeFirst(index+1);
+        }
+        onNextSongsEdited(reloadView: true);
+    }
+
     
     func onSongFinishedPlaying()
     {
@@ -402,6 +458,28 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         }
         onNextSongsEdited(reloadView: true);
         playNow(startIt: true);
+    }
+    
+    func saveAsPlaylist()
+    {
+        if (app().loginState.loggedInOffline)
+        {
+            reportMessage(uic: app().playQueueTVC!, message: "Please go online to upload the playlist")
+            return;
+        }
+        
+        var comma = false;
+        var s = "[";
+        for n in nextSongs {
+            if comma { s += ","; }
+            comma = true;
+            s += "{\"h\":\"" + n.base64Handle + "\"}";
+        }
+        s += "]"
+        let uploadpath = app().storageModel.getUploadPlaylistFileURL();
+        let url = URL(fileURLWithPath: uploadpath);
+        try! s.write(to: url, atomically: true, encoding: .ascii)
+        mega().startUpload(withLocalPath:uploadpath, parent: app().playlistBrowseFolder!)
     }
 
 }

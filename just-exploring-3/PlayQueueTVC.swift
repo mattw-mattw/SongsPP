@@ -10,10 +10,13 @@ import Foundation
 import UIKit
 import AVKit
 
+
+
 class PlayQueueTVC: UITableViewController {
 
     var pvc : AVPlayerViewController? = nil;
     var headerControl : UISegmentedControl? = nil;
+    var audioSession = AVAudioSession.sharedInstance()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -35,6 +38,12 @@ class PlayQueueTVC: UITableViewController {
         
         segmentedControl.addTarget(self, action: #selector(segmentedIndexChanged(_:)), for: .valueChanged)
 
+        try! self.audioSession.setCategory(AVAudioSession.Category.playback)
+        try! self.audioSession.setActive(true)
+
+        //UIApplication.shared.beginReceivingRemoteControlEvents()
+        //self.becomeFirstResponder()
+        
     }
 
     var showHistory : Bool = false;
@@ -78,6 +87,9 @@ class PlayQueueTVC: UITableViewController {
         
         alert.addAction(UIAlertAction(title: tableView.isEditing ? "Disable Edit" : "Enable Edit", style: .default, handler:
             { (UIAlertAction) -> () in self.tableView.isEditing.toggle() }));
+
+        alert.addAction(UIAlertAction(title: "Save as playlist", style: .default, handler:
+            { (UIAlertAction) -> () in app().playQueue.saveAsPlaylist() }));
 
         alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
         self.present(alert, animated: false, completion: nil)
@@ -123,38 +135,59 @@ class PlayQueueTVC: UITableViewController {
 //        return nil;
 //    }
     
+
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MusicCell", for: indexPath)
-        
+        if let musicCell = cell as? TableViewMusicCell {
+
         let node = displaySongs()[indexPath.row];
         
-        cell.textLabel?.numberOfLines = 0;
-        cell.textLabel?.lineBreakMode = .byWordWrapping;
+//        cell.textLabel?.numberOfLines = 0;
+//        cell.textLabel?.lineBreakMode = .byWordWrapping;
         
-        var title : String? = node.customArtist;
+        var title : String? = node.customTitle;
         if (title == nil) { title = node.name; }
         var bpm : String? = node.customBPM;
         if (bpm == nil) { bpm = ""; }
         var artist : String? = node.customArtist;
         if (artist == nil) { artist = "" }
         
-        cell.textLabel?.text = String(format: "%02d:%02d | ", node.duration / 60, node.duration % 60) + node.name + "\n" + bpm! + " | " + artist!;
+        musicCell.durationLabel.text = String(format: "%02d:%02d", node.duration / 60, node.duration % 60)
+        musicCell.titleLabel.text = title!;
+        musicCell.bpmLabel.text = bpm!;
+        musicCell.artistLabel.text = artist!;
         
-        let musicCell = cell as? TableViewMusicCell
-        if (musicCell != nil)
+        musicCell.thumbnailView.image = nil;
+        if (node.hasThumbnail())
         {
-            musicCell!.node = displaySongs()[indexPath.row];
-            
-            let exists = app().storageModel.fileDownloaded(musicCell!.node!);
-            
-            if (musicCell!.progressBar != nil)
-            {
-                musicCell!.contentView.bringSubviewToFront(musicCell!.progressBar!);
-                
-                musicCell!.progressBar!.isHidden = !exists;
-                musicCell!.progressBar!.progress = exists ? 100 : 0;
-                musicCell!.progressBar!.setNeedsDisplay();
+            if (app().storageModel.thumbnailDownloaded(node)) {
+                if let path = app().storageModel.thumbnailPath(node: node) {
+                    if let image = UIImage(contentsOfFile: path) {
+                        
+                        //cell.imageView!.frame = CGRect(x: cell.imageView!.frame.origin.x
+                        //ycell.imageView!.frame.origin.y,width: 40, height: 40)
+                        //cell.imageView!.autoresizingMask = [.flexibleWidth]
+                        //cell.imageView!.translatesAutoresizingMaskIntoConstraints = true;
+                        //cell.imageView!.contentMode = .;
+                        musicCell.thumbnailView.image = image;
+                    }
+                }
             }
+        }
+        
+        musicCell.node = displaySongs()[indexPath.row];
+        
+        let exists = app().storageModel.fileDownloaded(musicCell.node!);
+        
+        if (musicCell.progressBar != nil)
+        {
+            musicCell.contentView.bringSubviewToFront(musicCell.progressBar);
+            
+            musicCell.progressBar.isHidden = !exists;
+            musicCell.progressBar.progress = exists ? 100 : 0;
+            musicCell.progressBar.setNeedsDisplay();
+        }
         }
         
         return cell
@@ -202,7 +235,10 @@ class PlayQueueTVC: UITableViewController {
                 
                 alert.addAction(UIAlertAction(title: "Queue song", style: .default, handler:
                     { (UIAlertAction) -> () in app().playQueue.queueSong(node: node); tableView.reloadData() }));
-                
+
+                alert.addAction(UIAlertAction(title: "Time travel", style: .default, handler:
+                    { (UIAlertAction) -> () in app().playQueue.timeTravel(index: indexPath.row); tableView.reloadData() }));
+
                 alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
                 self.present(alert, animated: false, completion: nil)
             }

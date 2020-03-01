@@ -36,6 +36,9 @@ class StorageModel {
     var downloading : Set<UInt64> = [];
     var downloaded : Set<UInt64> = [];
 
+    var downloadingThumbnail : Set<UInt64> = [];
+    var downloadedThumbnail : Set<UInt64> = [];
+
     var transferDelegate = TransferHandler();
 
     func fileDownloaded(_ node: MEGANode) -> Bool
@@ -44,6 +47,19 @@ class StorageModel {
         guard let filename = fileFingerprintPath(node: node) else { return false }
         let exists = FileManager.default.fileExists(atPath: filename);
         if (exists) { downloaded.insert(node.handle); }
+        return exists;
+    }
+    
+    func thumbnailDownloaded(_ node: MEGANode) -> Bool
+    {
+        if downloadedThumbnail.contains(node.handle) { return true; }
+        guard let filename = thumbnailPath(node: node) else { return false }
+        let exists = FileManager.default.fileExists(atPath: filename);
+        if (exists) { downloadedThumbnail.insert(node.handle); }
+        if (!exists && !downloadingThumbnail.contains(node.handle)) {
+            downloadingThumbnail.insert(node.handle);
+            mega().getThumbnailNode(node, destinationFilePath: filename)
+        }
         return exists;
     }
     
@@ -62,10 +78,25 @@ class StorageModel {
         return cachePath() + "/fp/" + node.fingerprint + "/" + node.name;
     }
     
+    func thumbnailPath(node: MEGANode) -> String?
+    {
+        if let f = fileFingerprintPath(node: node)  { return f + ".jpg"; }
+        return nil;
+    }
+    
     func getDownloadedFileURL(_ node: MEGANode) -> URL?
     {
         guard let filename = fileFingerprintPath(node: node) else { return nil }
         return FileManager.default.fileExists(atPath: filename) ? URL(fileURLWithPath: filename) : nil;
+    }
+
+    func getUploadPlaylistFileURL() -> String
+    {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        var doneAlready = false;
+        assureFolderExists(cachePath() + "/upload/", doneAlready: &doneAlready);
+        return cachePath() + "/upload/" + formatter.string(from: Date()) + ".playlist";
     }
     
     func getDownloadedFileAsJSON(_ node: MEGANode) -> Any?
