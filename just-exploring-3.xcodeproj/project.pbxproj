@@ -188,6 +188,7 @@
 				84008B9523603A4400BD633F /* AppDelegate.swift */,
 				84559EE2237BFFE4005B8342 /* AVAudioSessionPatch.h */,
 				84559EE3237BFFFB005B8342 /* AVAudioSessionPatch.m */,
+				8498DB90236652D00036B1F6 /* AVPlayerVC.swift */,
 				8498DB8A236559830036B1F6 /* RequestHandler.swift */,
 				8498DB8E236651080036B1F6 /* TransferHandler.swift */,
 				84008B9723603A4400BD633F /* ViewController.swift */,
@@ -196,15 +197,14 @@
 				C96F3AD823BFDB87008BF07D /* MenuVC.swift */,
 				84559EE0237A9FB0005B8342 /* TableViewMusicCell.swift */,
 				8498DB9823669FA50036B1F6 /* PlayQueueTVC.swift */,
-				8498DB90236652D00036B1F6 /* AVPlayerVC.swift */,
+				C96F3AD623BFC995008BF07D /* PlayQueueModel.swift */,
+				C96F3ADC23C01A07008BF07D /* StorageModel.swift */,
 				8498DB8C23661DF80036B1F6 /* BrowseTVC.swift */,
 				8498DB88236524F90036B1F6 /* LoginVC.swift */,
 				C96F3AD423BFC799008BF07D /* LoginStateModel.swift */,
-				C96F3AD623BFC995008BF07D /* PlayQueueModel.swift */,
 				84008B9C23603A5100BD633F /* Assets.xcassets */,
 				84008B9E23603A5100BD633F /* LaunchScreen.storyboard */,
 				84008BA123603A5100BD633F /* Info.plist */,
-				C96F3ADC23C01A07008BF07D /* StorageModel.swift */,
 			);
 			path = "just-exploring-3";
 			sourceTree = "<group>";

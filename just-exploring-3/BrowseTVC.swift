@@ -125,7 +125,7 @@ class BrowseTVC: UITableViewController {
         {
             let parent = mega().parentNode(for: currentFolder!)
             if (parent != nil)
-            {
+            {	
                 load(node: parent);
             }
         }

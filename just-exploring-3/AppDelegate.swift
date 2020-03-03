@@ -16,20 +16,91 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
+    var player : AVPlayer? = nil;
+    
+    func setupRemoteTransportControls() {
+        // Get the shared MPRemoteCommandCenter
+        let commandCenter = MPRemoteCommandCenter.shared()
+
+        // Add handler for Play Command
+        commandCenter.playCommand.addTarget { [unowned self] event in
+            if self.player!.rate == 0.0 {
+                self.player!.play()
+                return .success
+            }
+            return .commandFailed
+        }
+
+        // Add handler for Pause Command
+        commandCenter.pauseCommand.addTarget { [unowned self] event in
+            if self.player!.rate == 1.0 {
+                self.player!.pause()
+                return .success
+            }
+            return .commandFailed
+        }
+        
+        commandCenter.nextTrackCommand.addTarget { event in
+            return app().playQueue.goNextTrack() ? .success : .commandFailed;
+        }
+
+        commandCenter.previousTrackCommand.addTarget { event in
+            return app().playQueue.goSongStartOrPrevTrack() ? .success : .commandFailed;
+        }
+
+    }
+    
+    func setupNowPlaying(node: MEGANode) {
+        
+        var title : String? = node.customTitle;
+        if (title == nil) { title = node.name; }
+        var artist : String? = node.customArtist;
+        if (artist == nil) { artist = "" }
+        
+        var image : UIImage? = nil;
+        if (node.hasThumbnail())
+        {
+            if (app().storageModel.thumbnailDownloaded(node)) {
+                if let path = app().storageModel.thumbnailPath(node: node) {
+                    image = UIImage(contentsOfFile: path);
+                }
+            }
+        }
+        
+        var nowPlayingInfo = [String : Any]()
+        nowPlayingInfo[MPMediaItemPropertyTitle] = title!;
+        nowPlayingInfo[MPMediaItemPropertyArtist] = artist!;
+        if image != nil { nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image!.size) { size in return image! } }
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = node.duration / 2;
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = node.duration;
+
+        // Set the metadata
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    
     func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-//        do {
-////            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [.mixWithOthers, .allowAirPlay])
+        
+        player = playQueue.player
+        
+        do {
+//            try AVAudioSessionPatch.setSession(AVAudioSession.sharedInstance(), category: .playback, with: [.defaultToSpeaker, .mixWithOthers])
+//            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [.mixWithOthers, .allowAirPlay])
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback);
+            //, mode: AVAudioSession.Mode.default, options: [.mixWithOthers, .allowAirPlay])
 ////            print("Playback OK")
-//  //          try AVAudioSession.sharedInstance().setActive(true)
+            try AVAudioSession.sharedInstance().setActive(true)
+            
+            setupRemoteTransportControls()
+//            setupNowPlaying();
 // //           print("Session is Active")
-//            //try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback);
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback);
 //
-//            //try AVAudioSessionPatch.setSession(AVAudioSession.sharedInstance(), category: .playback, with: [.defaultToSpeaker, .mixWithOthers])
 //
-// //           application.beginReceivingRemoteControlEvents();
-//        } catch {
-//            print(error)
-//        }
+            application.beginReceivingRemoteControlEvents();
+        } catch {
+            print(error)
+        }
         return true
     }
 

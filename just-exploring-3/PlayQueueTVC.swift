@@ -16,7 +16,7 @@ class PlayQueueTVC: UITableViewController {
 
     var pvc : AVPlayerViewController? = nil;
     var headerControl : UISegmentedControl? = nil;
-    var audioSession = AVAudioSession.sharedInstance()
+    //var audioSession = AVAudioSession.sharedInstance()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,8 +29,13 @@ class PlayQueueTVC: UITableViewController {
 //            UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
         
         pvc = AVPlayerViewController();
-        playerPlaceholder.addSubview(pvc!.view);
-        pvc!.view.frame = playerPlaceholder.bounds;
+        pvc?.updatesNowPlayingInfoCenter = false;
+        
+        //playerPlaceholder.addSubview(pvc!.view);
+        //pvc!.view.frame = playerPlaceholder.bounds;
+        //topHStack.addArrangedSubview(payingSongImage)
+        topHStack.addArrangedSubview(pvc!.view)
+        
         pvc!.player = app().playQueue.player;
         app().playQueueTVC = self;
         //tableView.estimatedSectionHeaderHeight = 40;
@@ -38,8 +43,8 @@ class PlayQueueTVC: UITableViewController {
         
         segmentedControl.addTarget(self, action: #selector(segmentedIndexChanged(_:)), for: .valueChanged)
 
-        try! self.audioSession.setCategory(AVAudioSession.Category.playback)
-        try! self.audioSession.setActive(true)
+        //try! self.audioSession.setCategory(AVAudioSession.Category.playback)
+        //try! self.audioSession.setActive(true)
 
         //UIApplication.shared.beginReceivingRemoteControlEvents()
         //self.becomeFirstResponder()
@@ -100,11 +105,22 @@ class PlayQueueTVC: UITableViewController {
     @IBOutlet weak var playerPlaceholder: UIView!
     @IBOutlet weak var songCountLabel : UILabel!;
     @IBOutlet weak var segmentedControl : UISegmentedControl!;
-
+    @IBOutlet weak var topHStack: UIStackView!
+    @IBOutlet weak var playingSongImage: UIImageView!
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated);
-        
+        redraw();
+    }
+    
+    func redraw()
+    {
         tableView.reloadData();
+        updateSongCountLabel();
+    }
+    
+    func updateSongCountLabel()
+    {
         var sum = 0;
         for n in displaySongs() {
             if (n.duration > 0) { sum += n.duration; }
@@ -135,7 +151,23 @@ class PlayQueueTVC: UITableViewController {
 //        return nil;
 //    }
     
-
+    func playingSongUpdated(nodeMaybe: MEGANode?)
+    {
+        playingSongImage.image = nil;
+        if let node = nodeMaybe
+        {
+            if (node.hasThumbnail())
+            {
+                if (app().storageModel.thumbnailDownloaded(node)) {
+                    if let path = app().storageModel.thumbnailPath(node: node) {
+                        if let image = UIImage(contentsOfFile: path) {
+                            playingSongImage.image = image;
+                        }
+                    }
+                }
+            }
+        }
+    }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MusicCell", for: indexPath)

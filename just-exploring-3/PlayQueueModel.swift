@@ -164,7 +164,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     
     func shuffleQueue()
     {
-        let start = nextSongs.count > 0 && handleInPlayer != 0 ? 1 : 0;
+        let start = nextSongs.count > 0 && handleInPlayer == nextSongs[0].handle && isPlaying ? 1 : 0;
         var newQueue : [MEGANode] = []
         while nextSongs.count > start {
             let row = Int.random(in: start..<nextSongs.count)
@@ -172,6 +172,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             nextSongs.remove(at: row)
         }
         nextSongs.append(contentsOf: newQueue);
+        if start == 0 { playNow(startIt: false); }
         onNextSongsEdited(reloadView: true)
     }
     
@@ -346,31 +347,31 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
 //        }
         
         if (reloadTableView) {
-            app().playQueueTVC?.tableView.reloadData();
+            app().playQueueTVC?.redraw();
         }
     }
     
-    var nowPlayingInfoCenter = MPNowPlayingInfoCenter.default()
-    var remoCommandCenter = MPRemoteCommandCenter.shared()
-    func updateNowPlayingInfo(trackName:String,artistName:String/*,img:UIImage*/) {
-
-//        var art = MPMediaItemArtwork(image: img)
-//        if #available(iOS 10.0, *) {
-//            art = MPMediaItemArtwork(boundsSize: CGSize(width: 200, height: 200)) { (size) -> UIImage in
-//                return img
-//            }
-//        }
-
-        nowPlayingInfoCenter.nowPlayingInfo = [MPMediaItemPropertyTitle: trackName,
-                                               MPMediaItemPropertyArtist: artistName
-                                               /*MPMediaItemPropertyArtwork : art*/ ]
-
-        remoCommandCenter.seekForwardCommand.isEnabled = false
-        remoCommandCenter.seekBackwardCommand.isEnabled = false
-        remoCommandCenter.previousTrackCommand.isEnabled = true
-        remoCommandCenter.nextTrackCommand.isEnabled = true
-        remoCommandCenter.togglePlayPauseCommand.isEnabled = true
-    }
+//    var nowPlayingInfoCenter = MPNowPlayingInfoCenter.default()
+//    var remoCommandCenter = MPRemoteCommandCenter.shared()
+//    func updateNowPlayingInfo(trackName:String,artistName:String/*,img:UIImage*/) {
+//
+////        var art = MPMediaItemArtwork(image: img)
+////        if #available(iOS 10.0, *) {
+////            art = MPMediaItemArtwork(boundsSize: CGSize(width: 200, height: 200)) { (size) -> UIImage in
+////                return img
+////            }
+////        }
+//
+//        nowPlayingInfoCenter.nowPlayingInfo = [MPMediaItemPropertyTitle: trackName,
+//                                               MPMediaItemPropertyArtist: artistName
+//                                               /*MPMediaItemPropertyArtwork : art*/ ]
+//
+//        remoCommandCenter.seekForwardCommand.isEnabled = false
+//        remoCommandCenter.seekBackwardCommand.isEnabled = false
+//        remoCommandCenter.previousTrackCommand.isEnabled = true
+//        remoCommandCenter.nextTrackCommand.isEnabled = true
+//        remoCommandCenter.togglePlayPauseCommand.isEnabled = true
+//    }
     	
     func playNow(startIt: Bool)
     {
@@ -378,29 +379,26 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         {
             if let fileURL = app().storageModel.getDownloadedFileURL(nextSongs[0]) {
                 player.replaceCurrentItem(with: AVPlayerItem(url: fileURL));
+                handleInPlayer = nextSongs[0].handle;
+                app().setupNowPlaying(node: nextSongs[0])
+                app().playQueueTVC!.playingSongUpdated(nodeMaybe: nextSongs[0])
                 if (startIt) {
                     self.player.play();
-                    handleInPlayer = nextSongs[0].handle;
-                    var title = nextSongs[0].customTitle;
-                    var artist = nextSongs[0].customArtist;
-                    if title == nil { title = nextSongs[0].name };
-                    if artist == nil { artist = ""; }
-                    updateNowPlayingInfo(trackName: title!, artistName: artist!)
                 }
                 
-                do {
-                    try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [.mixWithOthers, .allowAirPlay])
-                    print("Playback OK")
-                    try AVAudioSession.sharedInstance().setActive(true)
-                    print("Session is Active")
-                    //try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback);
-                    
-                    //try AVAudioSessionPatch.setSession(AVAudioSession.sharedInstance(), category: .playback, with: [.defaultToSpeaker, .mixWithOthers])
-                    
-                    //application.beginReceivingRemoteControlEvents();
-                } catch {
-                    print(error)
-                }
+//                do {
+//                    try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [.mixWithOthers, .allowAirPlay])
+//                    print("Playback OK")
+//                    try AVAudioSession.sharedInstance().setActive(true)
+//                    print("Session is Active")
+//                    //try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback);
+//
+//                    //try AVAudioSessionPatch.setSession(AVAudioSession.sharedInstance(), category: .playback, with: [.defaultToSpeaker, .mixWithOthers])
+//
+//                    //application.beginReceivingRemoteControlEvents();
+//                } catch {
+//                    print(error)
+//                }
                 return;
             }
             else if (app().loginState.loggedInOffline)
@@ -445,7 +443,39 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         onNextSongsEdited(reloadView: true);
     }
 
-    
+    func goNextTrack() -> Bool
+    {
+        if (nextSongs.count > 1)
+        {
+            moveSongToHistory(index: 0);
+            playNow(startIt: shouldBePlaying);
+            onNextSongsEdited(reloadView: true);
+            return true;
+        }
+        return false;
+    }
+
+    func goSongStartOrPrevTrack() -> Bool
+    {
+        if (player.rate == 1.0 && player.currentTime().seconds > 3.0)
+        {
+            player.seek(to: CMTime(seconds: 0, preferredTimescale: 1));
+            playNow(startIt: shouldBePlaying);
+            return true;
+        }
+        else { return goPrevTrack(); }
+    }
+
+    func goPrevTrack() -> Bool
+    {
+        if (playedSongs.count > 0)
+        {
+            timeTravel(index: 0);
+            playNow(startIt: shouldBePlaying);
+        }
+        return false;
+    }
+
     func onSongFinishedPlaying()
     {
         if (nextSongs.count > 0)
