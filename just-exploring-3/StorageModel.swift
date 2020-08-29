@@ -20,21 +20,32 @@ class TransferHandler: NSObject, MEGATransferDelegate {
     }
     
     func onTransferFinish(_ api: MEGASdk, transfer request: MEGATransfer, error: MEGAError) {
-        if (error.type.rawValue == 0)
-        {
-            app().storageModel.fileArrived(handle: request.nodeHandle);
+        let n = mega().node(forHandle: request.nodeHandle)
+        if (n != nil && n!.fingerprint != nil) {
+            if (error.type.rawValue == 0)
+            {
+                app().storageModel.fileArrived(fingerprint: n!.fingerprint!);
+            }
+            else
+            {
+                app().storageModel.fileFailed(fingerprint: n!.fingerprint!);
+            }
         }
-        else
-        {
-            app().storageModel.fileFailed(handle: request.nodeHandle);
-        }
+    }
+    
+    func onTransferTemporaryError(_ api: MEGASdk, transfer request: MEGATransfer, error: MEGAError) {
+//        api.cancelTransfer(request);
+  //      let n = mega().node(forHandle: request.nodeHandle)
+    //    if (n != nil && n!.fingerprint != nil) {
+      //      app().storageModel.fileFailed(fingerprint: n!.fingerprint!);
+        //}
     }
 }
 
 class StorageModel {
     
-    var downloading : Set<UInt64> = [];
-    var downloaded : Set<UInt64> = [];
+    var downloadingFP : Set<String> = [];
+    var downloadedFP : Set<String> = [];
 
     var downloadingThumbnail : Set<UInt64> = [];
     var downloadedThumbnail : Set<UInt64> = [];
@@ -43,10 +54,11 @@ class StorageModel {
 
     func fileDownloaded(_ node: MEGANode) -> Bool
     {
-        if downloaded.contains(node.handle) { return true; }
-        guard let filename = fileFingerprintPath(node: node) else { return false }
+        if (node.fingerprint == nil) { return false; }
+        if downloadedFP.contains(node.fingerprint!) { return true; }
+        guard let filename = songFingerprintPath(node: node) else { return false }
         let exists = FileManager.default.fileExists(atPath: filename);
-        if (exists) { downloaded.insert(node.handle); }
+        if (exists) { downloadedFP.insert(node.fingerprint); }
         return exists;
     }
     
@@ -63,30 +75,52 @@ class StorageModel {
         return exists;
     }
     
-    func fileFingerprintPath(node: MEGANode) -> String?
+    func playlistPath(node: MEGANode) -> String?
+    {
+        //return playlistsFolderPath() + "/" + MEGASdk.base64Handle(forHandle: node.handle)! + ".playlist";
+        return songFingerprintPath(node: node);
+    }
+
+    func songFingerprintPath(node: MEGANode) -> String?
     {
         if node.type != .file {
             print ("attempted fingerprint path for a non-file: " + (node.name == nil ? "<nil>": node.name))
             return nil;
         }
-        guard let fp = node.fingerprint else {
+        if (node.fingerprint == nil) {
             print ("fingerprint was nil for: " + (node.name == nil ? "<nil>": node.name))
             return nil;
         }
-        var b = false;
-        assureFolderExists(cachePath() + "/fp/" + fp, doneAlready: &b);
-        return cachePath() + "/fp/" + node.fingerprint + "/" + node.name;
+        
+        let fpPath = songsFolderPath() + "/" + node.fingerprint;
+        var withExtension = fpPath;
+        
+        for i in node.name.indices {
+            if (node.name[i] == ".") {
+                withExtension = fpPath + node.name.suffix(from: i);
+            }
+        }
+
+        return withExtension;
     }
     
     func thumbnailPath(node: MEGANode) -> String?
     {
-        if let f = fileFingerprintPath(node: node)  { return f + ".jpg"; }
-        return nil;
+        if node.type != .file {
+            print ("attempted fingerprint path for a non-file: " + (node.name == nil ? "<nil>": node.name))
+            return nil;
+        }
+        if (node.fingerprint == nil) {
+            print ("fingerprint was nil for: " + (node.name == nil ? "<nil>": node.name))
+            return nil;
+        }
+        
+        return songsFolderPath() + "/" + node.fingerprint + ".jpg";
     }
     
     func getDownloadedFileURL(_ node: MEGANode) -> URL?
     {
-        guard let filename = fileFingerprintPath(node: node) else { return nil }
+        guard let filename = songFingerprintPath(node: node) else { return nil }
         return FileManager.default.fileExists(atPath: filename) ? URL(fileURLWithPath: filename) : nil;
     }
 
@@ -95,15 +129,28 @@ class StorageModel {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyyMMdd-HHmmss"
         var doneAlready = false;
-        assureFolderExists(cachePath() + "/upload/", doneAlready: &doneAlready);
-        return cachePath() + "/upload/" + formatter.string(from: Date()) + ".playlist";
+        assureFolderExists(tempFilesPath() + "/upload/", doneAlready: &doneAlready);
+        return tempFilesPath() + "/upload/" + formatter.string(from: Date()) + ".playlist";
     }
     
-    func getDownloadedFileAsJSON(_ node: MEGANode) -> Any?
+    func loadFileAsJSON(filename : String) -> Any?
     {
         do
         {
-            if let filename = fileFingerprintPath(node: node) {
+            let content = try String(contentsOf: URL(fileURLWithPath: filename), encoding: .utf8);
+            let contentData = content.data(using: .utf8);
+            return try JSONSerialization.jsonObject(with: contentData!, options: []);
+        }
+        catch {
+        }
+        return nil;
+    }
+    
+    func getDownloadedPlaylistAsJSON(_ node: MEGANode) -> Any?
+    {
+        do
+        {
+            if let filename = playlistPath(node: node) {
                 let content = try String(contentsOf: URL(fileURLWithPath: filename), encoding: .utf8);
                 let contentData = content.data(using: .utf8);
                 return try JSONSerialization.jsonObject(with: contentData!, options: []);
@@ -116,39 +163,65 @@ class StorageModel {
 
     func isDownloading(_ node : MEGANode) -> Bool
     {
-        return downloading.contains(node.handle)
+        if (node.fingerprint == nil) { return false; }
+        return downloadingFP.contains(node.fingerprint!)
     }
+
     
     func startDownloadIfAbsent(_ node: MEGANode) -> Bool
     {
+        if (node.name.hasSuffix(".playlist")) {
+            return startPlaylistDownloadIfAbsent(node);
+        } else {
+            return startSongDownloadIfAbsent(node);
+        }
+    }
+    
+    func startSongDownloadIfAbsent(_ node: MEGANode) -> Bool
+    {
         if !isDownloading(node) && !fileDownloaded(node)
         {
-            if let filename = fileFingerprintPath(node: node) {
+            if let filename = songFingerprintPath(node: node) {
                 mega().startDownloadNode(node, localPath: filename);
-                downloading.insert(node.handle);
-                print("downloading \(filename)")
+                downloadingFP.insert(node.fingerprint!);
+                //print("downloading \(filename)")
                 return true
             }
         }
         return false
     }
     
-   func fileArrived(handle : UInt64)
-   {
-       downloading.remove(handle);
-       app().playQueue.songDownloaded(handle)
-   }
+    func startPlaylistDownloadIfAbsent(_ node: MEGANode) -> Bool
+    {
+        if !isDownloading(node) && !fileDownloaded(node)
+        {
+            if let filename = playlistPath(node: node) {
+                mega().startDownloadNode(node, localPath: filename);
+                downloadingFP.insert(node.fingerprint!);
+                //print("downloading \(filename)")
+                return true
+            }
+        }
+        return false
+    }
+    
+    func fileArrived(fingerprint : String)
+    {
+        downloadingFP.remove(fingerprint);
+        app().playQueue.songDownloaded()
+    }
    
-   func fileFailed(handle : UInt64)
+   func fileFailed(fingerprint : String)
    {
-       downloading.remove(handle);
+       downloadingFP.remove(fingerprint);
+       app().playQueue.songDownloaded()
    }
 
     
     func loadSettingFile(leafname : String) -> String?
     {
         do {
-            return try String(contentsOf: URL(fileURLWithPath: cachePath() + "/" + leafname), encoding: .utf8);
+            return try String(contentsOf: URL(fileURLWithPath: storagePath() + "/" + leafname), encoding: .utf8);
         }
         catch {
         }
@@ -158,7 +231,7 @@ class StorageModel {
     func storeSettingFile(leafname : String, content : String) -> Bool
     {
         do {
-            try content.write(toFile: cachePath() + "/" + leafname, atomically: true, encoding: String.Encoding.utf8);
+            try content.write(toFile: storagePath() + "/" + leafname, atomically: true, encoding: String.Encoding.utf8);
             return true;
         }
         catch {
@@ -169,10 +242,10 @@ class StorageModel {
     func deleteSettingFile(leafname : String)
     {
         do {
-            try FileManager.default.removeItem(atPath: cachePath() + "/" + leafname)
+            try FileManager.default.removeItem(atPath: storagePath() + "/" + leafname)
         }
         catch {
-            print("Failed to remove file " + cachePath() + "/" + leafname)
+            print("Failed to remove file " + storagePath() + "/" + leafname)
         }
     }
     
@@ -198,9 +271,9 @@ class StorageModel {
     var createdFolder1 = false;
     var createdFolder2 = false;
     var createdFolder3 = false;
-
+    var createdFolder4 = false;
     
-    func cachePath() -> String
+    func storagePath() -> String
     {
         // choosing applicationSupportDirectory means the files will not be accessible from other apps,
         // won't be removed by the system (unlike cache directories) and we can set flags to prevent
@@ -208,10 +281,38 @@ class StorageModel {
         // https://developer.apple.com/library/archive/qa/qa1719/_index.html
         let folderUrls = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask);
         assureFolderExists(folderUrls[0].standardizedFileURL.path, doneAlready: &createdFolder1);
-        let cachePath = folderUrls[0].appendingPathComponent("mm").standardizedFileURL.path;
-        assureFolderExists(cachePath, doneAlready: &createdFolder2)
-        let byFingerprint = cachePath + "/fp";
-        assureFolderExists(byFingerprint, doneAlready: &createdFolder3)
-        return cachePath;
+        let path = folderUrls[0].appendingPathComponent("dl").standardizedFileURL.path;
+        assureFolderExists(path, doneAlready: &createdFolder2)
+        return path;
     }
+
+    func songsFolderPath() -> String
+    {
+        let p = storagePath() + "/songs";
+        assureFolderExists(p, doneAlready: &createdFolder3)
+        return p;
+    }
+
+    func playlistsFolderPath() -> String
+    {
+        let p = storagePath() + "/playlists";
+        assureFolderExists(p, doneAlready: &createdFolder4)
+        return p;
+    }
+
+    var createdCacheFolder1 = false;
+    var createdCacheFolder2 = false;
+
+    func tempFilesPath() -> String
+    {
+        // .cachesDirectory: Stores files in here that can be discarded when the space is low. This is a good location for any content that can be re-downloaded when needed.
+        // Contents of this directory is not included in the backups. When the device is low on disk space then iOS can help by clearing caches. Files will never be removed
+        // from your cache if your application is running and OS will start by clearing caches from apps that haven’t been used in a while.
+        let cacheUrls = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask);
+        assureFolderExists(cacheUrls[0].standardizedFileURL.path, doneAlready: &createdCacheFolder1);
+        let tmpPath = cacheUrls[0].appendingPathComponent("tmp").standardizedFileURL.path;
+        assureFolderExists(tmpPath, doneAlready: &createdCacheFolder2)
+        return tmpPath;
+    }
+
 }

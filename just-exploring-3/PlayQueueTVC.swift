@@ -10,12 +10,27 @@ import Foundation
 import UIKit
 import AVKit
 
+class TableViewMusicCellWithNotes: TableViewMusicCell {
 
+    @IBOutlet weak var notesLabel: UILabel!
+    
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        // Initialization code
+    }
+
+    override func setSelected(_ selected: Bool, animated: Bool) {
+        super.setSelected(selected, animated: animated)
+
+        // Configure the view for the selected state
+    }
+
+}
 
 class PlayQueueTVC: UITableViewController {
 
     var pvc : AVPlayerViewController? = nil;
-    var headerControl : UISegmentedControl? = nil;
+//    var headerControl : UISegmentedControl? = nil;
     //var audioSession = AVAudioSession.sharedInstance()
 
     override func viewDidLoad() {
@@ -38,10 +53,11 @@ class PlayQueueTVC: UITableViewController {
         
         pvc!.player = app().playQueue.player;
         app().playQueueTVC = self;
-        //tableView.estimatedSectionHeaderHeight = 40;
+        tableView.estimatedRowHeight = 43.5;
+        tableView.rowHeight = UITableView.automaticDimension;
         tableView.isEditing = false;
         
-        segmentedControl.addTarget(self, action: #selector(segmentedIndexChanged(_:)), for: .valueChanged)
+//        segmentedControl.addTarget(self, action: #selector(segmentedIndexChanged(_:)), for: .valueChanged)
 
         //try! self.audioSession.setCategory(AVAudioSession.Category.playback)
         //try! self.audioSession.setActive(true)
@@ -51,11 +67,25 @@ class PlayQueueTVC: UITableViewController {
         
     }
 
+    @IBOutlet weak var editButton: UIButton!
+    @IBOutlet weak var historyButton: UIButton!
+    @IBOutlet weak var queueButton: UIButton!
     var showHistory : Bool = false;
+
+    @IBAction func HistoryButtonHit(_ sender: Any) {
+        queueButton.setTitleShadowColor(UIColor.clear, for: .normal);
+        historyButton.setTitleShadowColor(UIColor.white, for: .normal);
+        showHistory = true;
+        setOptionButton(history: showHistory)
+        redraw()
+    }
     
-    @objc func segmentedIndexChanged(_ value : Int) {
-        showHistory = segmentedControl.selectedSegmentIndex == 1;
-        tableView.reloadData();
+    @IBAction func QueueButtonHit(_ sender: Any) {
+        queueButton.setTitleShadowColor(UIColor.white, for: .normal);
+        historyButton.setTitleShadowColor(UIColor.clear, for: .normal);
+        showHistory = false;
+        setOptionButton(history: showHistory)
+        redraw()
     }
     
     func displaySongs() -> [MEGANode]
@@ -63,11 +93,16 @@ class PlayQueueTVC: UITableViewController {
         return showHistory ? app().playQueue.playedSongs : app().playQueue.nextSongs;
     }
     
-    override func viewDidAppear(_ animated: Bool) {
+    func setOptionButton(history : Bool)
+    {
         if (app().tabBarContoller != nil) {
-            app().tabBarContoller!.navigationItem.rightBarButtonItem =
+            app().tabBarContoller!.navigationItem.rightBarButtonItem = history ? nil :
                   UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
         }
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        setOptionButton(history: showHistory)
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -75,14 +110,44 @@ class PlayQueueTVC: UITableViewController {
             app().tabBarContoller!.navigationItem.rightBarButtonItem = nil;
         }
     }
-   
+    
+    func checkDownloadAll()
+    {
+        let alert = UIAlertController(title: "Download Info", message: "This function will start downloading everything not yet already downloaded, or already downloading, in the current queue as quickly as it can.  For a large number of files, it's best to be on wifi and plugged into a power source before starting this operation.", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "Start downloads", style: .default, handler:
+                { (UIAlertAction) -> () in self.downloadAll(false) }));
+        
+        alert.addAction(UIAlertAction(title: "Remove already downloaded from the queue first", style: .default, handler:
+                { (UIAlertAction) -> () in self.downloadAll(true) }));
+        
+        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+        
+        self.present(alert, animated: false, completion: nil)
+    }
+    
+    func downloadAll(_ removeAlreadyDownloaded : Bool)
+    {
+        if (CheckOnlineOrWarn("Please go online before activating downloads.", uic: self)) {
+
+            let numStarted = app().playQueue.downloadAllSongsInQueue(removeAlreadyDownloaded);
+            app().playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false)
+
+            let alert = UIAlertController(title: "Downloading", message: "Initiated " + String(numStarted) + " downloads.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel));
+            self.present(alert, animated: false, completion: nil)
+        }
+    }
+
     @objc func optionButton() {
         
-        let alert = UIAlertController(title: nil, message: "Options", preferredStyle: .alert)
-        let b = app().playQueue.downloadNextOnly;
+        if (showHistory) { return; }
         
-        alert.addAction(UIAlertAction(title: b ? "Download entire queue" : "Download next only", style: .default, handler:
-            { (UIAlertAction) -> () in app().playQueue.downloadNextOnly.toggle() ; app().playQueue.onNextSongsEdited(reloadView: true) }));
+        let alert = UIAlertController(title: nil, message: "Options", preferredStyle: .alert)
+//        let b = app().playQueue.downloadNextOnly;
+        
+        alert.addAction(UIAlertAction(title: "Download entire queue", style: .default, handler:
+            { (UIAlertAction) -> () in self.checkDownloadAll() }));
         
         alert.addAction(UIAlertAction(title: "Shuffle queue", style: .default, handler:
             { (UIAlertAction) -> () in app().playQueue.shuffleQueue() }));
@@ -100,13 +165,20 @@ class PlayQueueTVC: UITableViewController {
         self.present(alert, animated: false, completion: nil)
     }
 
+    @IBAction func EditButtonHit(_ sender: Any) {
+        let vc = self.storyboard?.instantiateViewController(identifier: "EditSongVC") as! EditSongVC
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
     // MARK: - Table view data source
 
     @IBOutlet weak var playerPlaceholder: UIView!
     @IBOutlet weak var songCountLabel : UILabel!;
-    @IBOutlet weak var segmentedControl : UISegmentedControl!;
+//    @IBOutlet weak var segmentedControl : UISegmentedControl!;
     @IBOutlet weak var topHStack: UIStackView!
     @IBOutlet weak var playingSongImage: UIImageView!
+    
+    
+    @IBOutlet weak var playingSongText: UILabel!
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated);
@@ -125,7 +197,7 @@ class PlayQueueTVC: UITableViewController {
         for n in displaySongs() {
             if (n.duration > 0) { sum += n.duration; }
         }
-        songCountLabel.text = String(format: "%d Songs %02d:%02d:%02d", app().playQueue.nextSongs.count, sum/3600, (sum/60)%60, sum%60)
+        songCountLabel.text = String(format: "%d Songs %02d:%02d:%02d", displaySongs().count, sum/3600, (sum/60)%60, sum%60)
     }
     
     // MARK: - Table view data source
@@ -151,10 +223,11 @@ class PlayQueueTVC: UITableViewController {
 //        return nil;
 //    }
     
-    func playingSongUpdated(nodeMaybe: MEGANode?)
+    func playingSongUpdated()
     {
         playingSongImage.image = nil;
-        if let node = nodeMaybe
+        playingSongText.text = "";
+        if let node = app().playQueue.nodeInPlayer
         {
             if (node.hasThumbnail())
             {
@@ -166,14 +239,26 @@ class PlayQueueTVC: UITableViewController {
                     }
                 }
             }
+
+            var text : String? = node.customTitle;
+            if (text == nil) { text = node.name; }
+            let artist : String? = node.customArtist;
+            if (artist != nil) { text! += "\n" + artist! }
+            playingSongText.text = text!;
         }
+        editButton.isEnabled = app().playQueue.nodeInPlayer != nil;
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "MusicCell", for: indexPath)
-        if let musicCell = cell as? TableViewMusicCell {
 
         let node = displaySongs()[indexPath.row];
+
+        let notes : String? = node.customNotes;
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: notes == nil || notes! == "" ? "MusicCell" : "MusicCellWithNotes", for: indexPath)
+
+        if let musicCell = cell as? TableViewMusicCell {
+
         
 //        cell.textLabel?.numberOfLines = 0;
 //        cell.textLabel?.lineBreakMode = .byWordWrapping;
@@ -184,8 +269,19 @@ class PlayQueueTVC: UITableViewController {
         if (bpm == nil) { bpm = ""; }
         var artist : String? = node.customArtist;
         if (artist == nil) { artist = "" }
-        
-        musicCell.durationLabel.text = String(format: "%02d:%02d", node.duration / 60, node.duration % 60)
+
+        if (notes != nil) {
+            if let musicCellWithNotes = cell as? TableViewMusicCellWithNotes {
+                musicCellWithNotes.notesLabel.text = notes!;
+            }
+        }
+            
+        if (node.isFolder()) {
+            musicCell.durationLabel.text = String("Folder")
+        } else {
+            musicCell.durationLabel.text = String(format: "%02d:%02d", node.duration / 60, node.duration % 60)
+        }
+            
         musicCell.titleLabel.text = title!;
         musicCell.bpmLabel.text = bpm!;
         musicCell.artistLabel.text = artist!;
@@ -225,7 +321,13 @@ class PlayQueueTVC: UITableViewController {
         return cell
     }
     
-    func downloadProgress(_ nodeHandle : UInt64, _ percent : NSNumber )
+    override func tableView(_: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let node = displaySongs()[indexPath.row];
+        let notes : String? = node.customNotes;
+        return notes == nil || notes! == "" ? 43.5 : 70;
+    }
+    
+    func downloadProgress(fingerprint : String, percent : NSNumber )
     {
         let vc = tableView.visibleCells;
         for cell in vc
@@ -237,7 +339,7 @@ class PlayQueueTVC: UITableViewController {
                 {
                     if musicCell!.progressBar != nil
                     {
-                        if musicCell!.node!.handle == nodeHandle
+                        if musicCell!.node!.fingerprint != nil && musicCell!.node!.fingerprint! == fingerprint
                         {
                             musicCell!.progressBar!.isHidden = false;
                             musicCell!.progressBar!.progress = percent.floatValue;
@@ -276,11 +378,10 @@ class PlayQueueTVC: UITableViewController {
             }
         }
         else {
-            let queue = app().playQueue.nextSongs;
             // long press to show menu for song
-            if (indexPath.row < queue.count)
+            if (indexPath.row < app().playQueue.nextSongs.count)
             {
-                let node = queue[indexPath.row];
+                let node = app().playQueue.nextSongs[indexPath.row];
 
                 let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
                 
@@ -328,17 +429,19 @@ class PlayQueueTVC: UITableViewController {
 
     // Override to support editing the table view.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
+        if editingStyle == .delete && indexPath.row < app().playQueue.nextSongs.count {
             app().playQueue.nextSongs.remove(at: indexPath.row)
-            app().playQueue.onNextSongsEdited(reloadView: true);
+            app().playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false);
         }
     }
 
     // Override to support rearranging the table view.
     override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-        let item = app().playQueue.nextSongs.remove(at: fromIndexPath.row);
-        app().playQueue.nextSongs.insert(item, at: to.row);
-        app().playQueue.onNextSongsEdited(reloadView: true);
+        if fromIndexPath.row < app().playQueue.nextSongs.count && to.row < app().playQueue.nextSongs.count {
+            let item = app().playQueue.nextSongs.remove(at: fromIndexPath.row);
+            app().playQueue.nextSongs.insert(item, at: to.row);
+            app().playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false);
+        }
     }
 
     /*

@@ -40,6 +40,7 @@
 		84D137E22363F272006A2DE0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E12363F272006A2DE0 /* libresolv.tbd */; };
 		84D137E42363F344006A2DE0 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E32363F343006A2DE0 /* CoreServices.framework */; };
 		84D137E62363F37F006A2DE0 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E52363F37F006A2DE0 /* CoreMedia.framework */; };
+		C94FF3892411021800184998 /* EditSongVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C94FF3882411021800184998 /* EditSongVC.swift */; };
 		C96F3AD523BFC799008BF07D /* LoginStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD423BFC799008BF07D /* LoginStateModel.swift */; };
 		C96F3AD723BFC995008BF07D /* PlayQueueModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD623BFC995008BF07D /* PlayQueueModel.swift */; };
 		C96F3AD923BFDB87008BF07D /* MenuVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD823BFDB87008BF07D /* MenuVC.swift */; };
@@ -108,6 +109,7 @@
 		84D137E12363F272006A2DE0 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		84D137E32363F343006A2DE0 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		84D137E52363F37F006A2DE0 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		C94FF3882411021800184998 /* EditSongVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditSongVC.swift; sourceTree = "<group>"; };
 		C96F3AD423BFC799008BF07D /* LoginStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginStateModel.swift; sourceTree = "<group>"; };
 		C96F3AD623BFC995008BF07D /* PlayQueueModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayQueueModel.swift; sourceTree = "<group>"; };
 		C96F3AD823BFDB87008BF07D /* MenuVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuVC.swift; sourceTree = "<group>"; };
@@ -193,6 +195,7 @@
 				8498DB8E236651080036B1F6 /* TransferHandler.swift */,
 				84008B9723603A4400BD633F /* ViewController.swift */,
 				84008B9923603A4400BD633F /* Main.storyboard */,
+				C94FF3882411021800184998 /* EditSongVC.swift */,
 				C97260FF23C72FAC0029871E /* MainTabBarController.swift */,
 				C96F3AD823BFDB87008BF07D /* MenuVC.swift */,
 				84559EE0237A9FB0005B8342 /* TableViewMusicCell.swift */,
@@ -332,10 +335,12 @@
 					};
 					84008BA523603A5100BD633F = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1150;
 						TestTargetID = 84008B9123603A4400BD633F;
 					};
 					84008BB023603A5100BD633F = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1150;
 						TestTargetID = 84008B9123603A4400BD633F;
 					};
 				};
@@ -393,6 +398,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C96F3ADD23C01A07008BF07D /* StorageModel.swift in Sources */,
+				C94FF3892411021800184998 /* EditSongVC.swift in Sources */,
 				8498DB9923669FA50036B1F6 /* PlayQueueTVC.swift in Sources */,
 				C972610023C72FAC0029871E /* MainTabBarController.swift in Sources */,
 				84559EE4237BFFFB005B8342 /* AVAudioSessionPatch.m in Sources */,

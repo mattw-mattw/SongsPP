@@ -11,7 +11,7 @@ import UIKit
 
 class BrowseTVC: UITableViewController {
 
-    var nodeList : MEGANodeList? = nil;
+    var nodeArray : [MEGANode] = [];
     var currentFolder : MEGANode? = nil;
     
     var parentTap : UITapGestureRecognizer?
@@ -60,34 +60,93 @@ class BrowseTVC: UITableViewController {
         alert.addAction(UIAlertAction(title: "Queue+Expand+Shuffle all", style: .default, handler:
             { (UIAlertAction) -> () in self.QueueExpandShuffleAll() }));
 
+        if !isPlaylists() && currentFolder != nil && app().musicBrowseFolder == nil {
+            alert.addAction(UIAlertAction(title: "Set this folder as the Music Folder", style: .default, handler:
+                { (UIAlertAction) -> () in self.CheckSetAsMusicFolder() }));
+        }
+        if isPlaylists() && currentFolder != nil && app().playlistBrowseFolder == nil {
+            alert.addAction(UIAlertAction(title: "Set this folder as the Playlist Folder", style: .default, handler:
+                { (UIAlertAction) -> () in self.CheckSetAsPlaylistFolder() }));
+        }
+
         alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+
         self.present(alert, animated: false, completion: nil)
     }
     
+    func CheckSetAsMusicFolder()
+    {
+        if let path = mega().nodePath(for: currentFolder!) {
+            let alert = UIAlertController(title: "Set Music Root Folder", message: "Makes folder \"" + path + "\" the root folder for this Music screen, so that the rest of your account cannot be browsed from this view.  Subfolders of this folder can be browsed.  It cannot be changed unless you log out and log in again, or the path is no longer available (eg. by moving or renaming it in the cloud).", preferredStyle: .alert)
+            
+            alert.addAction(UIAlertAction(title: "Yes set it", style: .default, handler:
+                { (UIAlertAction) -> () in self.SetAsMusicFolder() }));
+
+            alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+
+            self.present(alert, animated: false, completion: nil)
+        }
+    }
+    
+    func SetAsMusicFolder()
+    {
+        app().musicBrowseFolder = nil;
+        if let path = mega().nodePath(for: currentFolder!) {
+            let _ = app().storageModel.storeSettingFile(leafname : "musicPath", content: path);
+        }
+        if let musicPath = app().storageModel.loadSettingFile(leafname: "musicPath") {
+            app().musicBrowseFolder = mega().node(forPath: musicPath)
+        }
+        load(node: rootFolder());
+    }
+
+    func CheckSetAsPlaylistFolder()
+    {
+        if let path = mega().nodePath(for: currentFolder!) {
+            let alert = UIAlertController(title: "Set Playlist Root Folder", message: "Makes folder \"" + path + "\" the root folder for this Playlist screen, so that the rest of your account cannot be browsed from this view.  Subfolders of this folder can be browsed.  It cannot be changed unless you log out and log in again, or the path is no longer available (eg. by moving or renaming it in the cloud).", preferredStyle: .alert)
+            
+            alert.addAction(UIAlertAction(title: "Yes set it", style: .default, handler:
+                { (UIAlertAction) -> () in self.SetAsPlaylistFolder() }));
+
+            alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+
+            self.present(alert, animated: false, completion: nil)
+        }
+    }
+    
+    func SetAsPlaylistFolder()
+    {
+        app().playlistBrowseFolder = nil;
+        if let path = mega().nodePath(for: currentFolder!) {
+            let _ = app().storageModel.storeSettingFile(leafname : "playlistPath", content: path);
+        }
+        if let playlistPath = app().storageModel.loadSettingFile(leafname: "playlistPath") {
+            app().playlistBrowseFolder = mega().node(forPath: playlistPath)
+        }
+        load(node: rootFolder());
+    }
+    
+    func nodeListToNodeArray(list : MEGANodeList?) -> [MEGANode]
+    {
+        var nodes : [MEGANode] = [];
+        if (list != nil) {
+            for i in 0..<list!.size.intValue {
+                nodes.append(list!.node(at: i))
+            }
+        }
+        return nodes;
+    }
+
     func QueueAll()
     {
-        if (nodeList != nil)
-        {
-            var nodes : [MEGANode] = [];
-            for i in 0..<nodeList!.size.intValue {
-                nodes.append(nodeList!.node(at: i))
-            }
-            app().playQueue.queueSongs(nodes: nodes)
-        }
+        app().playQueue.queueSongs(nodes: nodeArray)
     }
 
     func QueueExpandShuffleAll()
     {
-        if (nodeList != nil)
-        {
-            var nodes : [MEGANode] = [];
-            for i in 0..<nodeList!.size.intValue {
-                nodes.append(nodeList!.node(at: i))
-            }
-            app().playQueue.queueSongs(nodes: nodes)
-            app().playQueue.expandAll()
-            app().playQueue.shuffleQueue()
-        }
+        app().playQueue.queueSongs(nodes: nodeArray)
+        app().playQueue.expandAll()
+        app().playQueue.shuffleQueue()
     }
 
     @IBOutlet weak var folderPathLabelCtrl: UILabel!
@@ -95,15 +154,25 @@ class BrowseTVC: UITableViewController {
     func load(node : MEGANode?)
     {
         currentFolder = node;
-        nodeList = node == nil ? nil : mega().children(forParent: currentFolder!, order: 1)
-        tableView.reloadData();
+
         var text : String? = nil;
-        if (node != nil)
-        {
+        if (currentFolder == nil) {
+            nodeArray.removeAll();
+            if (mega().rootNode != nil) {
+                nodeArray.append(mega().rootNode!);
+                let shares = mega().inSharesList(MEGASortOrderType.alphabeticalAsc)
+                for i in 0..<shares.size.intValue {
+                    if let n = mega().node(forHandle: shares.share(at: i).nodeHandle) {
+                        nodeArray.append(n);
+                    }
+                }
+            }
+        }
+        else {
+            nodeArray = nodeListToNodeArray(list: mega().children(forParent: currentFolder!, order: 1))
             text = mega().nodePath(for: node!);
             if (text != nil)
             {
-                print("listing for " + text!);
                 if (text != nil) {
                     let n = text!.firstIndex(of: "/");
                     if (n != nil)
@@ -117,17 +186,14 @@ class BrowseTVC: UITableViewController {
         {
             folderPathLabelCtrl.text = text == nil ? "" : text;
         }
+        tableView.reloadData();
     }
     
     func loadParentFolder()
     {
         if (currentFolder != nil && currentFolder != rootFolder())
         {
-            let parent = mega().parentNode(for: currentFolder!)
-            if (parent != nil)
-            {	
-                load(node: parent);
-            }
+            load(node: mega().parentNode(for: currentFolder!));
         }
     }
     
@@ -142,7 +208,11 @@ class BrowseTVC: UITableViewController {
     
     func rootFolder() -> MEGANode?
     {
-        return isPlaylists() ? app().playlistBrowseFolder : app().musicBrowseFolder;
+        if isPlaylists() {
+            return app().playlistBrowseFolder;
+        } else {
+            return app().musicBrowseFolder;
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -167,12 +237,12 @@ class BrowseTVC: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return nodeList == nil ? 0 : nodeList!.size.intValue
+        return nodeArray.count;
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let node = nodeList?.node(at: indexPath.row)
+        let node = indexPath.row < nodeArray.count ? nodeArray[indexPath.row] : nil;
         
         let cell = tableView.dequeueReusableCell(withIdentifier: node?.type == MEGANodeType.folder ? "FolderCell" : "MusicCell", for: indexPath)
 
@@ -191,10 +261,10 @@ class BrowseTVC: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // tap a row to drill into it, if it's a folder
         tableView.deselectRow(at: indexPath, animated: false)
-        if (indexPath.row < nodeList!.size.intValue)
+        if (indexPath.row < nodeArray.count)
         {
-            let node = nodeList?.node(at: indexPath.row)
-            if (node?.type == MEGANodeType.folder)
+            let node = nodeArray[indexPath.row]
+            if (node.type == MEGANodeType.folder || node.type == MEGANodeType.root)
             {
                 DispatchQueue.main.async( execute: { self.load(node: node) } );
             }
@@ -228,10 +298,10 @@ class BrowseTVC: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let node = nodeList?.node(at: indexPath.row)
+        let node = nodeArray[indexPath.row];
         let action = UIContextualAction(style: .normal, title: "Add to swiped-right set", handler:
             {   (ac: UIContextualAction, view:UIView, success: (Bool)->Void) in
-                app().AddSwipedRightNode(node: node!)
+                app().AddSwipedRightNode(node: node)
                 tableView.reloadData();
             })
         action.backgroundColor = .green

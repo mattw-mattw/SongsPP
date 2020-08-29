@@ -25,9 +25,6 @@ class LoginVC: UIViewController {
     
     @IBOutlet weak var emailText: UITextField!
     @IBOutlet weak var passwordText: UITextField!
-    @IBOutlet weak var musicPathText: UITextField!
-    @IBOutlet weak var playlistPathText: UITextField!
-
 
     /*
     // MARK: - Navigation
@@ -54,7 +51,7 @@ class LoginVC: UIViewController {
     
     @IBAction func onLoginButtonClicked(_ sender: UIButton) {
         startSpinnerControl(message: "Logging in");
-        app().loginState.login(user: emailText.text!, pw: passwordText.text!, musicPath: musicPathText.text!, playlistPath: playlistPathText.text!,
+        app().loginState.login(user: emailText.text!, pw: passwordText.text!,
                             onProgress: {(message) in self.loginBusyControl!.message = message + "\n\n";},
                             onFinish: { (success) in
                                 self.loginBusyControl!.dismiss(animated: true);

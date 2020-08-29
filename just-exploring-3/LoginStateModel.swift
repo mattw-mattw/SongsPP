@@ -37,7 +37,7 @@ class LoginState //: ObservableObject
         print( "\(codePoint) \(loggedInOnline) \(loggedInOffline) \(processing) \(processingTitle) \(errorMessage)" )
     }
 
-    func login(user : String, pw: String, musicPath : String, playlistPath : String, onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ())
+    func login(user : String, pw: String, onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ())
     {
         printState("login start")
         
@@ -51,7 +51,7 @@ class LoginState //: ObservableObject
         mega().login(withEmail: user, password: pw,
                      delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
                         if (e.type == .apiOk) {
-                            if (self.loginSucceeded(musicPath: musicPath, playlistPath: playlistPath))
+                            if (self.loginSucceeded())
                             {
                                 self.loggedInOnline = true;
                                 self.printState("logged in, fetching")
@@ -81,7 +81,8 @@ class LoginState //: ObservableObject
                             self.processing = false;
                             self.printState("fetchnodes success")
                             self.loadRoots(onFinish: onFinish)
-                            app().playQueue.onNextSongsEdited(reloadView: true)
+                            app().playQueue.restoreOnStartup();
+                            app().playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false)
                         } else {
                             self.errorMessage = "Login succeeded but FetchNodes failed: " + e.nameWithErrorCode(e.type.rawValue);
                             self.processing = false;
@@ -96,7 +97,7 @@ class LoginState //: ObservableObject
     {
         app().musicBrowseFolder = nil;
         app().playlistBrowseFolder = nil;
-        
+
         if let musicPath = app().storageModel.loadSettingFile(leafname: "musicPath") {
             app().musicBrowseFolder = mega().node(forPath: musicPath)
         }
@@ -104,20 +105,7 @@ class LoginState //: ObservableObject
             app().playlistBrowseFolder = mega().node(forPath: playlistPath)
         }
         
-        if (app().playlistBrowseFolder == nil)
-        {
-            self.errorMessage = "Could not find music folder";
-            onFinish(false)
-        }
-        else if (app().playlistBrowseFolder == nil)
-        {
-            self.errorMessage = "Could not find playlist folder";
-            onFinish(false)
-        }
-        else
-        {
-            onFinish(true)
-        }
+        onFinish(true)
     }
     
     func goOnline(onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ())
@@ -187,15 +175,13 @@ class LoginState //: ObservableObject
         printState("go offline ends")
     }
 
-    func loginSucceeded(musicPath : String, playlistPath : String) ->Bool
+    func loginSucceeded() ->Bool
     {
         let onlineSid = mega().dumpSession(false);
         let offlineSid = mega().dumpSession(true);
         if (onlineSid != nil && offlineSid != nil &&
             app().storageModel.storeSettingFile(leafname: "onlineSid", content: onlineSid!) &&
-            app().storageModel.storeSettingFile(leafname: "offlineSid", content:offlineSid!) &&
-            app().storageModel.storeSettingFile(leafname: "musicPath", content:musicPath) &&
-            app().storageModel.storeSettingFile(leafname: "playlistPath", content:playlistPath))
+            app().storageModel.storeSettingFile(leafname: "offlineSid", content:offlineSid!))
         {
             return true;
         }

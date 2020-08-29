@@ -61,21 +61,32 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     /*@Published*/ var currentTimeString = "0:00"
 
     var player : AVPlayer = AVPlayer();
-    var handleInPlayer : UInt64 = 0;
+    var nodeInPlayer : MEGANode? = nil;
+    var nodeInPlayerIsFrontOfList = false;
     var isPlaying : Bool = false;
     var shouldBePlaying : Bool = false;
     var timeObservation : Any? = nil;
     
+    
+
     override init() {
         super.init()
         player.addObserver(self, forKeyPath: "rate", options: NSKeyValueObservingOptions.new, context: nil)
     }
 
+    var removeFirstSongOnPlay = false;
+    
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "rate" {
-            if player.rate > 0 && nextSongs.count > 0 {
-                handleInPlayer = nextSongs[0].handle;
+            if !isPlaying && player.rate > 0 {
                 isPlaying = true;
+                if (removeFirstSongOnPlay && nodeInPlayerIsFrontOfList)
+                {
+                    nextSongs.remove(at: 0)
+                    nodeInPlayerIsFrontOfList = false;
+                    removeFirstSongOnPlay = false;
+                    onNextSongsEdited(reloadView: true, triggerPlay: false);
+                }
             }
             if (player.rate == 0)
             {
@@ -125,29 +136,25 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             }
         }
         nextSongs += playableNodes;
-        onNextSongsEdited(reloadView: true);
-        if (nextSongs.count > 0 && handleInPlayer == 0)
-        {
-            playNow(startIt: shouldBePlaying);
-        }
+        onNextSongsEdited(reloadView: true, triggerPlay: false);
     }
     
     func queueSongNext(node : MEGANode)
     {
         if isPlayable(node, orMightContainPlayable: true) {
-            nextSongs.insert(node, at: nextSongs.count > 0 && handleInPlayer == nextSongs[0].handle ? 1 : 0);
-            onNextSongsEdited(reloadView: true);
+            nextSongs.insert(node, at: 0);
+            onNextSongsEdited(reloadView: true, triggerPlay: false);
         }
     }
     
     func moveSongNext(_ row: Int)
     {
-        if row > 1 && row < nextSongs.count
+        if row < nextSongs.count
         {
             let node = nextSongs[row];
             nextSongs.remove(at: row);
-            nextSongs.insert(node, at: nextSongs.count > 0 && handleInPlayer == nextSongs[0].handle ? 1 : 0);
-            onNextSongsEdited(reloadView: true);
+            nextSongs.insert(node, at: 0);
+            onNextSongsEdited(reloadView: true, triggerPlay: false);
         }
     }
     
@@ -158,36 +165,32 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             let node = nextSongs[row];
             nextSongs.remove(at: row);
             nextSongs.insert(node, at: nextSongs.count);
-            onNextSongsEdited(reloadView: true);
+            onNextSongsEdited(reloadView: true, triggerPlay: false);
         }
     }
     
     func shuffleQueue()
     {
-        let start = nextSongs.count > 0 && handleInPlayer == nextSongs[0].handle && isPlaying ? 1 : 0;
         var newQueue : [MEGANode] = []
-        while nextSongs.count > start {
-            let row = Int.random(in: start..<nextSongs.count)
+        while nextSongs.count > 0 {
+            let row = Int.random(in: 0..<nextSongs.count)
             newQueue.append(nextSongs[row])
             nextSongs.remove(at: row)
         }
         nextSongs.append(contentsOf: newQueue);
-        if start == 0 { playNow(startIt: false); }
-        onNextSongsEdited(reloadView: true)
+        onNextSongsEdited(reloadView: true, triggerPlay: false)
     }
     
     func deleteToTop(_ row: Int)
     {
-        if (row > 0) {
-            for _ in 1...row
+        for _ in 0...row
+        {
+            if (0 < nextSongs.count)
             {
-                if (1 < nextSongs.count)
-                {
-                    nextSongs.remove(at: 1);
-                }
+                nextSongs.remove(at: 0);
             }
         }
-        onNextSongsEdited(reloadView: true);
+        onNextSongsEdited(reloadView: true, triggerPlay: false);
     }
 
     func deleteToBottom(_ row: Int)
@@ -196,7 +199,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         {
             nextSongs.remove(at: row);
         }
-        onNextSongsEdited(reloadView: true);
+        onNextSongsEdited(reloadView: true, triggerPlay: false);
     }
     
     func playRightNow(_ row: Int)
@@ -205,17 +208,15 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         {
             let node = nextSongs[row];
             nextSongs.remove(at: row);
-            if (row > 0) { moveSongToHistory(index: 0) }
             nextSongs.insert(node, at: 0);
         }
-        onNextSongsEdited(reloadView: true);
-        playNow(startIt: true);
+        onNextSongsEdited(reloadView: true, triggerPlay: true);
     }
 
     func expandPlaylist(_ row: Int)
     {
         var newrow = row+1;
-        if let json = app().storageModel.getDownloadedFileAsJSON(nextSongs[row]) {
+        if let json = app().storageModel.getDownloadedPlaylistAsJSON(nextSongs[row]) {
             if let array = json as? [Any] {
                 for object in array {
                     print("array entry");
@@ -268,7 +269,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 row += 1;
             }
         }
-        if expanded { onNextSongsEdited(reloadView : true) }
+        if expanded { onNextSongsEdited(reloadView : true, triggerPlay: false) }
     }
     
     func expandQueueItem(_ row: Int)
@@ -303,15 +304,36 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         return node.type != MEGANodeType.file || node.name.hasSuffix(".playlist") && app().storageModel.fileDownloaded(node);
     }
 
-    var downloadNextOnly = true;
+//    var downloadNextOnly = true;
+    
+    func downloadAllSongsInQueue(_ removeAlreadyDownloaded : Bool) -> Int
+    {
+        var newQueue : [MEGANode] = [];
+        var started : Int = 0;
+        for i in 0..<nextSongs.count {
+            if (!app().storageModel.fileDownloaded(nextSongs[i]))
+            {
+                newQueue.append(nextSongs[i]);
+                if (app().storageModel.startSongDownloadIfAbsent(nextSongs[i]))  // todo: separate out playlists
+                {
+                    started += 1;
+                }
+            }
+        }
+        if (removeAlreadyDownloaded)
+        {
+            nextSongs = newQueue;
+        }
+        return started;
+    }
 
-    func onNextSongsEdited(reloadView : Bool)
+    func onNextSongsEdited(reloadView : Bool, triggerPlay: Bool)
     {
         var reloadTableView : Bool = reloadView;
         var index = 0;
         var numDownloading = 0;
-        while (index < nextSongs.count) {
-            if (downloadNextOnly && index >= 2) { break }
+        while (index < nextSongs.count && app().loginState.loggedInOnline) {
+            if (/*downloadNextOnly &&*/ index >= 2) { break }
             
             while (nextSongs.count > index && isExpandable(node: nextSongs[index]))
             {
@@ -329,77 +351,44 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             index += 1;
         }
         
-        if (nextSongs.count > 0 && !isPlaying && handleInPlayer != nextSongs[0].handle)
+        if (triggerPlay || nodeInPlayer == nil)
         {
-            if let fileURL = app().storageModel.getDownloadedFileURL(nextSongs[0]) {
-                player.replaceCurrentItem(with: AVPlayerItem(url: fileURL));
+            if (loadPlayer(startIt: triggerPlay)) {
+                reloadTableView = true
             }
         }
-        
-//        if app().loginState.loggedInOnline {
-//            for i in 0...1
-//            {
-//                if (i < nextSongs.count)
-//                {
-//                    app().storageModel.startDownloadIfAbsent(nextSongs[i])
-//                }
-//            }
-//        }
         
         if (reloadTableView) {
             app().playQueueTVC?.redraw();
         }
     }
     
-//    var nowPlayingInfoCenter = MPNowPlayingInfoCenter.default()
-//    var remoCommandCenter = MPRemoteCommandCenter.shared()
-//    func updateNowPlayingInfo(trackName:String,artistName:String/*,img:UIImage*/) {
-//
-////        var art = MPMediaItemArtwork(image: img)
-////        if #available(iOS 10.0, *) {
-////            art = MPMediaItemArtwork(boundsSize: CGSize(width: 200, height: 200)) { (size) -> UIImage in
-////                return img
-////            }
-////        }
-//
-//        nowPlayingInfoCenter.nowPlayingInfo = [MPMediaItemPropertyTitle: trackName,
-//                                               MPMediaItemPropertyArtist: artistName
-//                                               /*MPMediaItemPropertyArtwork : art*/ ]
-//
-//        remoCommandCenter.seekForwardCommand.isEnabled = false
-//        remoCommandCenter.seekBackwardCommand.isEnabled = false
-//        remoCommandCenter.previousTrackCommand.isEnabled = true
-//        remoCommandCenter.nextTrackCommand.isEnabled = true
-//        remoCommandCenter.togglePlayPauseCommand.isEnabled = true
-//    }
-    	
-    func playNow(startIt: Bool)
+    func loadPlayer(startIt: Bool) -> Bool
     {
+        var changedNextSongs = false;
+        if (nodeInPlayer != nil)
+        {
+            if player.currentTime().seconds > 0 { pushToHistory(); }
+        }
+        
         if (nextSongs.count > 0)
         {
             if let fileURL = app().storageModel.getDownloadedFileURL(nextSongs[0]) {
+                let play = startIt || isPlaying;
+                nodeInPlayer = nextSongs[0];
+                nodeInPlayerIsFrontOfList = true;
                 player.replaceCurrentItem(with: AVPlayerItem(url: fileURL));
-                handleInPlayer = nextSongs[0].handle;
-                app().setupNowPlaying(node: nextSongs[0])
-                app().playQueueTVC!.playingSongUpdated(nodeMaybe: nextSongs[0])
-                if (startIt) {
+                if (play) {
+                    nextSongs.remove(at: 0);
+                    changedNextSongs = true;
+                    nodeInPlayerIsFrontOfList = false;
                     self.player.play();
+                    shouldBePlaying = true;
                 }
-                
-//                do {
-//                    try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback, mode: AVAudioSession.Mode.default, options: [.mixWithOthers, .allowAirPlay])
-//                    print("Playback OK")
-//                    try AVAudioSession.sharedInstance().setActive(true)
-//                    print("Session is Active")
-//                    //try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback);
-//
-//                    //try AVAudioSessionPatch.setSession(AVAudioSession.sharedInstance(), category: .playback, with: [.defaultToSpeaker, .mixWithOthers])
-//
-//                    //application.beginReceivingRemoteControlEvents();
-//                } catch {
-//                    print(error)
-//                }
-                return;
+                removeFirstSongOnPlay = !startIt;
+                app().setupNowPlaying(node: nodeInPlayer!)
+                app().playQueueTVC!.playingSongUpdated()
+                return changedNextSongs;
             }
             else if (app().loginState.loggedInOffline)
             {
@@ -407,27 +396,31 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             }
         }
 
-        shouldBePlaying = nextSongs.count > 1;
-        handleInPlayer = 0;
+        shouldBePlaying = startIt && nextSongs.count > 0;
+        nodeInPlayer = nil;
+        nodeInPlayerIsFrontOfList = false;
         self.player.replaceCurrentItem(with: nil);
+        app().setupNowPlaying(node: nodeInPlayer)
+        app().playQueueTVC!.playingSongUpdated()
+        return changedNextSongs;
     }
 
-    func songDownloaded(_ handle : UInt64)
+    func songDownloaded()
     {
-        onNextSongsEdited(reloadView: false)  // reloading the view interrupts users moving tracks around in edit mode
-        if (nextSongs.count > 0 && handle == nextSongs[0].handle && handleInPlayer == 0)
-        {
-            playNow(startIt: true);
-        }
+        onNextSongsEdited(reloadView: false, triggerPlay: false)  // reloading the view interrupts users moving tracks around in edit mode
     }
     
-    func moveSongToHistory(index: Int)
+    func pushToHistory()
     {
-        playedSongs.insert(nextSongs[index], at: 0);
-        nextSongs.remove(at: index);
-        while (playedSongs.count > 100)
-        {
-            playedSongs.remove(at: 100);
+        if nodeInPlayer != nil && !nodeInPlayerIsFrontOfList {
+            playedSongs.insert(nodeInPlayer!, at: 0);
+            nodeInPlayer = nil;
+            nodeInPlayerIsFrontOfList = false;
+
+            while (playedSongs.count > 100)
+            {
+                playedSongs.remove(at: 100);
+            }
         }
     }
 
@@ -435,21 +428,26 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     {
         if (index < playedSongs.count)
         {
+            if nodeInPlayer != nil
+            {
+                nextSongs.insert(nodeInPlayer!, at: 0);
+                nodeInPlayer = nil;
+                nodeInPlayerIsFrontOfList = false;
+            }
             for i in 0...index {
                 nextSongs.insert(playedSongs[i], at: 0);
             }
             playedSongs.removeFirst(index+1);
         }
-        onNextSongsEdited(reloadView: true);
+        onNextSongsEdited(reloadView: true, triggerPlay: false);
     }
 
     func goNextTrack() -> Bool
     {
-        if (nextSongs.count > 1)
+        if (nextSongs.count > 0)
         {
-            moveSongToHistory(index: 0);
-            playNow(startIt: shouldBePlaying);
-            onNextSongsEdited(reloadView: true);
+            pushToHistory();
+            onNextSongsEdited(reloadView: true, triggerPlay: false);
             return true;
         }
         return false;
@@ -457,10 +455,11 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
 
     func goSongStartOrPrevTrack() -> Bool
     {
-        if (player.rate == 1.0 && player.currentTime().seconds > 3.0)
+        let wasPlaying = player.rate == 1.0;
+        if (player.currentTime().seconds > 3.0)
         {
             player.seek(to: CMTime(seconds: 0, preferredTimescale: 1));
-            playNow(startIt: shouldBePlaying);
+            if wasPlaying { self.player.play(); }
             return true;
         }
         else { return goPrevTrack(); }
@@ -471,24 +470,47 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         if (playedSongs.count > 0)
         {
             timeTravel(index: 0);
-            playNow(startIt: shouldBePlaying);
         }
         return false;
     }
 
     func onSongFinishedPlaying()
     {
-        if (nextSongs.count > 0)
-        {
-            if (nextSongs[0].handle == handleInPlayer)
-            {
-                moveSongToHistory(index: 0);
-                handleInPlayer = 0;
+        pushToHistory();
+        onNextSongsEdited(reloadView: true, triggerPlay: true);
+    }
+
+    func nodeHandleArrayToJSON(_ array : [MEGANode] ) -> String
+    {
+        var comma = false;
+        var s = "[";
+        for n in array {
+            if comma { s += ","; }
+            comma = true;
+            s += "{\"h\":\"" + n.base64Handle + "\"}";
+        }
+        s += "]"
+        return s;
+    }
+    
+    func JSONToNodeHandleArray(_ json : Any? ) -> [MEGANode]
+    {
+        var result : [MEGANode] = [];
+        if let array = json as? [Any] {
+            for object in array {
+                if let attribs = object as? [String : Any] {
+                    if let handleStr = attribs["h"] {
+                        let node = mega().node(forHandle: MEGASdk.handle(forBase64Handle: handleStr as! String));
+                        if (node != nil) {
+                            result.append(node!);
+                        }
+                    }
+                }
             }
         }
-        onNextSongsEdited(reloadView: true);
-        playNow(startIt: true);
+        return result;
     }
+
     
     func saveAsPlaylist()
     {
@@ -497,19 +519,39 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             reportMessage(uic: app().playQueueTVC!, message: "Please go online to upload the playlist")
             return;
         }
-        
-        var comma = false;
-        var s = "[";
-        for n in nextSongs {
-            if comma { s += ","; }
-            comma = true;
-            s += "{\"h\":\"" + n.base64Handle + "\"}";
-        }
-        s += "]"
+
+        let s = nodeHandleArrayToJSON(nextSongs);
         let uploadpath = app().storageModel.getUploadPlaylistFileURL();
         let url = URL(fileURLWithPath: uploadpath);
         try! s.write(to: url, atomically: true, encoding: .ascii)
         mega().startUpload(withLocalPath:uploadpath, parent: app().playlistBrowseFolder!)
     }
 
+    func saveOnShutdown()
+    {
+        pushToHistory();
+        let s1 = nodeHandleArrayToJSON(nextSongs);
+        let s2 = nodeHandleArrayToJSON(playedSongs);
+        do {
+            try s1.write(toFile: app().storageModel.storagePath() + "/nextSongs", atomically: true, encoding: String.Encoding.utf8);
+            try s2.write(toFile: app().storageModel.storagePath() + "/playedSongs", atomically: true, encoding: String.Encoding.utf8);
+        }
+        catch {
+        }
+    }
+
+    func restoreOnStartup()
+    {
+        let ns = app().storageModel.loadFileAsJSON(filename: app().storageModel.storagePath() + "/nextSongs");
+        if (ns != nil) {
+            nextSongs = JSONToNodeHandleArray(ns);
+        }
+        let ps = app().storageModel.loadFileAsJSON(filename: app().storageModel.storagePath() + "/playedSongs");
+        if (ps != nil) {
+            playedSongs = JSONToNodeHandleArray(ps);
+        }
+    }
+
+
+    
 }

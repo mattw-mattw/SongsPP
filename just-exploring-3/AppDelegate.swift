@@ -50,32 +50,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     }
     
-    func setupNowPlaying(node: MEGANode) {
+    func setupNowPlaying(node: MEGANode?) {
         
-        var title : String? = node.customTitle;
-        if (title == nil) { title = node.name; }
-        var artist : String? = node.customArtist;
-        if (artist == nil) { artist = "" }
+        if let node = node {
         
-        var image : UIImage? = nil;
-        if (node.hasThumbnail())
-        {
-            if (app().storageModel.thumbnailDownloaded(node)) {
-                if let path = app().storageModel.thumbnailPath(node: node) {
-                    image = UIImage(contentsOfFile: path);
+            var title : String? = node.customTitle;
+            if (title == nil) { title = node.name; }
+            var artist : String? = node.customArtist;
+            if (artist == nil) { artist = "" }
+            
+            var image : UIImage? = nil;
+            if (node.hasThumbnail())
+            {
+                if (app().storageModel.thumbnailDownloaded(node)) {
+                    if let path = app().storageModel.thumbnailPath(node: node) {
+                        image = UIImage(contentsOfFile: path);
+                    }
                 }
             }
+            
+            var nowPlayingInfo = [String : Any]()
+            nowPlayingInfo[MPMediaItemPropertyTitle] = title!;
+            nowPlayingInfo[MPMediaItemPropertyArtist] = artist!;
+            if image != nil { nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image!.size) { size in return image! } }
+            nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = node.duration / 2;
+            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = node.duration;
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
         }
-        
-        var nowPlayingInfo = [String : Any]()
-        nowPlayingInfo[MPMediaItemPropertyTitle] = title!;
-        nowPlayingInfo[MPMediaItemPropertyArtist] = artist!;
-        if image != nil { nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image!.size) { size in return image! } }
-        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = node.duration / 2;
-        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = node.duration;
-
-        // Set the metadata
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        else {
+            var nowPlayingInfo = [String : Any]()
+            nowPlayingInfo[MPMediaItemPropertyTitle] = "";
+            nowPlayingInfo[MPMediaItemPropertyArtist] = "";
+            nowPlayingInfo[MPMediaItemPropertyArtwork] = nil;
+            nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = 0;
+            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = 0;
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        }
     }
     
     
@@ -101,6 +111,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         } catch {
             print(error)
         }
+        
         return true
     }
 
@@ -125,6 +136,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidEnterBackground(_ application: UIApplication) {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+        
+        playQueue.saveOnShutdown();
+        
+        
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
@@ -157,7 +172,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     {
         if (playQueueTVC != nil)
         {
-            playQueueTVC!.downloadProgress(nodeHandle, percent);
+            let n = SongMe.mega().node(forHandle: nodeHandle)
+            if (n != nil && n!.fingerprint != nil) {
+                playQueueTVC!.downloadProgress(fingerprint: n!.fingerprint!, percent: percent);
+            }
         }
     }
     
@@ -191,12 +209,15 @@ func app() -> AppDelegate {
     return UIApplication.shared.delegate as! AppDelegate;
 }
 
+var accountFolderDoneAlready = false;
+
 func mega(using fileManager : FileManager = .default) -> MEGASdk {
     
     let a = app();
     if (a.mega == nil)
     {
-        let path = app().storageModel.cachePath();
+        let path = app().storageModel.storagePath() + "/accountCache/";
+        app().storageModel.assureFolderExists(path, doneAlready: &accountFolderDoneAlready);
         a.mega = MEGASdk.init(appKey: "EelhRa6C", userAgent: "MusicViaMega " + deviceName(), basePath: path == "" ? nil : path)!;
         a.mega!.add(a.storageModel.transferDelegate);
     }
@@ -205,8 +226,19 @@ func mega(using fileManager : FileManager = .default) -> MEGASdk {
 
 func reportMessage(uic : UIViewController, message : String, continuation : (() -> Void)? = nil)
 {
-    let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-    alert.addAction(UIAlertAction(title: "Ok", style: .cancel));
-    uic.present(alert, animated: false, completion: continuation)
+    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300)) {
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Ok", style: .cancel));
+            uic.present(alert, animated: false, completion: continuation)
+    }
+}
+
+func CheckOnlineOrWarn(_ warnMessage: String, uic : UIViewController) -> Bool
+{
+    if app().loginState.loggedInOnline { return true; }
+    let alert = UIAlertController(title: "Not Online", message: warnMessage, preferredStyle: .alert)
+    alert.addAction(UIAlertAction(title: "OK", style: .cancel));
+    uic.present(alert, animated: false, completion: nil)
+    return false;
 }
 
