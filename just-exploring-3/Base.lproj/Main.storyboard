@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BhC-rf-OdZ">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BhC-rf-OdZ">
     <device id="retina4_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
@@ -10,7 +10,7 @@
         <!--Edit SongVC-->
         <scene sceneID="jRy-Bs-blk">
             <objects>
-                <viewController storyboardIdentifier="EditSongVC" id="f67-hv-rJT" customClass="EditSongVC" customModule="SongMe" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="EditSongVC" id="f67-hv-rJT" customClass="EditSongVC" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="iLh-zI-cE5">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -114,7 +114,7 @@
         <!--Play Queue-->
         <scene sceneID="HzY-ZR-QLQ">
             <objects>
-                <tableViewController id="xvt-li-1LR" customClass="PlayQueueTVC" customModule="SongMe" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController id="xvt-li-1LR" customClass="PlayQueueTVC" customModule="Songs__" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="ht1-OZ-Vhp">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -184,7 +184,7 @@
                             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         </view>
                         <prototypes>
-                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCellWithNotes" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCellWithNotes" rowHeight="70" id="b1J-VQ-Jrn" customClass="TableViewMusicCellWithNotes" customModule="SongMe" customModuleProvider="target">
+                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCellWithNotes" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCellWithNotes" rowHeight="70" id="b1J-VQ-Jrn" customClass="TableViewMusicCellWithNotes" customModule="Songs__" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="235" width="375" height="70"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="b1J-VQ-Jrn" id="cV4-P5-R3O">
@@ -246,7 +246,7 @@
                                     <outlet property="titleLabel" destination="9Hv-TX-ZAM" id="DND-UM-Gbt"/>
                                 </connections>
                             </tableViewCell>
-                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCell" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCell" id="8QQ-V4-4tL" customClass="TableViewMusicCell" customModule="SongMe">
+                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCell" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCell" id="8QQ-V4-4tL" customClass="TableViewMusicCell" customModule="Songs__">
                                 <rect key="frame" x="0.0" y="305" width="375" height="43.5"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="8QQ-V4-4tL" id="OwQ-SF-e1L">
@@ -324,7 +324,7 @@
         <!--Playlists-->
         <scene sceneID="cWz-hO-9gy">
             <objects>
-                <tableViewController title="Playlists" id="e9C-Td-deu" customClass="BrowseTVC" customModule="SongMe" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController title="Playlists" id="e9C-Td-deu" customClass="BrowseTVC" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="WW2-aC-hP5">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -383,7 +383,7 @@
         <!--Browse Music-->
         <scene sceneID="VS3-gt-ape">
             <objects>
-                <tableViewController title="Browse Music" id="jow-OS-RDo" customClass="BrowseTVC" customModule="SongMe" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController title="Browse Music" id="jow-OS-RDo" customClass="BrowseTVC" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="c0h-QY-bEs">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -446,7 +446,7 @@
         <!--Music via MEGA.nz-->
         <scene sceneID="fcw-T5-005">
             <objects>
-                <tabBarController id="xjS-cL-gcQ" customClass="MainTabBarController" customModule="SongMe" customModuleProvider="target" sceneMemberID="viewController">
+                <tabBarController id="xjS-cL-gcQ" customClass="MainTabBarController" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
                     <navigationItem key="navigationItem" title="Music via MEGA.nz" id="s27-Fa-8J9"/>
                     <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="nsD-GH-nq4">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="49"/>
@@ -483,7 +483,7 @@
         <!--Menu-->
         <scene sceneID="fQB-O1-3cI">
             <objects>
-                <viewController id="m7B-uG-kn7" customClass="MenuVC" customModule="SongMe" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="m7B-uG-kn7" customClass="MenuVC" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="KP3-SC-udx">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -568,7 +568,7 @@
         <!--Login to MEGA-->
         <scene sceneID="dr3-eR-gHb">
             <objects>
-                <viewController title="Login to MEGA" id="pne-Iy-L3c" customClass="LoginVC" customModule="SongMe" sceneMemberID="viewController">
+                <viewController title="Login to MEGA" id="pne-Iy-L3c" customClass="LoginVC" customModule="Songs__" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="pXG-Nn-4u3">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

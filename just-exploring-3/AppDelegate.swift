@@ -160,6 +160,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var playQueue = PlayQueue();
     var storageModel = StorageModel();
     
+    var needsRestoreOnStartup = true;
+    
     var musicBrowseFolder : MEGANode? = nil;
     var playlistBrowseFolder : MEGANode? = nil;
     
@@ -172,7 +174,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     {
         if (playQueueTVC != nil)
         {
-            let n = SongMe.mega().node(forHandle: nodeHandle)
+            let n = mega!.node(forHandle: nodeHandle)
             if (n != nil && n!.fingerprint != nil) {
                 playQueueTVC!.downloadProgress(fingerprint: n!.fingerprint!, percent: percent);
             }

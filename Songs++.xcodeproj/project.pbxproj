@@ -66,23 +66,23 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		84008B9223603A4400BD633F /* SongMe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SongMe.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		84008B9223603A4400BD633F /* Songs++.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Songs++.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		84008B9523603A4400BD633F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		84008B9723603A4400BD633F /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		84008B9A23603A4400BD633F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		84008B9C23603A5100BD633F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		84008B9F23603A5100BD633F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		84008BA123603A5100BD633F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		84008BA623603A5100BD633F /* just-exploring-3Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "just-exploring-3Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		84008BA623603A5100BD633F /* Songs++Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Songs++Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		84008BAA23603A5100BD633F /* just_exploring_3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = just_exploring_3Tests.swift; sourceTree = "<group>"; };
 		84008BAC23603A5100BD633F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		84008BB123603A5100BD633F /* just-exploring-3UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "just-exploring-3UITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		84008BB123603A5100BD633F /* Songs++UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Songs++UITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		84008BB523603A5100BD633F /* just_exploring_3UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = just_exploring_3UITests.swift; sourceTree = "<group>"; };
 		84008BB723603A5100BD633F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		84008BC423604D7000BD633F /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		84008BC623604D8000BD633F /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
-		842092B22363D60000DDE338 /* just-exploring-3-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "just-exploring-3-Bridging-Header.h"; sourceTree = "<group>"; };
-		8439AD9123A8C6DD00BC550A /* SongMe.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SongMe.entitlements; sourceTree = "<group>"; };
+		842092B22363D60000DDE338 /* Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
+		8439AD9123A8C6DD00BC550A /* Songs++.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Songs++.entitlements"; sourceTree = "<group>"; };
 		84559EDF2372A737005B8342 /* just-exploring-3.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "just-exploring-3.entitlements"; sourceTree = "<group>"; };
 		84559EE0237A9FB0005B8342 /* TableViewMusicCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewMusicCell.swift; sourceTree = "<group>"; };
 		84559EE2237BFFE4005B8342 /* AVAudioSessionPatch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AVAudioSessionPatch.h; sourceTree = "<group>"; };
@@ -115,6 +115,7 @@
 		C96F3AD823BFDB87008BF07D /* MenuVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuVC.swift; sourceTree = "<group>"; };
 		C96F3ADC23C01A07008BF07D /* StorageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageModel.swift; sourceTree = "<group>"; };
 		C97260FF23C72FAC0029871E /* MainTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabBarController.swift; sourceTree = "<group>"; };
+		C9F1F70424FA5099008A31CB /* Songs++Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Songs++Info.plist"; path = "/Users/matt/Desktop/just-exploring-3/Songs++Info.plist"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,22 +164,23 @@
 		84008B8923603A4400BD633F = {
 			isa = PBXGroup;
 			children = (
-				8439AD9123A8C6DD00BC550A /* SongMe.entitlements */,
-				842092B22363D60000DDE338 /* just-exploring-3-Bridging-Header.h */,
+				8439AD9123A8C6DD00BC550A /* Songs++.entitlements */,
+				842092B22363D60000DDE338 /* Bridging-Header.h */,
 				84008B9423603A4400BD633F /* just-exploring-3 */,
 				84008BA923603A5100BD633F /* just-exploring-3Tests */,
 				84008BB423603A5100BD633F /* just-exploring-3UITests */,
 				84008B9323603A4400BD633F /* Products */,
 				84008BC323604D6F00BD633F /* Frameworks */,
+				C9F1F70424FA5099008A31CB /* Songs++Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
 		84008B9323603A4400BD633F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				84008B9223603A4400BD633F /* SongMe.app */,
-				84008BA623603A5100BD633F /* just-exploring-3Tests.xctest */,
-				84008BB123603A5100BD633F /* just-exploring-3UITests.xctest */,
+				84008B9223603A4400BD633F /* Songs++.app */,
+				84008BA623603A5100BD633F /* Songs++Tests.xctest */,
+				84008BB123603A5100BD633F /* Songs++UITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -258,9 +260,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		84008B9123603A4400BD633F /* SongMe */ = {
+		84008B9123603A4400BD633F /* Songs++ */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 84008BBA23603A5100BD633F /* Build configuration list for PBXNativeTarget "SongMe" */;
+			buildConfigurationList = 84008BBA23603A5100BD633F /* Build configuration list for PBXNativeTarget "Songs++" */;
 			buildPhases = (
 				84008B8E23603A4400BD633F /* Sources */,
 				84008B8F23603A4400BD633F /* Frameworks */,
@@ -270,14 +272,14 @@
 			);
 			dependencies = (
 			);
-			name = SongMe;
+			name = "Songs++";
 			productName = "just-exploring-3";
-			productReference = 84008B9223603A4400BD633F /* SongMe.app */;
+			productReference = 84008B9223603A4400BD633F /* Songs++.app */;
 			productType = "com.apple.product-type.application";
 		};
-		84008BA523603A5100BD633F /* just-exploring-3Tests */ = {
+		84008BA523603A5100BD633F /* Songs++Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 84008BBD23603A5100BD633F /* Build configuration list for PBXNativeTarget "just-exploring-3Tests" */;
+			buildConfigurationList = 84008BBD23603A5100BD633F /* Build configuration list for PBXNativeTarget "Songs++Tests" */;
 			buildPhases = (
 				84008BA223603A5100BD633F /* Sources */,
 				84008BA323603A5100BD633F /* Frameworks */,
@@ -288,14 +290,14 @@
 			dependencies = (
 				84008BA823603A5100BD633F /* PBXTargetDependency */,
 			);
-			name = "just-exploring-3Tests";
+			name = "Songs++Tests";
 			productName = "just-exploring-3Tests";
-			productReference = 84008BA623603A5100BD633F /* just-exploring-3Tests.xctest */;
+			productReference = 84008BA623603A5100BD633F /* Songs++Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		84008BB023603A5100BD633F /* just-exploring-3UITests */ = {
+		84008BB023603A5100BD633F /* Songs++UITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 84008BC023603A5100BD633F /* Build configuration list for PBXNativeTarget "just-exploring-3UITests" */;
+			buildConfigurationList = 84008BC023603A5100BD633F /* Build configuration list for PBXNativeTarget "Songs++UITests" */;
 			buildPhases = (
 				84008BAD23603A5100BD633F /* Sources */,
 				84008BAE23603A5100BD633F /* Frameworks */,
@@ -306,9 +308,9 @@
 			dependencies = (
 				84008BB323603A5100BD633F /* PBXTargetDependency */,
 			);
-			name = "just-exploring-3UITests";
+			name = "Songs++UITests";
 			productName = "just-exploring-3UITests";
-			productReference = 84008BB123603A5100BD633F /* just-exploring-3UITests.xctest */;
+			productReference = 84008BB123603A5100BD633F /* Songs++UITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -345,7 +347,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 84008B8D23603A4400BD633F /* Build configuration list for PBXProject "just-exploring-3" */;
+			buildConfigurationList = 84008B8D23603A4400BD633F /* Build configuration list for PBXProject "Songs++" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -358,9 +360,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				84008B9123603A4400BD633F /* SongMe */,
-				84008BA523603A5100BD633F /* just-exploring-3Tests */,
-				84008BB023603A5100BD633F /* just-exploring-3UITests */,
+				84008B9123603A4400BD633F /* Songs++ */,
+				84008BA523603A5100BD633F /* Songs++Tests */,
+				84008BB023603A5100BD633F /* Songs++UITests */,
 			);
 		};
 /* End PBXProject section */
@@ -437,12 +439,12 @@
 /* Begin PBXTargetDependency section */
 		84008BA823603A5100BD633F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 84008B9123603A4400BD633F /* SongMe */;
+			target = 84008B9123603A4400BD633F /* Songs++ */;
 			targetProxy = 84008BA723603A5100BD633F /* PBXContainerItemProxy */;
 		};
 		84008BB323603A5100BD633F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 84008B9123603A4400BD633F /* SongMe */;
+			target = 84008B9123603A4400BD633F /* Songs++ */;
 			targetProxy = 84008BB223603A5100BD633F /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -518,7 +520,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -573,7 +575,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -587,7 +589,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = SongMe.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Songs++.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = FF48ESATNC;
 				ENABLE_BITCODE = NO;
@@ -602,9 +605,10 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/SDK/bindings/ios/3rdparty/lib",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.just-exploring-3";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "just-exploring-3-Bridging-Header.h";
+				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
+				PRODUCT_NAME = "Songs++";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -614,7 +618,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = SongMe.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Songs++.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = FF48ESATNC;
 				ENABLE_BITCODE = NO;
@@ -629,9 +634,10 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/SDK/bindings/ios/3rdparty/lib",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.just-exploring-3";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "just-exploring-3-Bridging-Header.h";
+				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
+				PRODUCT_NAME = "Songs++";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -643,6 +649,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = FF48ESATNC;
 				INFOPLIST_FILE = "just-exploring-3Tests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -653,7 +660,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/just-exploring-3.app/just-exploring-3";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Songs++.app/Songs++";
 			};
 			name = Debug;
 		};
@@ -663,6 +670,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = FF48ESATNC;
 				INFOPLIST_FILE = "just-exploring-3Tests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -673,7 +681,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/just-exploring-3.app/just-exploring-3";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Songs++.app/Songs++";
 			};
 			name = Release;
 		};
@@ -682,6 +690,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = FF48ESATNC;
 				INFOPLIST_FILE = "just-exploring-3UITests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -701,6 +710,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = FF48ESATNC;
 				INFOPLIST_FILE = "just-exploring-3UITests/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -718,7 +728,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		84008B8D23603A4400BD633F /* Build configuration list for PBXProject "just-exploring-3" */ = {
+		84008B8D23603A4400BD633F /* Build configuration list for PBXProject "Songs++" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				84008BB823603A5100BD633F /* Debug */,
@@ -727,7 +737,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		84008BBA23603A5100BD633F /* Build configuration list for PBXNativeTarget "SongMe" */ = {
+		84008BBA23603A5100BD633F /* Build configuration list for PBXNativeTarget "Songs++" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				84008BBB23603A5100BD633F /* Debug */,
@@ -736,7 +746,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		84008BBD23603A5100BD633F /* Build configuration list for PBXNativeTarget "just-exploring-3Tests" */ = {
+		84008BBD23603A5100BD633F /* Build configuration list for PBXNativeTarget "Songs++Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				84008BBE23603A5100BD633F /* Debug */,
@@ -745,7 +755,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		84008BC023603A5100BD633F /* Build configuration list for PBXNativeTarget "just-exploring-3UITests" */ = {
+		84008BC023603A5100BD633F /* Build configuration list for PBXNativeTarget "Songs++UITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				84008BC123603A5100BD633F /* Debug */,

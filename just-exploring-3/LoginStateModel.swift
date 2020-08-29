@@ -81,7 +81,10 @@ class LoginState //: ObservableObject
                             self.processing = false;
                             self.printState("fetchnodes success")
                             self.loadRoots(onFinish: onFinish)
-                            app().playQueue.restoreOnStartup();
+                            if (app().needsRestoreOnStartup) {
+                                app().playQueue.restoreOnStartup();
+                                app().needsRestoreOnStartup = false;
+                            }
                             app().playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false)
                         } else {
                             self.errorMessage = "Login succeeded but FetchNodes failed: " + e.nameWithErrorCode(e.type.rawValue);
