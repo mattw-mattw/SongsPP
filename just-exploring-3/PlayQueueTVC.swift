@@ -113,7 +113,7 @@ class PlayQueueTVC: UITableViewController {
     
     func checkDownloadAll()
     {
-        let alert = UIAlertController(title: "Download Info", message: "This function will start downloading everything not yet already downloaded, or already downloading, in the current queue as quickly as it can.  For a large number of files, it's best to be on wifi and plugged into a power source before starting this operation.", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Download Info", message: "This function will start downloading everything not yet already downloaded, or already downloading, in the current queue as quickly as it can.  For a large number of files, it's best to be on wifi and plugged into a power source (for decryption) before starting this operation.", preferredStyle: .alert)
         
         alert.addAction(UIAlertAction(title: "Start downloads", style: .default, handler:
                 { (UIAlertAction) -> () in self.downloadAll(false) }));

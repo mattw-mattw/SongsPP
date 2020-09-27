@@ -428,12 +428,12 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     {
         if (index < playedSongs.count)
         {
-            if nodeInPlayer != nil
+            if nodeInPlayer != nil && nextSongs.count > 0 && nextSongs[0] != nodeInPlayer
             {
                 nextSongs.insert(nodeInPlayer!, at: 0);
-                nodeInPlayer = nil;
-                nodeInPlayerIsFrontOfList = false;
             }
+            nodeInPlayer = nil;
+            nodeInPlayerIsFrontOfList = false;
             for i in 0...index {
                 nextSongs.insert(playedSongs[i], at: 0);
             }
