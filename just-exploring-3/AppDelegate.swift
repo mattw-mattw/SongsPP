@@ -168,6 +168,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var swipedRightSet : [MEGANode] = [];
     
     var playQueueTVC : PlayQueueTVC? = nil;
+    var playlistTVC : PlaylistTVC? = nil;
     var tabBarContoller : MainTabBarController? = nil;
 
     func downloadProgress(nodeHandle : UInt64, percent : NSNumber )

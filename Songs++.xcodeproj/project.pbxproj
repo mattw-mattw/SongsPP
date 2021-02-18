@@ -46,6 +46,7 @@
 		C96F3AD923BFDB87008BF07D /* MenuVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD823BFDB87008BF07D /* MenuVC.swift */; };
 		C96F3ADD23C01A07008BF07D /* StorageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3ADC23C01A07008BF07D /* StorageModel.swift */; };
 		C972610023C72FAC0029871E /* MainTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97260FF23C72FAC0029871E /* MainTabBarController.swift */; };
+		C9D30240259834D400D52ADF /* PlaylistTVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D3023F259834D400D52ADF /* PlaylistTVC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -115,6 +116,7 @@
 		C96F3AD823BFDB87008BF07D /* MenuVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuVC.swift; sourceTree = "<group>"; };
 		C96F3ADC23C01A07008BF07D /* StorageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageModel.swift; sourceTree = "<group>"; };
 		C97260FF23C72FAC0029871E /* MainTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabBarController.swift; sourceTree = "<group>"; };
+		C9D3023F259834D400D52ADF /* PlaylistTVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistTVC.swift; sourceTree = "<group>"; };
 		C9F1F70424FA5099008A31CB /* Songs++Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Songs++Info.plist"; path = "/Users/matt/Desktop/just-exploring-3/Songs++Info.plist"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
@@ -201,8 +203,9 @@
 				C97260FF23C72FAC0029871E /* MainTabBarController.swift */,
 				C96F3AD823BFDB87008BF07D /* MenuVC.swift */,
 				84559EE0237A9FB0005B8342 /* TableViewMusicCell.swift */,
-				8498DB9823669FA50036B1F6 /* PlayQueueTVC.swift */,
+				C9D3023F259834D400D52ADF /* PlaylistTVC.swift */,
 				C96F3AD623BFC995008BF07D /* PlayQueueModel.swift */,
+				8498DB9823669FA50036B1F6 /* PlayQueueTVC.swift */,
 				C96F3ADC23C01A07008BF07D /* StorageModel.swift */,
 				8498DB8C23661DF80036B1F6 /* BrowseTVC.swift */,
 				8498DB88236524F90036B1F6 /* LoginVC.swift */,
@@ -403,6 +406,7 @@
 				C94FF3892411021800184998 /* EditSongVC.swift in Sources */,
 				8498DB9923669FA50036B1F6 /* PlayQueueTVC.swift in Sources */,
 				C972610023C72FAC0029871E /* MainTabBarController.swift in Sources */,
+				C9D30240259834D400D52ADF /* PlaylistTVC.swift in Sources */,
 				84559EE4237BFFFB005B8342 /* AVAudioSessionPatch.m in Sources */,
 				84008B9823603A4400BD633F /* ViewController.swift in Sources */,
 				C96F3AD723BFC995008BF07D /* PlayQueueModel.swift in Sources */,

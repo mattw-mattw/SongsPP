@@ -29,22 +29,11 @@ class BrowseTVC: UITableViewController {
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
-        
-//        topRightButton = UIButton(type: .custom);
-//        topRightButton!.setTitle("Option", for: .normal)
-//        topRightButton!.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
-//        topRightButton!.addTarget(self, action: #selector(onTopRightButton), for: .touchUpInside)
-//        let item1 = UIBarButtonItem(customView: topRightButton!)
-//        self.navigationItem.rightBarButtonItem = item1;
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        if (app().tabBarContoller != nil) {
-            app().tabBarContoller!.navigationItem.rightBarButtonItem =
-                  UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
-        }
+        navigationItem.rightBarButtonItem =
+              UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
     }
     
     @objc func onParentTap(sender : UITapGestureRecognizer) {
@@ -60,6 +49,11 @@ class BrowseTVC: UITableViewController {
         alert.addAction(UIAlertAction(title: "Queue+Expand+Shuffle all", style: .default, handler:
             { (UIAlertAction) -> () in self.QueueExpandShuffleAll() }));
 
+        if !isPlaylists() && currentFolder != nil {
+            alert.addAction(UIAlertAction(title: "Convert account login to writable folder link at this folder", style: .default, handler:
+                { (UIAlertAction) -> () in self.CheckSetAsWritableFolderLink() }));
+        }
+
         if !isPlaylists() && currentFolder != nil && app().musicBrowseFolder == nil {
             alert.addAction(UIAlertAction(title: "Set this folder as the Music Folder", style: .default, handler:
                 { (UIAlertAction) -> () in self.CheckSetAsMusicFolder() }));
@@ -74,6 +68,26 @@ class BrowseTVC: UITableViewController {
         self.present(alert, animated: false, completion: nil)
     }
     
+    func CheckSetAsWritableFolderLink()
+    {
+        if let path = mega().nodePath(for: currentFolder!) {
+            let alert = UIAlertController(title: "Writable Folder Link", message: "Converts from logging in to your whole account to logging in to just this folder: \"" + path + "\". Your logged in session will be closed, and a writable folder link will be created for this folder.   This writable folder link will be used going forward in this app, so that only that folder and its subfolders and files are available in this app.  The rest of your account will not be loaded and can't be accessed from this app. All your music and playlists should be below the folder you choose to do this with.", preferredStyle: .alert)
+            
+            alert.addAction(UIAlertAction(title: "Yes, convert to a writable folder link", style: .default, handler:
+                { (UIAlertAction) -> () in self.SetAsWritableFolderLink()}));
+
+            alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+
+            self.present(alert, animated: false, completion: nil)
+        }
+    }
+    
+    func SetAsWritableFolderLink()
+    {
+        app().loginState.convertToWritableFolderLink(currentFolder!, onFinish: { (success) in
+            if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage); }
+    });
+    }
     func CheckSetAsMusicFolder()
     {
         if let path = mega().nodePath(for: currentFolder!) {
@@ -267,6 +281,12 @@ class BrowseTVC: UITableViewController {
             if (node.type == MEGANodeType.folder || node.type == MEGANodeType.root)
             {
                 DispatchQueue.main.async( execute: { self.load(node: node) } );
+            }
+            else if (node.type == MEGANodeType.file && node.name.hasSuffix(".playlist"))
+            {
+                let vc = self.storyboard?.instantiateViewController(identifier: "Playlist") as! PlaylistTVC
+                vc.loadPlaylist(node: node)
+                self.navigationController?.pushViewController(vc, animated: true)
             }
         }
     }

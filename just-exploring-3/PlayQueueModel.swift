@@ -85,7 +85,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                     nextSongs.remove(at: 0)
                     nodeInPlayerIsFrontOfList = false;
                     removeFirstSongOnPlay = false;
-                    onNextSongsEdited(reloadView: true, triggerPlay: false);
+                    onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: false);
                 }
             }
             if (player.rate == 0)
@@ -125,6 +125,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             }
         }
         
+        let replaceable = playerSongIsEphemeral();
         var playableNodes = nodes;
         var i: Int = 0;
         while (i < playableNodes.count) {
@@ -136,14 +137,15 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             }
         }
         nextSongs += playableNodes;
-        onNextSongsEdited(reloadView: true, triggerPlay: false);
+        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
     }
     
     func queueSongNext(node : MEGANode)
     {
         if isPlayable(node, orMightContainPlayable: true) {
+            let replaceable = playerSongIsEphemeral();
             nextSongs.insert(node, at: 0);
-            onNextSongsEdited(reloadView: true, triggerPlay: false);
+            onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
         }
     }
     
@@ -151,10 +153,11 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     {
         if row < nextSongs.count
         {
+            let replaceable = playerSongIsEphemeral();
             let node = nextSongs[row];
             nextSongs.remove(at: row);
             nextSongs.insert(node, at: 0);
-            onNextSongsEdited(reloadView: true, triggerPlay: false);
+            onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
         }
     }
     
@@ -162,15 +165,17 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     {
         if row < nextSongs.count
         {
+            let replaceable = playerSongIsEphemeral();
             let node = nextSongs[row];
             nextSongs.remove(at: row);
             nextSongs.insert(node, at: nextSongs.count);
-            onNextSongsEdited(reloadView: true, triggerPlay: false);
+            onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
         }
     }
     
     func shuffleQueue()
     {
+        let replaceable = playerSongIsEphemeral();
         var newQueue : [MEGANode] = []
         while nextSongs.count > 0 {
             let row = Int.random(in: 0..<nextSongs.count)
@@ -178,11 +183,12 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             nextSongs.remove(at: row)
         }
         nextSongs.append(contentsOf: newQueue);
-        onNextSongsEdited(reloadView: true, triggerPlay: false)
+        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable)
     }
     
     func deleteToTop(_ row: Int)
     {
+        let replaceable = playerSongIsEphemeral();
         for _ in 0...row
         {
             if (0 < nextSongs.count)
@@ -190,27 +196,29 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 nextSongs.remove(at: 0);
             }
         }
-        onNextSongsEdited(reloadView: true, triggerPlay: false);
+        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
     }
 
     func deleteToBottom(_ row: Int)
     {
+        let replaceable = playerSongIsEphemeral();
         while row < nextSongs.count
         {
             nextSongs.remove(at: row);
         }
-        onNextSongsEdited(reloadView: true, triggerPlay: false);
+        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
     }
     
     func playRightNow(_ row: Int)
     {
+        let replaceable = playerSongIsEphemeral();
         if row < nextSongs.count
         {
             let node = nextSongs[row];
             nextSongs.remove(at: row);
             nextSongs.insert(node, at: 0);
         }
-        onNextSongsEdited(reloadView: true, triggerPlay: true);
+        onNextSongsEdited(reloadView: true, triggerPlay: true, canReplacePlayerSong: replaceable);
     }
 
     func expandPlaylist(_ row: Int)
@@ -257,6 +265,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     
     func expandAll()
     {
+        let replaceable = playerSongIsEphemeral();
         var expanded = false
         var row : Int = 0;
         while (row < nextSongs.count)
@@ -269,7 +278,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 row += 1;
             }
         }
-        if expanded { onNextSongsEdited(reloadView : true, triggerPlay: false) }
+        if expanded { onNextSongsEdited(reloadView : true, triggerPlay: false, canReplacePlayerSong: replaceable) }
     }
     
     func expandQueueItem(_ row: Int)
@@ -326,14 +335,21 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         }
         return started;
     }
+    
+    func playerSongIsEphemeral() -> Bool {
+        return
+            nodeInPlayer == nil || (nextSongs.count > 0 &&
+            nodeInPlayer!.handle == nextSongs[0].handle &&
+            player.currentTime().seconds == 0 && nodeInPlayerIsFrontOfList);
+    }
 
-    func onNextSongsEdited(reloadView : Bool, triggerPlay: Bool)
+    func onNextSongsEdited(reloadView : Bool, triggerPlay: Bool, canReplacePlayerSong : Bool)
     {
         var reloadTableView : Bool = reloadView;
         var index = 0;
         var numDownloading = 0;
-        while (index < nextSongs.count && app().loginState.loggedInOnline) {
-            if (/*downloadNextOnly &&*/ index >= 2) { break }
+        while (index < nextSongs.count) {
+            if (index >= 2) { break }
             
             while (nextSongs.count > index && isExpandable(node: nextSongs[index]))
             {
@@ -351,11 +367,10 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             index += 1;
         }
         
-        if (triggerPlay || nodeInPlayer == nil)
+        if (triggerPlay || nodeInPlayer == nil || canReplacePlayerSong)
         {
-            if (loadPlayer(startIt: triggerPlay)) {
-                reloadTableView = true
-            }
+            loadPlayer(startIt: triggerPlay);
+            reloadTableView = true
         }
         
         if (reloadTableView) {
@@ -363,13 +378,9 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         }
     }
     
-    func loadPlayer(startIt: Bool) -> Bool
+    func loadPlayer(startIt: Bool)
     {
-        var changedNextSongs = false;
-        if (nodeInPlayer != nil)
-        {
-            if player.currentTime().seconds > 0 { pushToHistory(); }
-        }
+        if (!playerSongIsEphemeral()) { pushToHistory(); }
         
         if (nextSongs.count > 0)
         {
@@ -380,7 +391,6 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 player.replaceCurrentItem(with: AVPlayerItem(url: fileURL));
                 if (play) {
                     nextSongs.remove(at: 0);
-                    changedNextSongs = true;
                     nodeInPlayerIsFrontOfList = false;
                     self.player.play();
                     shouldBePlaying = true;
@@ -388,7 +398,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 removeFirstSongOnPlay = !startIt;
                 app().setupNowPlaying(node: nodeInPlayer!)
                 app().playQueueTVC!.playingSongUpdated()
-                return changedNextSongs;
+                return ;
             }
             else if (app().loginState.loggedInOffline)
             {
@@ -401,18 +411,17 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         nodeInPlayerIsFrontOfList = false;
         self.player.replaceCurrentItem(with: nil);
         app().setupNowPlaying(node: nodeInPlayer)
-        app().playQueueTVC!.playingSongUpdated()
-        return changedNextSongs;
+        app().playQueueTVC?.playingSongUpdated()
     }
 
     func songDownloaded()
     {
-        onNextSongsEdited(reloadView: false, triggerPlay: false)  // reloading the view interrupts users moving tracks around in edit mode
+        onNextSongsEdited(reloadView: false, triggerPlay: false, canReplacePlayerSong: false)  // reloading the view interrupts users moving tracks around in edit mode
     }
     
     func pushToHistory()
     {
-        if nodeInPlayer != nil && !nodeInPlayerIsFrontOfList {
+        if nodeInPlayer != nil {
             playedSongs.insert(nodeInPlayer!, at: 0);
             nodeInPlayer = nil;
             nodeInPlayerIsFrontOfList = false;
@@ -426,6 +435,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
 
     func timeTravel(index: Int)
     {
+        let replaceable = playerSongIsEphemeral();
         if (index < playedSongs.count)
         {
             if nodeInPlayer != nil && nextSongs.count > 0 && nextSongs[0] != nodeInPlayer
@@ -439,15 +449,17 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             }
             playedSongs.removeFirst(index+1);
         }
-        onNextSongsEdited(reloadView: true, triggerPlay: false);
+        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong : replaceable);
     }
 
     func goNextTrack() -> Bool
     {
+        let replaceable = playerSongIsEphemeral();
         if (nextSongs.count > 0)
         {
-            pushToHistory();
-            onNextSongsEdited(reloadView: true, triggerPlay: false);
+            if (replaceable) { nextSongs.remove(at: 0); }
+            if (!replaceable) { pushToHistory(); }
+            onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong : replaceable);
             return true;
         }
         return false;
@@ -476,8 +488,9 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
 
     func onSongFinishedPlaying()
     {
+        let replaceable = playerSongIsEphemeral();
         pushToHistory();
-        onNextSongsEdited(reloadView: true, triggerPlay: true);
+        onNextSongsEdited(reloadView: true, triggerPlay: true, canReplacePlayerSong: replaceable);
     }
 
     func nodeHandleArrayToJSON(_ array : [MEGANode] ) -> String
@@ -529,7 +542,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
 
     func saveOnShutdown()
     {
-        pushToHistory();
+        if (!playerSongIsEphemeral()) { pushToHistory() };
         let s1 = nodeHandleArrayToJSON(nextSongs);
         let s2 = nodeHandleArrayToJSON(playedSongs);
         do {

@@ -79,28 +79,28 @@ class EditSongVC: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        if let node = app().playQueue.nodeInPlayer
+        if (node != nil)
         {
-            var title : String? = node.customTitle;
-            if (title == nil) { title = node.name; }
-            var bpm : String? = node.customBPM;
+            var title : String? = node!.customTitle;
+            if (title == nil) { title = node!.name; }
+            var bpm : String? = node!.customBPM;
             if (bpm == nil) { bpm = ""; }
-            var artist : String? = node.customArtist;
+            var artist : String? = node!.customArtist;
             if (artist == nil) { artist = "" }
-            var notes : String? = node.customNotes;
+            var notes : String? = node!.customNotes;
             if (notes == nil) { notes = "" }
 
             titleText.text = title!;
             bpmText.text = bpm!;
             artistText.text = artist!;
             notesText.text = notes!;
-            filePathLabel.text = mega().nodePath(for: node);
+            filePathLabel.text = mega().nodePath(for: node!);
             
             image.image = nil;
-            if (node.hasThumbnail())
+            if (node!.hasThumbnail())
             {
-                if (app().storageModel.thumbnailDownloaded(node)) {
-                    if let path = app().storageModel.thumbnailPath(node: node) {
+                if (app().storageModel.thumbnailDownloaded(node!)) {
+                    if let path = app().storageModel.thumbnailPath(node: node!) {
                         if let imagefile = UIImage(contentsOfFile: path) {
                             image.image = imagefile;
                         }

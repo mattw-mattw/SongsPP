@@ -71,8 +71,8 @@ class LoginState //: ObservableObject
     func fetchnodes(onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ())
     {
         printState("fetchnodes starts")
-        processingTitle = loggedInOffline ? "Loading Nodes" : "Fetching Nodes";
-        processingMessage = loggedInOffline ? "Loading your last cached cloud tree" : "Loading your cloud tree";
+        processingTitle = loggedInOffline ? "Loading Folder Tree" : "Fetching Folder Tree";
+        processingMessage = loggedInOffline ? "Loading your last cached folder tree" : "Fetching your folder tree from MEGA.nz";
         processing = true;
         onProgress(processingTitle);
         mega().fetchNodes(
@@ -81,11 +81,12 @@ class LoginState //: ObservableObject
                             self.processing = false;
                             self.printState("fetchnodes success")
                             self.loadRoots(onFinish: onFinish)
+                            let replaceable = app().playQueue.playerSongIsEphemeral();
                             if (app().needsRestoreOnStartup) {
                                 app().playQueue.restoreOnStartup();
                                 app().needsRestoreOnStartup = false;
                             }
-                            app().playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false)
+                            app().playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable)
                         } else {
                             self.errorMessage = "Login succeeded but FetchNodes failed: " + e.nameWithErrorCode(e.type.rawValue);
                             self.processing = false;
@@ -109,6 +110,21 @@ class LoginState //: ObservableObject
         }
         
         onFinish(true)
+    }
+    
+    
+    func convertToWritableFolderLink(_ currentFolder : MEGANode, onFinish : @escaping (Bool) -> ())
+    {
+        mega().exportNodeWritable(currentFolder, writable: true, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
+            if (e.type == .apiOk) {
+                return;
+            } else {
+                ƒa = "Create writable link failed: " + e.nameWithErrorCode(e.type.rawValue);
+            }
+            self.processing = false;
+            self.printState("crete writable link failed")
+            onFinish(false)
+        }))
     }
     
     func goOnline(onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ())
@@ -158,7 +174,7 @@ class LoginState //: ObservableObject
 
         processingTitle = "Resuming Offline"
         processingMessage = "Loading saved session";
-        processing = true;
+        processing = true;		
         
         loggedInOnline = false;
         loggedInOffline = false;
