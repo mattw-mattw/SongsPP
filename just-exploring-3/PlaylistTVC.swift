@@ -103,7 +103,7 @@ class PlaylistTVC: UITableViewController {
         
 //        cell.textLabel?.numberOfLines = 0;
 //        cell.textLabel?.lineBreakMode = .byWordWrapping;
-        
+	
         var title : String? = node.customTitle;
         if (title == nil) { title = node.name; }
         var bpm : String? = node.customBPM;

@@ -119,7 +119,7 @@ class LoginState //: ObservableObject
             if (e.type == .apiOk) {
                 return;
             } else {
-                ƒa = "Create writable link failed: " + e.nameWithErrorCode(e.type.rawValue);
+                self.errorMessage = "Create writable link failed: " + e.nameWithErrorCode(e.type.rawValue);
             }
             self.processing = false;
             self.printState("crete writable link failed")
