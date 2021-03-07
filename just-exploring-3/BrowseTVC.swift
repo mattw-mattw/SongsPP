@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-class BrowseTVC: UITableViewController {
+class BrowseTVC: UITableViewController, UITextFieldDelegate {
 
     var nodeArray : [MEGANode] = [];
     var currentFolder : MEGANode? = nil;
@@ -18,6 +18,19 @@ class BrowseTVC: UITableViewController {
     
     var topRightButton : UIButton? = nil;
     
+    @IBOutlet weak var filterEnableButton: UIButton!
+    @IBOutlet weak var filterDownloadedButton: UIButton!
+    @IBOutlet weak var folderPathLabelCtrl: UILabel!
+    @IBOutlet weak var filterTextCtrl: UITextField!
+    @IBOutlet weak var folderNamesIcon: UIButton!
+    @IBOutlet weak var trackNamesIcon: UIButton!
+    var filtering : Bool = false;
+    var filterIncludeDownloaded = true;
+    var filterIncludeNonDownloaded = true;
+    var filterSearchString : String = "";
+    var showingTrackNames : Bool = false;
+    
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -25,6 +38,11 @@ class BrowseTVC: UITableViewController {
         parentTap!.numberOfTapsRequired = 1
         folderPathLabelCtrl.addGestureRecognizer(parentTap!)
         folderPathLabelCtrl.isUserInteractionEnabled = true;
+        filterTextCtrl.delegate = self;
+        
+        filtering = false;
+        showHideFilterElements()
+        showHideFolderTrackNames()
         
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
@@ -62,6 +80,94 @@ class BrowseTVC: UITableViewController {
             alert.addAction(UIAlertAction(title: "Set this folder as the Playlist Folder", style: .default, handler:
                 { (UIAlertAction) -> () in self.CheckSetAsPlaylistFolder() }));
         }
+
+        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+
+        self.present(alert, animated: false, completion: nil)
+    }
+
+    func showHideFilterElements()
+    {
+        folderPathLabelCtrl.isHidden = filtering;
+        filterTextCtrl.isHidden = !filtering;
+        filterDownloadedButton.isHidden = !filtering;
+        filterTextCtrl.resignFirstResponder();
+    }
+    
+    func showHideFolderTrackNames()
+    {
+        folderNamesIcon.isHidden = showingTrackNames;
+        trackNamesIcon.isHidden = !showingTrackNames;
+    }
+    
+    @IBAction func onTrackNames(_ sender: UIButton) {
+        showingTrackNames = false;
+        showHideFolderTrackNames();
+        app().playQueueTVC?.redraw();
+    }
+    
+    @IBAction func onFolderNames(_ sender: UIButton) {
+        showingTrackNames = true;
+        showHideFolderTrackNames();
+        app().playQueueTVC?.redraw();
+    }
+    
+    func reFilter()
+    {
+        filterTextCtrl.resignFirstResponder();
+        load(node: currentFolder);
+    }
+ 
+    func textFieldShouldReturn(_ textField: UITextField) ->Bool {
+        filterSearchString = "";
+        if (filterTextCtrl.text != nil) { filterSearchString = filterTextCtrl.text!; }
+
+        filterTextCtrl.resignFirstResponder();
+        reFilter();
+        return false; // don't do control default, we've processed it
+    }
+
+    @IBAction func onFilterButton(_ sender: UIButton) {
+        filtering = !filtering;
+        showHideFilterElements();
+        reFilter();
+    }
+    
+    @IBAction func onFilterTextEdited(_ sender: UIButton) {
+        filtering = !filtering;
+        showHideFilterElements();
+    }
+    
+    func bullet(_ b : Bool) -> String
+    {
+        if (b) {
+            return "\u{2022}";
+        }
+        else {
+            return "";
+        }
+    }
+    
+    @IBAction func onFilterDownloadedButton(_ sender: UIButton) {
+        let alert = UIAlertController(title: nil, message: "Include downloaded", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: bullet(filterIncludeDownloaded && filterIncludeNonDownloaded) + "All", style: .default, handler:
+            { (UIAlertAction) -> () in
+                self.filterIncludeDownloaded = true;
+                self.filterIncludeNonDownloaded = true;
+                self.reFilter(); }));
+
+        alert.addAction(UIAlertAction(title: bullet(!filterIncludeNonDownloaded) + "Only downloaded", style: .default, handler:
+            { (UIAlertAction) -> () in
+                self.filterIncludeDownloaded = true;
+                self.filterIncludeNonDownloaded = false;
+                self.reFilter(); }));
+
+        alert.addAction(UIAlertAction(title: bullet(!filterIncludeDownloaded) + "Only non-downloaded", style: .default, handler:
+            { (UIAlertAction) -> () in
+                self.filterIncludeDownloaded = false;
+                self.filterIncludeNonDownloaded = true;
+                self.reFilter(); }));
 
         alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
 
@@ -163,7 +269,61 @@ class BrowseTVC: UITableViewController {
         app().playQueue.shuffleQueue()
     }
 
-    @IBOutlet weak var folderPathLabelCtrl: UILabel!
+    func checkFiltered(_ n : MEGANode) -> Bool
+    {
+        var select = false;
+        if (n.name.lowercased().contains(filterSearchString.lowercased()))
+        {
+            select = true;
+        }
+        if (n.customTitle != nil && !select)
+        {
+            select = n.customTitle!.lowercased().contains(filterSearchString.lowercased())
+        }
+        if (n.customArtist != nil && !select)
+        {
+            select = n.customArtist!.lowercased().contains(filterSearchString.lowercased())
+        }
+        if (n.customNotes != nil && !select)
+        {
+            select = n.customNotes!.lowercased().contains(filterSearchString.lowercased())
+        }
+        if (n.customBPM != nil && !select)
+        {
+            select = n.customBPM!.lowercased().contains(filterSearchString.lowercased())
+        }
+        if (!filterIncludeDownloaded && select)
+        {
+            if (app().storageModel.fileDownloaded(n))
+            {
+                select = false;
+            }
+        }
+        else if (!filterIncludeNonDownloaded && select)
+        {
+            if (!app().storageModel.fileDownloaded(n))
+            {
+                select = false;
+            }
+        }
+        return select;
+    }
+    
+    func AddFilteredNodes(parent : MEGANode)
+    {
+        let list = mega().children(forParent: parent, order: 1);
+        for i in 0..<list.size.intValue {
+            let n = list.node(at: i);
+            if (filtering && n?.type != MEGANodeType.file)
+            {
+                AddFilteredNodes(parent: n!);
+            }
+            else if (!filtering || checkFiltered(n!))
+            {
+                nodeArray.append(n!)
+            }
+        }
+    }
     
     func load(node : MEGANode?)
     {
@@ -183,7 +343,8 @@ class BrowseTVC: UITableViewController {
             }
         }
         else {
-            nodeArray = nodeListToNodeArray(list: mega().children(forParent: currentFolder!, order: 1))
+            nodeArray = [];
+            AddFilteredNodes(parent: currentFolder!);
             text = mega().nodePath(for: node!);
             if (text != nil)
             {
