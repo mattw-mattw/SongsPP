@@ -98,6 +98,14 @@
                                     <constraint firstAttribute="width" constant="234" id="z52-TM-6g2"/>
                                 </constraints>
                             </imageView>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="61V-0g-6PE">
+                                <rect key="frame" x="20" y="274" width="146" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Extract tags from File"/>
+                                <connections>
+                                    <action selector="ExtractTagsHit:" destination="f67-hv-rJT" eventType="touchUpInside" id="ELh-TR-MPh"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="teQ-dI-h7K"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>

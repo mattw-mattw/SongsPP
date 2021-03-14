@@ -9,4 +9,6 @@
 
 #import "AVAudioSessionPatch.h"
 
+#import "SongsCpp.h"
+
 #endif 

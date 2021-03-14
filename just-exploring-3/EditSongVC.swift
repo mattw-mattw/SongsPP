@@ -63,6 +63,25 @@ class EditSongVC: UIViewController {
         }
     }
     
+    @IBAction func ExtractTagsHit(_ sender : Any) {
+
+        if (node == nil) { return; }
+        
+        var title : NSString? = nil;
+        var artist : NSString? = nil;
+        var bpm : NSString? = nil;
+
+        let songPath = app().storageModel.songFingerprintPath(node: node!);
+        if (songPath == nil) { return; }
+
+        if (SongsCPP.getSongProperties(songPath!, title: &title, artist: &artist, bpm: &bpm)) {
+            
+            titleText.text = title == nil ? "" : title! as String;
+            artistText.text = artist == nil ? "": artist! as String;
+            bpmText.text = bpm == nil ? "": bpm! as String;
+        }
+    }
+    
     @IBAction func SaveAllHit(_ sender: Any) {
         if node == nil { return; }
         if !app().loginState.loggedInOnline { goOnline(); }

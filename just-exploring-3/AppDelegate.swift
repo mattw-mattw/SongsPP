@@ -281,8 +281,13 @@ func menuAction_songBrowseTo(_ node : MEGANode, viewController : UIViewControlle
     return UIAlertAction(title: "Browse to", style: .default, handler:
         { (UIAlertAction) -> () in
             app().tabBarContoller?.selectedIndex = 1;
-            app().browseMusicTVC?.filtering = false;
             app().browseMusicTVC?.browseTo(node);
         });
 }
+
+func menuAction_neverMind() -> UIAlertAction
+{
+    return UIAlertAction(title: "Never mind", style: .cancel);
+}
+
 

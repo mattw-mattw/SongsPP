@@ -28,6 +28,9 @@
 		84D137E22363F272006A2DE0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E12363F272006A2DE0 /* libresolv.tbd */; };
 		84D137E42363F344006A2DE0 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E32363F343006A2DE0 /* CoreServices.framework */; };
 		84D137E62363F37F006A2DE0 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E52363F37F006A2DE0 /* CoreMedia.framework */; };
+		C90DCBB325FE0E310097792C /* SongsCpp.mm in Sources */ = {isa = PBXBuildFile; fileRef = C90DCBB225FE0E310097792C /* SongsCpp.mm */; };
+		C90DCBBC25FE162A0097792C /* libtag.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90DCBBA25FE162A0097792C /* libtag.a */; };
+		C90DCBBD25FE162A0097792C /* libtag_c.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90DCBBB25FE162A0097792C /* libtag_c.a */; };
 		C94FF3892411021800184998 /* EditSongVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C94FF3882411021800184998 /* EditSongVC.swift */; };
 		C962CA2325DF0F0300A77721 /* libsodium.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C962CA2225DF0F0300A77721 /* libsodium.a */; };
 		C962CA2825DF0F3400A77721 /* libcares.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C962CA2725DF0F3400A77721 /* libcares.a */; };
@@ -106,6 +109,10 @@
 		84D137E12363F272006A2DE0 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		84D137E32363F343006A2DE0 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		84D137E52363F37F006A2DE0 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		C90DCBB125FE0E310097792C /* SongsCpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SongsCpp.h; sourceTree = "<group>"; };
+		C90DCBB225FE0E310097792C /* SongsCpp.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = SongsCpp.mm; sourceTree = "<group>"; };
+		C90DCBBA25FE162A0097792C /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libtag.a"; sourceTree = "<group>"; };
+		C90DCBBB25FE162A0097792C /* libtag_c.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag_c.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libtag_c.a"; sourceTree = "<group>"; };
 		C94FF3882411021800184998 /* EditSongVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditSongVC.swift; sourceTree = "<group>"; };
 		C962CA2225DF0F0300A77721 /* libsodium.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsodium.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libsodium.a"; sourceTree = "<group>"; };
 		C962CA2725DF0F3400A77721 /* libcares.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcares.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libcares.a"; sourceTree = "<group>"; };
@@ -148,7 +155,9 @@
 				C962CA7125DF784F00A77721 /* libsqlite3.a in Frameworks */,
 				C962CA7325DF785E00A77721 /* libmediainfo.a in Frameworks */,
 				C962CA7525DF786600A77721 /* libzen.a in Frameworks */,
+				C90DCBBD25FE162A0097792C /* libtag_c.a in Frameworks */,
 				84008BC723604D8000BD633F /* AVKit.framework in Frameworks */,
+				C90DCBBC25FE162A0097792C /* libtag.a in Frameworks */,
 				84008BC523604D7000BD633F /* AVFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -197,6 +206,8 @@
 		84008B9423603A4400BD633F /* just-exploring-3 */ = {
 			isa = PBXGroup;
 			children = (
+				C90DCBB125FE0E310097792C /* SongsCpp.h */,
+				C90DCBB225FE0E310097792C /* SongsCpp.mm */,
 				84559EDF2372A737005B8342 /* just-exploring-3.entitlements */,
 				84008B9523603A4400BD633F /* AppDelegate.swift */,
 				84559EE2237BFFE4005B8342 /* AVAudioSessionPatch.h */,
@@ -245,6 +256,8 @@
 		84008BC323604D6F00BD633F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C90DCBBB25FE162A0097792C /* libtag_c.a */,
+				C90DCBBA25FE162A0097792C /* libtag.a */,
 				C962CA7425DF786600A77721 /* libzen.a */,
 				C962CA7225DF785E00A77721 /* libmediainfo.a */,
 				C962CA7025DF784F00A77721 /* libsqlite3.a */,
@@ -441,6 +454,7 @@
 				C972610023C72FAC0029871E /* MainTabBarController.swift in Sources */,
 				C9D30240259834D400D52ADF /* PlaylistTVC.swift in Sources */,
 				84559EE4237BFFFB005B8342 /* AVAudioSessionPatch.m in Sources */,
+				C90DCBB325FE0E310097792C /* SongsCpp.mm in Sources */,
 				84008B9823603A4400BD633F /* ViewController.swift in Sources */,
 				C96F3AD723BFC995008BF07D /* PlayQueueModel.swift in Sources */,
 				C96F3AD523BFC799008BF07D /* LoginStateModel.swift in Sources */,
@@ -633,7 +647,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = FF48ESATNC;
 				ENABLE_BITCODE = NO;
-				HEADER_SEARCH_PATHS = /Users/matt/repos/sdk/bindings/ios;
+				HEADER_SEARCH_PATHS = (
+					/Users/matt/repos/sdk/bindings/ios,
+					"/Users/matt/repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/include",
+				);
 				INFOPLIST_FILE = "just-exploring-3/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -663,7 +680,10 @@
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
-				HEADER_SEARCH_PATHS = /Users/matt/repos/sdk/bindings/ios;
+				HEADER_SEARCH_PATHS = (
+					/Users/matt/repos/sdk/bindings/ios,
+					"/Users/matt/repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/include",
+				);
 				INFOPLIST_FILE = "just-exploring-3/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = (

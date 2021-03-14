@@ -295,9 +295,11 @@ class PlayQueueTVC: UITableViewController {
                     { (UIAlertAction) -> () in app().playQueue.queueSong(node: node); tableView.reloadData() }));
 
                 alert.addAction(UIAlertAction(title: "Time travel", style: .default, handler:
-                    { (UIAlertAction) -> () in app().playQueue.timeTravel(index: indexPath.row); tableView.reloadData() }));
-
-                alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+                    { (UIAlertAction) -> () in app().playQueue.timeTravel(index: indexPath.row); self.QueueButtonHit(self); tableView.reloadData() }));
+                
+                alert.addAction(menuAction_songInfo(node, viewController: self));
+                alert.addAction(menuAction_songBrowseTo(node, viewController: self));
+                alert.addAction(menuAction_neverMind());
                 self.present(alert, animated: false, completion: nil)
             }
         }
@@ -335,8 +337,7 @@ class PlayQueueTVC: UITableViewController {
                 
                 alert.addAction(menuAction_songInfo(node, viewController: self));
                 alert.addAction(menuAction_songBrowseTo(node, viewController: self));
-
-                alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+                alert.addAction(menuAction_neverMind());
                 self.present(alert, animated: false, completion: nil)
             }
         }

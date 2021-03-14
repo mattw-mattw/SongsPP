@@ -40,8 +40,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         folderPathLabelCtrl.isUserInteractionEnabled = true;
         filterTextCtrl.delegate = self;
         
-        filtering = false;
-        showHideFilterElements()
+        showHideFilterElements(filter: false);
         showHideFolderTrackNames()
 
         load(node: rootFolder());
@@ -89,13 +88,13 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                 { (UIAlertAction) -> () in self.CheckSetAsPlaylistFolder() }));
         }
 
-        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
-
+        alert.addAction(menuAction_neverMind());
         self.present(alert, animated: false, completion: nil)
     }
 
-    func showHideFilterElements()
+    func showHideFilterElements(filter : Bool)
     {
+        filtering = filter;
         folderPathLabelCtrl.isHidden = filtering;
         filterTextCtrl.isHidden = !filtering;
         filterDownloadedButton.isHidden = !filtering;
@@ -136,14 +135,12 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     }
 
     @IBAction func onFilterButton(_ sender: UIButton) {
-        filtering = !filtering;
-        showHideFilterElements();
+        showHideFilterElements(filter: !filtering);
         reFilter();
     }
     
     @IBAction func onFilterTextEdited(_ sender: UIButton) {
-        filtering = !filtering;
-        showHideFilterElements();
+        showHideFilterElements(filter: !filtering);
     }
     
     func bullet(_ b : Bool) -> String
@@ -335,6 +332,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     func browseTo(_ node : MEGANode)
     {
+        showHideFilterElements(filter: false);
         load(node: mega().parentNode(for: node));
     }
     
@@ -508,7 +506,6 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         return v;
     }
     
-    
     override func tableView(_ tableView: UITableView, shouldShowMenuForRowAt indexPath: IndexPath) -> Bool
     {
         // long press to show menu for song
@@ -522,7 +519,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                 alert.addAction(menuAction_playNext(node));
                 alert.addAction(menuAction_playLast(node));
                 alert.addAction(menuAction_songInfo(node, viewController: self));
-
+                if (filtering) { alert.addAction(menuAction_songBrowseTo(node, viewController: self)); }
                 alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
                 self.present(alert, animated: false, completion: nil)
             }
