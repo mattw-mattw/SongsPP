@@ -168,7 +168,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var swipedRightSet : [MEGANode] = [];
     
     var playQueueTVC : PlayQueueTVC? = nil;
-    var playlistTVC : PlaylistTVC? = nil;
+    var browseMusicTVC : BrowseTVC? = nil;
+    var browsePlaylistsTVC : BrowseTVC? = nil;
+    
+    //var playlistTVC : PlaylistTVC? = nil;
     var tabBarContoller : MainTabBarController? = nil;
 
     func downloadProgress(nodeHandle : UInt64, percent : NSNumber )
@@ -243,5 +246,43 @@ func CheckOnlineOrWarn(_ warnMessage: String, uic : UIViewController) -> Bool
     alert.addAction(UIAlertAction(title: "OK", style: .cancel));
     uic.present(alert, animated: false, completion: nil)
     return false;
+}
+
+func menuAction_playRightNow(_ node : MEGANode) -> UIAlertAction
+{
+    return UIAlertAction(title: "Play right now", style: .default, handler:
+        { (UIAlertAction) -> () in app().playQueue.playRightNow(node); });
+}
+
+func menuAction_playNext(_ node : MEGANode) -> UIAlertAction
+{
+    return UIAlertAction(title: "Play next", style: .default, handler:
+        { (UIAlertAction) -> () in app().playQueue.addSongNext(node); });
+}
+
+func menuAction_playLast(_ node : MEGANode) -> UIAlertAction
+{
+    UIAlertAction(title: "Play last", style: .default, handler:
+        { (UIAlertAction) -> () in app().playQueue.addSongLast(node); });
+}
+
+func menuAction_songInfo(_ node : MEGANode, viewController : UIViewController) -> UIAlertAction
+{
+    return UIAlertAction(title: "Info...", style: .default, handler:
+        { (UIAlertAction) -> () in
+            let vc = app().playQueueTVC?.storyboard?.instantiateViewController(identifier: "EditSongVC") as! EditSongVC;
+            vc.node = node;
+            viewController.navigationController?.pushViewController(vc, animated: true)
+        });
+}
+
+func menuAction_songBrowseTo(_ node : MEGANode, viewController : UIViewController) -> UIAlertAction
+{
+    return UIAlertAction(title: "Browse to", style: .default, handler:
+        { (UIAlertAction) -> () in
+            app().tabBarContoller?.selectedIndex = 1;
+            app().browseMusicTVC?.filtering = false;
+            app().browseMusicTVC?.browseTo(node);
+        });
 }
 

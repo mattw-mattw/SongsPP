@@ -148,28 +148,38 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
         }
     }
-    
+
+    func addSongNext(_ node: MEGANode)
+    {
+        let replaceable = playerSongIsEphemeral();
+        nextSongs.insert(node, at: 0);
+        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
+    }
+
     func moveSongNext(_ row: Int)
     {
         if row < nextSongs.count
         {
-            let replaceable = playerSongIsEphemeral();
             let node = nextSongs[row];
             nextSongs.remove(at: row);
-            nextSongs.insert(node, at: 0);
-            onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
+            addSongNext(node);
         }
+    }
+    
+    func addSongLast(_ node: MEGANode)
+    {
+        let replaceable = playerSongIsEphemeral();
+        nextSongs.insert(node, at: nextSongs.count);
+        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
     }
     
     func moveSongLast(_ row: Int)
     {
         if row < nextSongs.count
         {
-            let replaceable = playerSongIsEphemeral();
             let node = nextSongs[row];
             nextSongs.remove(at: row);
-            nextSongs.insert(node, at: nextSongs.count);
-            onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
+            addSongLast(node);
         }
     }
     
@@ -209,16 +219,21 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
     }
     
-    func playRightNow(_ row: Int)
+    func playRightNow(_ node: MEGANode)
     {
         let replaceable = playerSongIsEphemeral();
+        nextSongs.insert(node, at: 0);
+        onNextSongsEdited(reloadView: true, triggerPlay: true, canReplacePlayerSong: replaceable);
+    }
+
+    func playRightNow(_ row: Int)
+    {
         if row < nextSongs.count
         {
             let node = nextSongs[row];
             nextSongs.remove(at: row);
-            nextSongs.insert(node, at: 0);
+            playRightNow(node);
         }
-        onNextSongsEdited(reloadView: true, triggerPlay: true, canReplacePlayerSong: replaceable);
     }
 
     func expandPlaylist(_ row: Int)
@@ -343,9 +358,9 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             player.currentTime().seconds == 0 && nodeInPlayerIsFrontOfList);
     }
 
-    func onNextSongsEdited(reloadView : Bool, triggerPlay: Bool, canReplacePlayerSong : Bool)
+    func startNextSongDownloads() -> Bool
     {
-        var reloadTableView : Bool = reloadView;
+        var reloadTableView : Bool = false;
         var index = 0;
         var numDownloading = 0;
         while (index < nextSongs.count) {
@@ -358,7 +373,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             }
             if (index < nextSongs.count &&
                 (app().storageModel.isDownloading(nextSongs[index]) ||
-                app().storageModel.startDownloadIfAbsent(nextSongs[index])))
+                    app().storageModel.startDownloadIfAbsent(node: nextSongs[index])))
             {
                 numDownloading += 1;
             }
@@ -366,10 +381,17 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             
             index += 1;
         }
-        
+        return reloadTableView;
+    }
+
+    func onNextSongsEdited(reloadView : Bool, triggerPlay: Bool, canReplacePlayerSong : Bool)
+    {
+        var reloadTableView = startNextSongDownloads() || reloadView;
+
         if (triggerPlay || nodeInPlayer == nil || canReplacePlayerSong)
         {
             loadPlayer(startIt: triggerPlay);
+            reloadTableView = startNextSongDownloads()
             reloadTableView = true
         }
         
@@ -388,6 +410,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 let play = startIt || isPlaying;
                 nodeInPlayer = nextSongs[0];
                 nodeInPlayerIsFrontOfList = true;
+                downloadingNodeToStartPlaying = nil;
                 player.replaceCurrentItem(with: AVPlayerItem(url: fileURL));
                 if (play) {
                     nextSongs.remove(at: 0);
@@ -407,6 +430,11 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         }
 
         shouldBePlaying = startIt && nextSongs.count > 0;
+        downloadingNodeToStartPlaying = shouldBePlaying ? nextSongs[0] : nil;
+        if (downloadingNodeToStartPlaying == nil)
+        {
+            downloadingNodeToStartPlaying = nil;
+        }
         nodeInPlayer = nil;
         nodeInPlayerIsFrontOfList = false;
         self.player.replaceCurrentItem(with: nil);
@@ -414,9 +442,18 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         app().playQueueTVC?.playingSongUpdated()
     }
 
-    func songDownloaded()
+    var downloadingNodeToStartPlaying : MEGANode? = nil;
+
+    func songDownloaded(node: MEGANode?)
     {
-        onNextSongsEdited(reloadView: false, triggerPlay: false, canReplacePlayerSong: false)  // reloading the view interrupts users moving tracks around in edit mode
+        if (downloadingNodeToStartPlaying == nil) {
+            onNextSongsEdited(reloadView: false, triggerPlay: false, canReplacePlayerSong: false)  // reloading the view interrupts users moving tracks around in edit mode
+        }
+        else if (node != nil && nextSongs.count > 0) {
+            if (node!.handle == nextSongs[0].handle) {
+                onNextSongsEdited(reloadView: false, triggerPlay: node!.handle == downloadingNodeToStartPlaying!.handle, canReplacePlayerSong: false)  // reloading the view interrupts users moving tracks around in edit mode
+            }
+        }
     }
     
     func pushToHistory()

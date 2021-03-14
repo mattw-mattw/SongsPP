@@ -99,64 +99,7 @@ class PlaylistTVC: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: notes == nil || notes! == "" ? "MusicCell" : "MusicCellWithNotes", for: indexPath)
 
         if let musicCell = cell as? TableViewMusicCell {
-
-        
-//        cell.textLabel?.numberOfLines = 0;
-//        cell.textLabel?.lineBreakMode = .byWordWrapping;
-	
-        var title : String? = node.customTitle;
-        if (title == nil) { title = node.name; }
-        var bpm : String? = node.customBPM;
-        if (bpm == nil) { bpm = ""; }
-        var artist : String? = node.customArtist;
-        if (artist == nil) { artist = "" }
-
-        if (notes != nil) {
-            if let musicCellWithNotes = cell as? TableViewMusicCellWithNotes {
-                musicCellWithNotes.notesLabel.text = notes!;
-            }
-        }
-            
-        if (node.isFolder()) {
-            musicCell.durationLabel.text = String("Folder")
-        } else {
-            musicCell.durationLabel.text = String(format: "%02d:%02d", node.duration / 60, node.duration % 60)
-        }
-            
-        musicCell.titleLabel.text = title!;
-        musicCell.bpmLabel.text = bpm!;
-        musicCell.artistLabel.text = artist!;
-        
-        musicCell.thumbnailView.image = nil;
-        if (node.hasThumbnail())
-        {
-            if (app().storageModel.thumbnailDownloaded(node)) {
-                if let path = app().storageModel.thumbnailPath(node: node) {
-                    if let image = UIImage(contentsOfFile: path) {
-                        
-                        //cell.imageView!.frame = CGRect(x: cell.imageView!.frame.origin.x
-                        //ycell.imageView!.frame.origin.y,width: 40, height: 40)
-                        //cell.imageView!.autoresizingMask = [.flexibleWidth]
-                        //cell.imageView!.translatesAutoresizingMaskIntoConstraints = true;
-                        //cell.imageView!.contentMode = .;
-                        musicCell.thumbnailView.image = image;
-                    }
-                }
-            }
-        }
-        
-        musicCell.node = playlistSongs[indexPath.row];
-        
-        let exists = app().storageModel.fileDownloaded(musicCell.node!);
-        
-        if (musicCell.progressBar != nil)
-        {
-            musicCell.contentView.bringSubviewToFront(musicCell.progressBar);
-            
-            musicCell.progressBar.isHidden = !exists;
-            musicCell.progressBar.progress = exists ? 100 : 0;
-            musicCell.progressBar.setNeedsDisplay();
-        }
+            musicCell.populateFromNode(node);
         }
         
         return cell

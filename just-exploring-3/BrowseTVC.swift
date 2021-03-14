@@ -43,10 +43,18 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         filtering = false;
         showHideFilterElements()
         showHideFolderTrackNames()
+
+        load(node: rootFolder());
         
+        if (isPlaylists()) {
+            app().browsePlaylistsTVC = self;
+        }
+        else {
+            app().browseMusicTVC = self;
+        }
+
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
-
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -103,13 +111,13 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     @IBAction func onTrackNames(_ sender: UIButton) {
         showingTrackNames = false;
         showHideFolderTrackNames();
-        app().playQueueTVC?.redraw();
+        tableView.reloadData();
     }
     
     @IBAction func onFolderNames(_ sender: UIButton) {
         showingTrackNames = true;
         showHideFolderTrackNames();
-        app().playQueueTVC?.redraw();
+        tableView.reloadData();
     }
     
     func reFilter()
@@ -325,24 +333,34 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         }
     }
     
+    func browseTo(_ node : MEGANode)
+    {
+        load(node: mega().parentNode(for: node));
+    }
+    
     func load(node : MEGANode?)
     {
+        if node == nil || rootFolder() == nil { return; }
+        let np = mega().nodePath(for: node!);
+        let rp = mega().nodePath(for: rootFolder()!);
+        if np == nil || rp == nil || !np!.hasPrefix(rp!) { return; }
+
         currentFolder = node;
 
         var text : String? = nil;
-        if (currentFolder == nil) {
-            nodeArray.removeAll();
-            if (mega().rootNode != nil) {
-                nodeArray.append(mega().rootNode!);
-                let shares = mega().inSharesList(MEGASortOrderType.alphabeticalAsc)
-                for i in 0..<shares.size.intValue {
-                    if let n = mega().node(forHandle: shares.share(at: i).nodeHandle) {
-                        nodeArray.append(n);
-                    }
-                }
-            }
-        }
-        else {
+//        if (currentFolder == nil) {
+//            nodeArray.removeAll();
+//            if (mega().rootNode != nil) {
+//                nodeArray.append(mega().rootNode!);
+//                let shares = mega().inSharesList(MEGASortOrderType.alphabeticalAsc)
+//                for i in 0..<shares.size.intValue {
+//                    if let n = mega().node(forHandle: shares.share(at: i).nodeHandle) {
+//                        nodeArray.append(n);
+//                    }
+//                }
+//            }
+//        }
+//        else {
             nodeArray = [];
             AddFilteredNodes(parent: currentFolder!);
             text = mega().nodePath(for: node!);
@@ -356,7 +374,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                     }
                 }
             }
-        }
+//        }
         if (folderPathLabelCtrl != nil)
         {
             folderPathLabelCtrl.text = text == nil ? "" : text;
@@ -392,7 +410,6 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated);
-        load(node: rootFolder());
     }
 
     // MARK: - Table view data source
@@ -418,19 +435,38 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let node = indexPath.row < nodeArray.count ? nodeArray[indexPath.row] : nil;
-        
-        let cell = tableView.dequeueReusableCell(withIdentifier: node?.type == MEGANodeType.folder ? "FolderCell" : "MusicCell", for: indexPath)
 
-        if (node!.type == MEGANodeType.folder)
+        var cell : UITableViewCell?
+        
+        if (node!.type == MEGANodeType.folder || !showingTrackNames)
         {
-            cell.textLabel?.text = node!.name + "/";
+            cell = tableView.dequeueReusableCell(withIdentifier: "FolderCell", for: indexPath)
+            cell!.textLabel?.text = node!.name + (node!.type == MEGANodeType.folder ? "/" : "");
         }
         else
         {
-            cell.textLabel?.text = node!.name
+            cell = tableView.dequeueReusableCell(withIdentifier: filtering ? "MusicCellWithNotes" : "MusicCell", for: indexPath)
+            if let mCell = cell as? TableViewMusicCellWithNotes {
+                mCell.populateFromNode(node!);
+                if let rf = rootFolder() {
+                    if let rootpath = mega().nodePath(for: rf) {
+                        if let path = mega().nodePath(for: node!) {
+                            mCell.notesLabel?.text = String(path.dropFirst(rootpath.count));
+                        }
+                    }
+                }
+            }
+            else if let mCell = cell as? TableViewMusicCell {
+                mCell.populateFromNode(node!);
+            }
         }
 
-        return cell
+        return cell!
+    }
+    
+    override func tableView(_: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let node = indexPath.row < nodeArray.count ? nodeArray[indexPath.row] : nil;
+        return node == nil || node!.isFolder() || !showingTrackNames || !filtering ? 43.5 : 70;
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -450,25 +486,6 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                 self.navigationController?.pushViewController(vc, animated: true)
             }
         }
-    }
-    
-    override func tableView(_ tableView: UITableView, shouldShowMenuForRowAt indexPath: IndexPath) -> Bool {
-            
-//            let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
-//            if (node!.type == MEGANodeType.file)
-//            {
-//                alert.addAction(UIAlertAction(title: "Queue to Play", style: .default, handler: { (UIAlertAction) -> () in app().queueSong(node: node!) }));
-//                alert.addAction(UIAlertAction(title: "Play Next", style: .default, handler: { (UIAlertAction) -> () in app().queueSongNext(node: node!) }));
-//            }
-//            else
-//            {
-//                alert.addAction(UIAlertAction(title: "Enter folder", style: .default, handler: { (UIAlertAction) -> () in self.load(node: node) }));
-//            }
-//            alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
-//            self.present(alert, animated: false, completion: nil)
-        
-        
-        return false;
     }
     
     override func tableView(_ tableView: UITableView, canPerformAction action: Selector, forRowAt indexPath: IndexPath, withSender sender: Any?) -> Bool {
@@ -491,6 +508,28 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         return v;
     }
     
+    
+    override func tableView(_ tableView: UITableView, shouldShowMenuForRowAt indexPath: IndexPath) -> Bool
+    {
+        // long press to show menu for song
+        if (indexPath.row < nodeArray.count)
+        {
+            let node = nodeArray[indexPath.row];
+            if (node.type == .file) {
+            
+                let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
+                
+                alert.addAction(menuAction_playNext(node));
+                alert.addAction(menuAction_playLast(node));
+                alert.addAction(menuAction_songInfo(node, viewController: self));
+
+                alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+                self.present(alert, animated: false, completion: nil)
+            }
+        }
+        
+        return false;
+    }
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {

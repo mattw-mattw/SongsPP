@@ -24,7 +24,7 @@ class TransferHandler: NSObject, MEGATransferDelegate {
         if (n != nil && n!.fingerprint != nil) {
             if (error.type.rawValue == 0)
             {
-                app().storageModel.fileArrived(fingerprint: n!.fingerprint!);
+                app().storageModel.fileArrived(fingerprint: n!.fingerprint!, node: n!);
             }
             else
             {
@@ -168,8 +168,10 @@ class StorageModel {
     }
 
     
-    func startDownloadIfAbsent(_ node: MEGANode) -> Bool
+    func startDownloadIfAbsent( node: MEGANode) -> Bool
     {
+        if (!app().loginState.loggedInOnline) { return false; }
+        
         if (node.name.hasSuffix(".playlist")) {
             return startPlaylistDownloadIfAbsent(node);
         } else {
@@ -179,6 +181,8 @@ class StorageModel {
     
     func startSongDownloadIfAbsent(_ node: MEGANode) -> Bool
     {
+        if (!app().loginState.loggedInOnline) { return false; }
+
         if !isDownloading(node) && !fileDownloaded(node)
         {
             if let filename = songFingerprintPath(node: node) {
@@ -193,6 +197,8 @@ class StorageModel {
     
     func startPlaylistDownloadIfAbsent(_ node: MEGANode) -> Bool
     {
+        if (!app().loginState.loggedInOnline) { return false; }
+
         if !isDownloading(node) && !fileDownloaded(node)
         {
             if let filename = playlistPath(node: node) {
@@ -205,16 +211,16 @@ class StorageModel {
         return false
     }
     
-    func fileArrived(fingerprint : String)
+    func fileArrived(fingerprint : String, node : MEGANode)
     {
         downloadingFP.remove(fingerprint);
-        app().playQueue.songDownloaded()
+        app().playQueue.songDownloaded(node: node)
     }
    
    func fileFailed(fingerprint : String)
    {
        downloadingFP.remove(fingerprint);
-       app().playQueue.songDownloaded()
+       app().playQueue.songDownloaded(node: nil)
    }
 
     
