@@ -42,6 +42,44 @@ class TransferHandler: NSObject, MEGATransferDelegate {
     }
 }
 
+func replaceNodeIn(_ n : MEGANode, _ v : inout [MEGANode]) -> Bool
+{
+    var result : Bool = false;
+    for i in v.indices {
+        if v[i].handle == n.handle {
+            v[i] = n;
+            result = true;
+        }
+    }
+    return result;
+}
+
+class MEGAHandler: NSObject, MEGADelegate {
+
+    func onNodesUpdate(_ api: MEGASdk, nodeList : MEGANodeList)
+    {
+        if (nodeList == nil) {
+            return; // yes it is null sometimes
+        }
+        for i in 0..<nodeList.size.intValue {
+            let node = nodeList.node(at: i)
+            
+            if (replaceNodeIn(node!, &app().playQueue.nextSongs) ||
+                replaceNodeIn(node!, &app().playQueue.playedSongs) ) {
+                app().playQueueTVC?.redraw();
+            }
+            
+            if (app().playQueue.nodeInPlayer != nil) &&
+               (app().playQueue.nodeInPlayer!.handle == node!.handle)
+            {
+                app().playQueue.nodeInPlayer = node;
+                app().playQueueTVC?.playingSongUpdated();
+            }
+            
+        }
+    }
+}
+
 class StorageModel {
     
     var downloadingFP : Set<String> = [];
@@ -51,6 +89,7 @@ class StorageModel {
     var downloadedThumbnail : Set<UInt64> = [];
 
     var transferDelegate = TransferHandler();
+    var megaDelegate = MEGAHandler();
 
     func fileDownloaded(_ node: MEGANode) -> Bool
     {

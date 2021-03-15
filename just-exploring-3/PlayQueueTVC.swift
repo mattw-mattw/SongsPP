@@ -51,6 +51,10 @@ class PlayQueueTVC: UITableViewController {
         playingSongImage.isUserInteractionEnabled = true;
         playingSongText.addGestureRecognizer(longPressGR2);
         playingSongText.isUserInteractionEnabled = true;
+        
+//        tabBarContoller!.viewControllers?.forEach { let _ = $0.view }
+//        let _ = app().tabBarContoller!.viewControllers![1].view;
+
 
     }
 

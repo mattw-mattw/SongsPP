@@ -125,6 +125,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(mediaDidEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil);
 
         loginState.goOffline(onProgress: { str in }, onFinish: {b in })
+
         return true
     }
 
@@ -164,6 +165,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var musicBrowseFolder : MEGANode? = nil;
     var playlistBrowseFolder : MEGANode? = nil;
+    
+    var nodeForBrowseFirstLoad : MEGANode? = nil;
     
     var swipedRightSet : [MEGANode] = [];
     
@@ -226,6 +229,7 @@ func mega(using fileManager : FileManager = .default) -> MEGASdk {
         app().storageModel.assureFolderExists(path, doneAlready: &accountFolderDoneAlready);
         a.mega = MEGASdk.init(appKey: "EelhRa6C", userAgent: "MusicViaMega " + deviceName(), basePath: path == "" ? nil : path)!;
         a.mega!.add(a.storageModel.transferDelegate);
+        a.mega!.add(a.storageModel.megaDelegate);
     }
     return a.mega!;
 }
@@ -280,6 +284,7 @@ func menuAction_songBrowseTo(_ node : MEGANode, viewController : UIViewControlle
 {
     return UIAlertAction(title: "Browse to", style: .default, handler:
         { (UIAlertAction) -> () in
+            app().nodeForBrowseFirstLoad = node;
             app().tabBarContoller?.selectedIndex = 1;
             app().browseMusicTVC?.browseTo(node);
         });

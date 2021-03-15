@@ -30,7 +30,6 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     var filterSearchString : String = "";
     var showingTrackNames : Bool = false;
     
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -43,8 +42,14 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         showHideFilterElements(filter: false);
         showHideFolderTrackNames()
 
-        load(node: rootFolder());
-        
+        if (app().nodeForBrowseFirstLoad != nil && !isPlaylists()) {
+            browseTo(app().nodeForBrowseFirstLoad!);
+        }
+        else {
+            load(node: rootFolder());
+        }
+        app().nodeForBrowseFirstLoad  = nil;
+
         if (isPlaylists()) {
             app().browsePlaylistsTVC = self;
         }
@@ -338,27 +343,28 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     func load(node : MEGANode?)
     {
-        if node == nil || rootFolder() == nil { return; }
-        let np = mega().nodePath(for: node!);
-        let rp = mega().nodePath(for: rootFolder()!);
-        if np == nil || rp == nil || !np!.hasPrefix(rp!) { return; }
-
+        if node != nil && rootFolder() != nil {
+            let np = mega().nodePath(for: node!);
+            let rp = mega().nodePath(for: rootFolder()!);
+            if np == nil || rp == nil || !np!.hasPrefix(rp!) { return; }
+        }
         currentFolder = node;
 
         var text : String? = nil;
-//        if (currentFolder == nil) {
-//            nodeArray.removeAll();
-//            if (mega().rootNode != nil) {
-//                nodeArray.append(mega().rootNode!);
-//                let shares = mega().inSharesList(MEGASortOrderType.alphabeticalAsc)
-//                for i in 0..<shares.size.intValue {
-//                    if let n = mega().node(forHandle: shares.share(at: i).nodeHandle) {
-//                        nodeArray.append(n);
-//                    }
-//                }
-//            }
-//        }
-//        else {
+        if (currentFolder == nil) {
+            // account risk minimization by only accessing inshares
+            nodeArray.removeAll();
+            if (mega().rootNode != nil) {
+                nodeArray.append(mega().rootNode!);
+                let shares = mega().inSharesList(MEGASortOrderType.alphabeticalAsc)
+                for i in 0..<shares.size.intValue {
+                    if let n = mega().node(forHandle: shares.share(at: i).nodeHandle) {
+                        nodeArray.append(n);
+                    }
+                }
+            }
+        }
+        else {
             nodeArray = [];
             AddFilteredNodes(parent: currentFolder!);
             text = mega().nodePath(for: node!);
@@ -372,7 +378,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                     }
                 }
             }
-//        }
+        }
         if (folderPathLabelCtrl != nil)
         {
             folderPathLabelCtrl.text = text == nil ? "" : text;

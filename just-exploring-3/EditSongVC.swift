@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-class EditSongVC: UIViewController {
+class EditSongVC: UIViewController, UITextFieldDelegate {
     
     var node : MEGANode? = nil;
     @IBOutlet weak var titleText: UITextField!
@@ -21,10 +21,23 @@ class EditSongVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        titleText.delegate = self;
+        artistText.delegate = self;
+        notesText.delegate = self;
+        bpmText.delegate = self;
     }
     
     var busyControl : UIAlertController? = nil;
 
+    
+    func textFieldShouldReturn(_ textField: UITextField) ->Bool {
+        titleText.resignFirstResponder();
+        artistText.resignFirstResponder();
+        notesText.resignFirstResponder();
+        bpmText.resignFirstResponder();
+        return false; // don't do control default, we've processed it
+    }
+    
     func startSpinnerControl(message : String)
     {
         busyControl = UIAlertController(title: nil, message: message + "\n\n", preferredStyle: .alert)
