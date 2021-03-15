@@ -15,7 +15,7 @@ class PlayQueueTVC: UITableViewController {
     var pvc : AVPlayerViewController? = nil;
 //    var headerControl : UISegmentedControl? = nil;
     //var audioSession = AVAudioSession.sharedInstance()
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -44,9 +44,18 @@ class PlayQueueTVC: UITableViewController {
         //UIApplication.shared.beginReceivingRemoteControlEvents()
         //self.becomeFirstResponder()
         
+        let longPressGR1 = UILongPressGestureRecognizer(target: self, action: #selector(playingItemMenu(press:)));
+        let longPressGR2 = UILongPressGestureRecognizer(target: self, action: #selector(playingItemMenu(press:)));
+        //longPressGR.minimumPressDuration = 2.0;
+        playingSongImage.addGestureRecognizer(longPressGR1);
+        playingSongImage.isUserInteractionEnabled = true;
+        playingSongText.addGestureRecognizer(longPressGR2);
+        playingSongText.isUserInteractionEnabled = true;
+
     }
 
-    @IBOutlet weak var editButton: UIButton!
+    @IBOutlet weak var songLabel : UILabel!;
+    
     @IBOutlet weak var historyButton: UIButton!
     @IBOutlet weak var queueButton: UIButton!
     var showHistory : Bool = false;
@@ -141,10 +150,7 @@ class PlayQueueTVC: UITableViewController {
         self.present(alert, animated: false, completion: nil)
     }
 
-    @IBAction func EditButtonHit(_ sender: Any) {
-        editSong(node: app().playQueue.nodeInPlayer)
-    }
-    
+   
     func editSong(node : MEGANode?) {
         let vc = self.storyboard?.instantiateViewController(identifier: "EditSongVC") as! EditSongVC
         vc.node = node;
@@ -158,8 +164,6 @@ class PlayQueueTVC: UITableViewController {
 //    @IBOutlet weak var segmentedControl : UISegmentedControl!;
     @IBOutlet weak var topHStack: UIStackView!
     @IBOutlet weak var playingSongImage: UIImageView!
-    
-    
     @IBOutlet weak var playingSongText: UILabel!
     
     override func viewWillAppear(_ animated: Bool) {
@@ -228,7 +232,6 @@ class PlayQueueTVC: UITableViewController {
             if (artist != nil) { text! += "\n" + artist! }
             playingSongText.text = text!;
         }
-        editButton.isEnabled = app().playQueue.nodeInPlayer != nil;
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -275,6 +278,20 @@ class PlayQueueTVC: UITableViewController {
         }
     }
 
+    @objc func playingItemMenu(press : UILongPressGestureRecognizer)
+    {
+        if press.state == .began {
+            let node = app().playQueue.nodeInPlayer;
+            if (node != nil) {
+                let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
+                alert.addAction(menuAction_songInfo(node!, viewController: self));
+                alert.addAction(menuAction_songBrowseTo(node!, viewController: self));
+                alert.addAction(menuAction_neverMind());
+                self.present(alert, animated: false, completion: nil)
+            }
+        }
+    }
+    
     override func tableView(_ tableView: UITableView, shouldShowMenuForRowAt indexPath: IndexPath) -> Bool {
 
         if (tableView.isEditing) { return false; }
