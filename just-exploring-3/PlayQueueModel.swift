@@ -261,6 +261,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     }
     
     var playableExtensions = [ ".mp3", ".m4a", ".aac", ".wav", ".flac", ".aiff", ".au", ".pcm", ".ac3", ".aa", ".aax"];
+    var artworkExtensions = [ ".jpg", ".png" ];
     
     func isPlayable(_ n : MEGANode, orMightContainPlayable : Bool) -> Bool
     {
@@ -277,7 +278,19 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         }
         return false;
     }
-    
+
+    func isArtwork(_ n : MEGANode) -> Bool
+    {
+        if (n.isFile()) {
+            if let name = n.name {
+                for ext in artworkExtensions {
+                    if name.hasSuffix(ext) { return true; }
+                }
+            }
+        }
+        return false;
+    }
+
     func expandAll()
     {
         let replaceable = playerSongIsEphemeral();
@@ -423,7 +436,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 app().playQueueTVC!.playingSongUpdated()
                 return ;
             }
-            else if (app().loginState.loggedInOffline)
+            else if (!app().loginState.online)
             {
                 reportMessage(uic: app().playQueueTVC!, message: "Please go online to get the next song")
             }
@@ -564,7 +577,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     
     func saveAsPlaylist()
     {
-        if (app().loginState.loggedInOffline)
+        if (!app().loginState.online)
         {
             reportMessage(uic: app().playQueueTVC!, message: "Please go online to upload the playlist")
             return;

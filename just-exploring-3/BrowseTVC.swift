@@ -80,16 +80,16 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             { (UIAlertAction) -> () in self.QueueExpandShuffleAll() }));
 
         if !isPlaylists() && currentFolder != nil {
-            alert.addAction(UIAlertAction(title: "Convert account login to writable folder link at this folder", style: .default, handler:
+            alert.addAction(UIAlertAction(title: "Login here as Writable Folder Link...", style: .default, handler:
                 { (UIAlertAction) -> () in self.CheckSetAsWritableFolderLink() }));
         }
 
         if !isPlaylists() && currentFolder != nil && app().musicBrowseFolder == nil {
-            alert.addAction(UIAlertAction(title: "Set this folder as the Music Folder", style: .default, handler:
+            alert.addAction(UIAlertAction(title: "Set this as the Music Folder...", style: .default, handler:
                 { (UIAlertAction) -> () in self.CheckSetAsMusicFolder() }));
         }
         if isPlaylists() && currentFolder != nil && app().playlistBrowseFolder == nil {
-            alert.addAction(UIAlertAction(title: "Set this folder as the Playlist Folder", style: .default, handler:
+            alert.addAction(UIAlertAction(title: "Set this as the Playlist Folder...", style: .default, handler:
                 { (UIAlertAction) -> () in self.CheckSetAsPlaylistFolder() }));
         }
 
@@ -187,7 +187,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     func CheckSetAsWritableFolderLink()
     {
         if let path = mega().nodePath(for: currentFolder!) {
-            let alert = UIAlertController(title: "Writable Folder Link", message: "Converts from logging in to your whole account to logging in to just this folder: \"" + path + "\". Your logged in session will be closed, and a writable folder link will be created for this folder.   This writable folder link will be used going forward in this app, so that only that folder and its subfolders and files are available in this app.  The rest of your account will not be loaded and can't be accessed from this app. All your music and playlists should be below the folder you choose to do this with.", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Writable Folder Link", message: "Convert from logging in to your whole account to logging in to just this folder: \"" + path + "\". All your music and playlists should be in subfolders of this folder. A writable folder link will be created for this folder.   This writable folder link will be used going forward in this app, so that only that folder and its subfolders and files are available in this app.  The rest of your account will no longer be loaded by this app, saving resources and improving privacy and convenience.", preferredStyle: .alert)
             
             alert.addAction(UIAlertAction(title: "Yes, convert to a writable folder link", style: .default, handler:
                 { (UIAlertAction) -> () in self.SetAsWritableFolderLink()}));
@@ -198,12 +198,32 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         }
     }
     
+    
+    var busyControl : UIAlertController? = nil;
+    
+    func startSpinnerControl(message : String)
+    {
+        busyControl = UIAlertController(title: nil, message: message + "\n\n", preferredStyle: .alert)
+        let spinnerIndicator = UIActivityIndicatorView(style: .large)
+        spinnerIndicator.center = CGPoint(x: 135.0, y: 65.5)
+        spinnerIndicator.color = UIColor.black
+        spinnerIndicator.startAnimating()
+        busyControl!.view.addSubview(spinnerIndicator)
+        self.present(busyControl!, animated: false, completion: nil)
+    }
+    
     func SetAsWritableFolderLink()
     {
-        app().loginState.convertToWritableFolderLink(currentFolder!, onFinish: { (success) in
-            if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage); }
-    });
+        startSpinnerControl(message: "Writable Folder Link");
+        app().loginState.convertToWritableFolderLink(currentFolder!, 
+            onProgress: {(message) in self.busyControl!.message = message + "\n\n";},
+            onFinish: { (success) in
+                self.busyControl!.dismiss(animated: true);
+                self.busyControl = nil;
+                if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage) }
+            });
     }
+    
     func CheckSetAsMusicFolder()
     {
         if let path = mega().nodePath(for: currentFolder!) {
@@ -522,9 +542,18 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             
                 let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
                 
-                alert.addAction(menuAction_playNext(node));
-                alert.addAction(menuAction_playLast(node));
-                alert.addAction(menuAction_songInfo(node, viewController: self));
+                //UILabel.appearance(whenContainedInInstancesOf: [UIAlertController.self]).numberOfLines = 3;
+                
+                if app().playQueue.isPlayable(node, orMightContainPlayable: false) {
+                    alert.addAction(menuAction_playNext(node));
+                    alert.addAction(menuAction_playLast(node));
+                    alert.addAction(menuAction_songInfo(node, viewController: self));
+                }
+                if app().playQueue.isArtwork(node) {
+//                    todo:  more text: \n(only works in song full account, not links or shares)
+                    alert.addAction(UIAlertAction(title: "Set as artwork for songs in this folder", style: .default, handler:
+                          { (UIAlertAction) -> () in self.setArtworkForSongsInFolder(node); }));
+                }
                 if (filtering) { alert.addAction(menuAction_songBrowseTo(node, viewController: self)); }
                 alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
                 self.present(alert, animated: false, completion: nil)
@@ -532,6 +561,33 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         }
         
         return false;
+    }
+    
+    func redraw()
+    {
+        tableView.reloadData();
+    }
+
+    
+    func setArtworkForSongsInFolder(_ node : MEGANode)
+    {
+        if let parent = mega().parentNode(for: node) {
+        
+            let list = mega().children(forParent: parent, order: 1);
+            for i in 0..<list.size.intValue {
+                if let n = list.node(at: i) {
+                    if (app().playQueue.isPlayable(n, orMightContainPlayable: false))
+                    {
+                        mega().setPreviewByHandle(n,  sourceNode: node, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
+                            app().storageModel.megaDelegate.onThumbnailUpdate(thumbHandle: node.thumbnailAttributeHandle)
+                        } ));
+                        mega().setThumbnailByHandle(n, sourceNode: node, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
+                            app().storageModel.megaDelegate.onThumbnailUpdate(thumbHandle: node.thumbnailAttributeHandle)
+                        }));
+                    }
+                }
+            }
+        }
     }
     /*
     // Override to support conditional editing of the table view.

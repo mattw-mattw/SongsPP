@@ -15,6 +15,7 @@ class MenuVC: UIViewController {
 
     @IBOutlet weak var loginButton : UIButton?
     @IBOutlet weak var logoutButton : UIButton?
+    @IBOutlet weak var forgetFolderLinkButton : UIButton?
     @IBOutlet weak var goOfflineButton : UIButton?
     @IBOutlet weak var goOnlineButton : UIButton?
 
@@ -25,10 +26,11 @@ class MenuVC: UIViewController {
     
     func setEnabled()
     {
-        loginButton?.isEnabled = !app().loginState.loggedInOnline && !app().loginState.loggedInOffline;
-        logoutButton?.isEnabled = app().loginState.loggedInOnline;
-        goOfflineButton?.isEnabled = app().loginState.loggedInOnline;
-        goOnlineButton?.isEnabled = app().loginState.loggedInOffline;
+        loginButton?.isEnabled = !app().loginState.accountBySession && !app().loginState.accountByFolderLink;
+        logoutButton?.isEnabled = app().loginState.accountBySession && app().loginState.online;
+        forgetFolderLinkButton?.isEnabled = app().loginState.accountByFolderLink;
+        goOfflineButton?.isEnabled = app().loginState.online;
+        goOnlineButton?.isEnabled = app().loginState.accountBySession && !app().loginState.online;
     }
     
     func startSpinnerControl(message : String)
@@ -52,7 +54,6 @@ class MenuVC: UIViewController {
                 if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage) }
                 self.setEnabled();
             })
-
     }
     
     @IBAction func onGoOnlineButtonClicked(_ sender: UIButton) {
@@ -70,6 +71,16 @@ class MenuVC: UIViewController {
     @IBAction func onLogoutButtonClicked(_ sender: UIButton) {
         startSpinnerControl(message: "Logging out");
         app().loginState.logout(onFinish: { success in
+            self.busyControl!.dismiss(animated: true);
+            self.busyControl = nil;
+            if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage); }
+            self.setEnabled();
+        })
+    }
+    
+    @IBAction func onForgetFolderLinkButtonClicked(_ sender: UIButton) {
+        startSpinnerControl(message: "Forgetting Folder Link");
+        app().loginState.forgetFolderLink(onFinish: { success in
             self.busyControl!.dismiss(animated: true);
             self.busyControl = nil;
             if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage); }

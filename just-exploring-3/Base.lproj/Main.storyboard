@@ -1045,7 +1045,7 @@
                                 <rect key="frame" x="0.0" y="88" width="428" height="706"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="zxj-iJ-WZB">
-                                        <rect key="frame" x="10" y="10" width="428" height="150"/>
+                                        <rect key="frame" x="10" y="10" width="428" height="180"/>
                                         <subviews>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="peq-VQ-lcF">
                                                 <rect key="frame" x="0.0" y="0.0" width="428" height="30"/>
@@ -1075,8 +1075,15 @@
                                                     <action selector="onLogoutButtonClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="haz-S3-GaO"/>
                                                 </connections>
                                             </button>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1xl-ZA-dFH">
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="x88-KZ-ugz">
                                                 <rect key="frame" x="0.0" y="120" width="428" height="30"/>
+                                                <state key="normal" title="Forget Folder Link"/>
+                                                <connections>
+                                                    <action selector="onForgetFolderLinkButtonClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="coI-ne-oum"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1xl-ZA-dFH">
+                                                <rect key="frame" x="0.0" y="150" width="428" height="30"/>
                                                 <state key="normal" title="Troubleshoot with log files"/>
                                                 <connections>
                                                     <action selector="onTroubleshootWithLogFilesClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="wEO-1K-57m"/>
@@ -1113,6 +1120,7 @@
                     <navigationItem key="navigationItem" id="aNv-C9-32d"/>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
+                        <outlet property="forgetFolderLinkButton" destination="x88-KZ-ugz" id="rCa-Ne-Mvh"/>
                         <outlet property="goOfflineButton" destination="NjD-mo-dKi" id="LH4-sh-3Jv"/>
                         <outlet property="goOnlineButton" destination="2ZG-JV-Ase" id="Jim-3g-YR1"/>
                         <outlet property="loginButton" destination="peq-VQ-lcF" id="TuP-2S-JoM"/>

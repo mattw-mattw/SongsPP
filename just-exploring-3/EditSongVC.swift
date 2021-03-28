@@ -97,8 +97,8 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
     
     @IBAction func SaveAllHit(_ sender: Any) {
         if node == nil { return; }
-        if !app().loginState.loggedInOnline { goOnline(); }
-        if !app().loginState.loggedInOnline { return; }
+        if !app().loginState.online { goOnline(); }
+        if !app().loginState.online { return; }
         
         startSpinnerControl(message: "Saving song data");
 

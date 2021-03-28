@@ -54,6 +54,18 @@ func replaceNodeIn(_ n : MEGANode, _ v : inout [MEGANode]) -> Bool
     return result;
 }
 
+func isThumbnailInNodeVec(_ thumbHandle : String, _ v : [MEGANode]) -> Bool
+{
+    for i in v.indices {
+        if let th = v[i].thumbnailAttributeHandle {
+            if (th == thumbHandle) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 class MEGAHandler: NSObject, MEGADelegate {
 
     func onNodesUpdate(_ api: MEGASdk, nodeList : MEGANodeList)
@@ -75,9 +87,38 @@ class MEGAHandler: NSObject, MEGADelegate {
                 app().playQueue.nodeInPlayer = node;
                 app().playQueueTVC?.playingSongUpdated();
             }
-            
+          
+            if (app().browseMusicTVC != nil) {
+                if (replaceNodeIn(node!, &app().browseMusicTVC!.nodeArray)) {
+                    app().browseMusicTVC!.redraw();
+                }
+            }
+
         }
     }
+    
+    func onThumbnailUpdate(thumbHandle : String)
+    {
+        if (isThumbnailInNodeVec(thumbHandle, app().playQueue.nextSongs) ||
+            isThumbnailInNodeVec(thumbHandle, app().playQueue.playedSongs) ) {
+            app().playQueueTVC?.redraw();
+        }
+        
+        if (app().playQueue.nodeInPlayer != nil) &&
+           (app().playQueue.nodeInPlayer!.thumbnailAttributeHandle != nil &&
+                app().playQueue.nodeInPlayer!.thumbnailAttributeHandle! == thumbHandle)
+        {
+            app().playQueueTVC?.playingSongUpdated();
+        }
+        
+        if (app().browseMusicTVC != nil) {
+            if (isThumbnailInNodeVec(thumbHandle, app().browseMusicTVC!.nodeArray)) {
+                app().browseMusicTVC!.redraw();
+            }
+        }
+
+    }
+    
 }
 
 class StorageModel {
@@ -85,8 +126,8 @@ class StorageModel {
     var downloadingFP : Set<String> = [];
     var downloadedFP : Set<String> = [];
 
-    var downloadingThumbnail : Set<UInt64> = [];
-    var downloadedThumbnail : Set<UInt64> = [];
+    var downloadingThumbnail : Set<String> = [];
+    var downloadedThumbnail : Set<String> = [];
 
     var transferDelegate = TransferHandler();
     var megaDelegate = MEGAHandler();
@@ -103,13 +144,19 @@ class StorageModel {
     
     func thumbnailDownloaded(_ node: MEGANode) -> Bool
     {
-        if downloadedThumbnail.contains(node.handle) { return true; }
+        if (node.thumbnailAttributeHandle == nil) {return false;}
+        let ta = node.thumbnailAttributeHandle!;
+        if downloadedThumbnail.contains(ta) { return true; }
         guard let filename = thumbnailPath(node: node) else { return false }
         let exists = FileManager.default.fileExists(atPath: filename);
-        if (exists) { downloadedThumbnail.insert(node.handle); }
-        if (!exists && !downloadingThumbnail.contains(node.handle)) {
-            downloadingThumbnail.insert(node.handle);
-            mega().getThumbnailNode(node, destinationFilePath: filename)
+        if (exists) { downloadedThumbnail.insert(ta); }
+        if (!exists && !downloadingThumbnail.contains(ta)) {
+            downloadingThumbnail.insert(ta);
+            mega().getThumbnailNode(node, destinationFilePath: filename, delegate:
+                    MEGARequestOneShot(onFinish:
+                        { (e: MEGAError) -> Void in
+                            self.megaDelegate.onThumbnailUpdate(thumbHandle: ta)
+                            self.downloadingThumbnail.remove(ta);}));
         }
         return exists;
     }
@@ -154,7 +201,10 @@ class StorageModel {
             return nil;
         }
         
-        return songsFolderPath() + "/" + node.fingerprint + ".jpg";
+        if let b64 = node.thumbnailAttributeHandle {
+            return thumbnailsFolderPath() + "/" + b64 + ".jpg";
+        }
+        return nil;
     }
     
     func getDownloadedFileURL(_ node: MEGANode) -> URL?
@@ -209,7 +259,7 @@ class StorageModel {
     
     func startDownloadIfAbsent( node: MEGANode) -> Bool
     {
-        if (!app().loginState.loggedInOnline) { return false; }
+        if (!app().loginState.online) { return false; }
         
         if (node.name.hasSuffix(".playlist")) {
             return startPlaylistDownloadIfAbsent(node);
@@ -220,14 +270,17 @@ class StorageModel {
     
     func startSongDownloadIfAbsent(_ node: MEGANode) -> Bool
     {
-        if (!app().loginState.loggedInOnline) { return false; }
+        if (!app().loginState.online) { return false; }
 
         if !isDownloading(node) && !fileDownloaded(node)
         {
             if let filename = songFingerprintPath(node: node) {
                 mega().startDownloadNode(node, localPath: filename);
                 downloadingFP.insert(node.fingerprint!);
-                //print("downloading \(filename)")
+
+                // also start thumbnail downlaoding if it has one and we don't have it already
+                _ = thumbnailDownloaded(node);
+
                 return true
             }
         }
@@ -236,7 +289,7 @@ class StorageModel {
     
     func startPlaylistDownloadIfAbsent(_ node: MEGANode) -> Bool
     {
-        if (!app().loginState.loggedInOnline) { return false; }
+        if (!app().loginState.online) { return false; }
 
         if !isDownloading(node) && !fileDownloaded(node)
         {
@@ -317,7 +370,8 @@ class StorageModel {
     var createdFolder2 = false;
     var createdFolder3 = false;
     var createdFolder4 = false;
-    
+    var createdFolder5 = false;
+
     func storagePath() -> String
     {
         // choosing applicationSupportDirectory means the files will not be accessible from other apps,
@@ -338,10 +392,17 @@ class StorageModel {
         return p;
     }
 
+    func thumbnailsFolderPath() -> String
+    {
+        let p = storagePath() + "/thumbnails";
+        assureFolderExists(p, doneAlready: &createdFolder4)
+        return p;
+    }
+
     func playlistsFolderPath() -> String
     {
         let p = storagePath() + "/playlists";
-        assureFolderExists(p, doneAlready: &createdFolder4)
+        assureFolderExists(p, doneAlready: &createdFolder5)
         return p;
     }
 

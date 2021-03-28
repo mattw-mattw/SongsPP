@@ -206,6 +206,7 @@
 		84008B9423603A4400BD633F /* just-exploring-3 */ = {
 			isa = PBXGroup;
 			children = (
+				84008B9923603A4400BD633F /* Main.storyboard */,
 				C90DCBB125FE0E310097792C /* SongsCpp.h */,
 				C90DCBB225FE0E310097792C /* SongsCpp.mm */,
 				84559EDF2372A737005B8342 /* just-exploring-3.entitlements */,
@@ -216,7 +217,6 @@
 				8498DB8A236559830036B1F6 /* RequestHandler.swift */,
 				8498DB8E236651080036B1F6 /* TransferHandler.swift */,
 				84008B9723603A4400BD633F /* ViewController.swift */,
-				84008B9923603A4400BD633F /* Main.storyboard */,
 				C94FF3882411021800184998 /* EditSongVC.swift */,
 				C97260FF23C72FAC0029871E /* MainTabBarController.swift */,
 				C96F3AD823BFDB87008BF07D /* MenuVC.swift */,

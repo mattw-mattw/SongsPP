@@ -124,7 +124,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         NotificationCenter.default.addObserver(self, selector: #selector(mediaDidEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil);
 
-        loginState.goOffline(onProgress: { str in }, onFinish: {b in })
+        if !loginState.goOnlineWritableFolderLink(onProgress: { str in }, onFinish: {b in })
+        {
+            loginState.goOffline(onProgress: { str in }, onFinish: {b in })
+        }
 
         return true
     }
@@ -245,7 +248,7 @@ func reportMessage(uic : UIViewController, message : String, continuation : (() 
 
 func CheckOnlineOrWarn(_ warnMessage: String, uic : UIViewController) -> Bool
 {
-    if app().loginState.loggedInOnline { return true; }
+    if app().loginState.online { return true; }
     let alert = UIAlertController(title: "Not Online", message: warnMessage, preferredStyle: .alert)
     alert.addAction(UIAlertAction(title: "OK", style: .cancel));
     uic.present(alert, animated: false, completion: nil)
