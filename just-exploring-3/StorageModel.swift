@@ -272,14 +272,14 @@ class StorageModel {
     {
         if (!app().loginState.online) { return false; }
 
+        // also start thumbnail downlaoding if it has one and we don't have it already
+        _ = thumbnailDownloaded(node);
+
         if !isDownloading(node) && !fileDownloaded(node)
         {
             if let filename = songFingerprintPath(node: node) {
                 mega().startDownloadNode(node, localPath: filename);
                 downloadingFP.insert(node.fingerprint!);
-
-                // also start thumbnail downlaoding if it has one and we don't have it already
-                _ = thumbnailDownloaded(node);
 
                 return true
             }

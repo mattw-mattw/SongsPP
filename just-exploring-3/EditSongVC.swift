@@ -126,7 +126,7 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
             bpmText.text = bpm!;
             artistText.text = artist!;
             notesText.text = notes!;
-            filePathLabel.text = mega().nodePath(for: node!);
+            filePathLabel.text = app().nodePath(node!);
             
             image.image = nil;
             if (node!.hasThumbnail())

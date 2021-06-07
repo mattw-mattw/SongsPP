@@ -62,7 +62,7 @@ class LoginState //: ObservableObject
         mega().login(withEmail: user, password: pw,
                      delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
                         if (e.type == .apiOk) {
-                            if (self.loginSucceeded())
+                            if (self.saveSession(isWriteableLink: false))
                             {
                                 self.accountBySession = true;
                                 self.online = true;
@@ -121,6 +121,10 @@ class LoginState //: ObservableObject
             app().playlistBrowseFolder = mega().node(forPath: playlistPath)
         }
         
+        app().nodeForBrowseFirstLoad = app().musicBrowseFolder;
+        app().browseMusicTVC?.load(node: app().musicBrowseFolder);
+        app().browsePlaylistsTVC?.load(node: app().playlistBrowseFolder);
+
         onFinish(true)
     }
     
@@ -129,21 +133,13 @@ class LoginState //: ObservableObject
     {
         mega().exportNodeWritable(currentFolder, writable: 1 == 1, delegate: MEGARequestOneShot(onRequestFinish: { (e: MEGAError, req: MEGARequest) -> Void in
             if (e.type == .apiOk && req.link != nil && req.privateKey != nil) {
-                if (app().storageModel.storeSettingFile(leafname: "writableLink", content: req.link) &&
-                    app().storageModel.storeSettingFile(leafname: "writableAuth", content: req.privateKey))
-                {
-                    onProgress("Logging out");
-                    self.logout(onFinish: {b in
-                    
-                        // logging out wiped everything, put these back
-                        _ = app().storageModel.storeSettingFile(leafname: "writableLink", content: req.link)
-                        _ = app().storageModel.storeSettingFile(leafname: "writableAuth", content: req.privateKey)
-
-                        onProgress("Loading Folder Link");
-                        _ = self.goOnlineWritableFolderLink(onProgress: onProgress, onFinish: onFinish);
-                    })
-                    return;
-                }
+                onProgress("Logging out");
+                self.logout(onFinish: {b in
+                
+                    onProgress("Loading Folder Link");
+                    _ = self.loginWritableFolderLink(writableLink: req.link, writableAuth: req.privateKey, onProgress: onProgress, onFinish: onFinish);
+                })
+                return;
             }
             self.errorMessage = "Create writable link failed: " + e.nameWithErrorCode(e.type.rawValue);
             self.processing = false;
@@ -152,13 +148,8 @@ class LoginState //: ObservableObject
         }))
     }
 
-    func goOnlineWritableFolderLink(onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ()) -> Bool
+    func loginWritableFolderLink(writableLink: String, writableAuth: String, onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ()) -> Bool
     {
-        let writableLink = app().storageModel.loadSettingFile(leafname: "writableLink")
-        let writableAuth = app().storageModel.loadSettingFile(leafname: "writableAuth")
-        
-        if (writableLink == nil || writableAuth == nil || writableLink!.isEmpty || writableAuth!.isEmpty) { return false; }
-        
         printState("Writable folder link start")
 
         processingTitle = "Resuming Link"
@@ -169,18 +160,24 @@ class LoginState //: ObservableObject
         accountByFolderLink = false;
         online = false;
 
-        mega().login(toFolderLinkAuthed: writableLink!, folderAuth: writableAuth!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
+        mega().login(toFolderLinkAuthed: writableLink, folderAuth: writableAuth, offline: false, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
             if (e.type == .apiOk) {
+                
+                // save the new online and offline session strings.
                 self.accountByFolderLink = true;
                 self.online = true;
                 self.printState("Writable folder link success, fetching")
-                self.fetchnodes(onProgress: onProgress, onFinish: onFinish)
+                self.fetchnodes(onProgress: onProgress, onFinish: { (success: Bool) -> Void in
+                    let b = success && self.saveSession(isWriteableLink: true);
+                    onFinish(b);
+                })
+                return;
             } else {
                 self.errorMessage = "Writable folder link failed: " + e.nameWithErrorCode(e.type.rawValue);
                 self.processing = false;
                 self.printState("Writable folder link fail")
-                onFinish(false)
             }
+            onFinish(false)
         }))
         printState("Writable folder link ends")
         return true;
@@ -190,8 +187,9 @@ class LoginState //: ObservableObject
     {
         printState("go online start")
         
-        guard let onlineSid = app().storageModel.loadSettingFile(leafname: "onlineSid")
-        else {
+        let onlineSidAcct = app().storageModel.loadSettingFile(leafname: "onlineSidAcct")
+        let onlineSidLink = app().storageModel.loadSettingFile(leafname: "onlineSidLink")
+        if ((onlineSidAcct ?? onlineSidLink) == nil) {
             eraseState()
             errorMessage = "No online session info found";
             onFinish(false)
@@ -202,9 +200,10 @@ class LoginState //: ObservableObject
         processingMessage = "Logging in with saved session";
         processing = true;
         
-        mega().fastLogin(withSession: onlineSid, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
+        mega().fastLogin(withSession: (onlineSidAcct ?? onlineSidLink)!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
             if (e.type == .apiOk) {
-                self.accountBySession = true;
+                self.accountBySession = onlineSidAcct != nil;
+                self.accountByFolderLink = onlineSidLink != nil;
                 self.online = true;
                 self.printState("go online success, fetching")
                 self.fetchnodes(onProgress: onProgress, onFinish: onFinish)
@@ -222,8 +221,9 @@ class LoginState //: ObservableObject
     {
         printState("go offline start")
 
-        guard let offlineSid = app().storageModel.loadSettingFile(leafname: "offlineSid")
-        else {
+        let offlineSidAcct = app().storageModel.loadSettingFile(leafname: "offlineSidAcct")
+        let offlineSidLink = app().storageModel.loadSettingFile(leafname: "offlineSidLink")
+        if ((offlineSidAcct ?? offlineSidLink) == nil) {
             errorMessage = "No offline session info found";
             onFinish(false)
             return
@@ -233,9 +233,10 @@ class LoginState //: ObservableObject
         processingMessage = "Loading saved session";
         processing = true;
         
-        mega().fastLogin(withSessionOffline: offlineSid, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
+        mega().fastLogin(withSessionOffline: (offlineSidAcct ?? offlineSidLink)!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
             if (e.type == .apiOk) {
-                self.accountBySession = true;
+                self.accountBySession = offlineSidAcct != nil;
+                self.accountByFolderLink = offlineSidLink != nil;
                 self.online = false;
                 self.printState("go offline success, fetching")
                 self.fetchnodes(onProgress: onProgress, onFinish: onFinish)
@@ -249,17 +250,20 @@ class LoginState //: ObservableObject
         printState("go offline ends")
     }
 
-    func loginSucceeded() ->Bool
+    func saveSession(isWriteableLink : Bool) ->Bool
     {
         let onlineSid = mega().dumpSession(false);
         let offlineSid = mega().dumpSession(true);
         if (onlineSid != nil && offlineSid != nil &&
-            app().storageModel.storeSettingFile(leafname: "onlineSid", content: onlineSid!) &&
-            app().storageModel.storeSettingFile(leafname: "offlineSid", content:offlineSid!))
+            app().storageModel.storeSettingFile(leafname: "onlineSid" + (isWriteableLink ? "Link": "Acct"), content: onlineSid!) &&
+            app().storageModel.storeSettingFile(leafname: "offlineSid" + (isWriteableLink ? "Link": "Acct"), content: offlineSid!))
         {
+            app().storageModel.deleteSettingFile(leafname: "onlineSid" + (!isWriteableLink ? "Link": "Acct"))
+            app().storageModel.deleteSettingFile(leafname: "offlineSid" + (!isWriteableLink ? "Link": "Acct"))
             return true;
         }
         self.errorMessage = "Could not store login details";
+        self.processing = false;
         eraseState();
         return false;
     }
@@ -267,10 +271,10 @@ class LoginState //: ObservableObject
     func eraseState()
     {
         if (!self.accountBySession && mega().isLoggedIn() != 0) { mega().logout() }
-        app().storageModel.deleteSettingFile(leafname: "onlineSid")
-        app().storageModel.deleteSettingFile(leafname: "offlineSid")
-        app().storageModel.deleteSettingFile(leafname: "writableLink")
-        app().storageModel.deleteSettingFile(leafname: "writableAuth")
+        app().storageModel.deleteSettingFile(leafname: "onlineSidAcct")
+        app().storageModel.deleteSettingFile(leafname: "offlineSidAcct")
+        app().storageModel.deleteSettingFile(leafname: "onlineSidLink")
+        app().storageModel.deleteSettingFile(leafname: "offlineSidLink")
         app().storageModel.deleteSettingFile(leafname: "musicPath")
         app().storageModel.deleteSettingFile(leafname: "playlistPath")
         self.accountBySession = false;

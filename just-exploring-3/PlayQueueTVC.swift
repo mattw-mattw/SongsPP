@@ -122,7 +122,7 @@ class PlayQueueTVC: UITableViewController {
             let numStarted = app().playQueue.downloadAllSongsInQueue(removeAlreadyDownloaded);
             app().playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable)
 
-            let alert = UIAlertController(title: "Downloading", message: "Initiated " + String(numStarted) + " downloads.", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Downloading", message: "Initiated " + String(numStarted) + " downloads (and " + String(app().storageModel.downloadingThumbnail.count) + " thumbnails).", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .cancel));
             self.present(alert, animated: false, completion: nil)
         }

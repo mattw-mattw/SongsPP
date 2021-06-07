@@ -30,7 +30,7 @@ class MenuVC: UIViewController {
         logoutButton?.isEnabled = app().loginState.accountBySession && app().loginState.online;
         forgetFolderLinkButton?.isEnabled = app().loginState.accountByFolderLink;
         goOfflineButton?.isEnabled = app().loginState.online;
-        goOnlineButton?.isEnabled = app().loginState.accountBySession && !app().loginState.online;
+        goOnlineButton?.isEnabled = !app().loginState.online && (app().loginState.accountBySession || app().loginState.accountByFolderLink);
     }
     
     func startSpinnerControl(message : String)

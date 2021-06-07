@@ -79,17 +79,17 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         alert.addAction(UIAlertAction(title: "Queue+Expand+Shuffle all", style: .default, handler:
             { (UIAlertAction) -> () in self.QueueExpandShuffleAll() }));
 
-        if !isPlaylists() && currentFolder != nil {
-            alert.addAction(UIAlertAction(title: "Login here as Writable Folder Link...", style: .default, handler:
+        if app().loginState.online && app().loginState.accountBySession && !isPlaylists() && currentFolder != nil {
+            alert.addAction(UIAlertAction(title: "Set as the top available folder...", style: .default, handler:
                 { (UIAlertAction) -> () in self.CheckSetAsWritableFolderLink() }));
         }
 
         if !isPlaylists() && currentFolder != nil && app().musicBrowseFolder == nil {
-            alert.addAction(UIAlertAction(title: "Set this as the Music Folder...", style: .default, handler:
+            alert.addAction(UIAlertAction(title: "Set as the Music Folder...", style: .default, handler:
                 { (UIAlertAction) -> () in self.CheckSetAsMusicFolder() }));
         }
         if isPlaylists() && currentFolder != nil && app().playlistBrowseFolder == nil {
-            alert.addAction(UIAlertAction(title: "Set this as the Playlist Folder...", style: .default, handler:
+            alert.addAction(UIAlertAction(title: "Set as the Playlist Folder...", style: .default, handler:
                 { (UIAlertAction) -> () in self.CheckSetAsPlaylistFolder() }));
         }
 
@@ -186,16 +186,15 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     func CheckSetAsWritableFolderLink()
     {
-        if let path = mega().nodePath(for: currentFolder!) {
-            let alert = UIAlertController(title: "Writable Folder Link", message: "Convert from logging in to your whole account to logging in to just this folder: \"" + path + "\". All your music and playlists should be in subfolders of this folder. A writable folder link will be created for this folder.   This writable folder link will be used going forward in this app, so that only that folder and its subfolders and files are available in this app.  The rest of your account will no longer be loaded by this app, saving resources and improving privacy and convenience.", preferredStyle: .alert)
-            
-            alert.addAction(UIAlertAction(title: "Yes, convert to a writable folder link", style: .default, handler:
-                { (UIAlertAction) -> () in self.SetAsWritableFolderLink()}));
+        let path = app().nodePath(currentFolder!)
+        let alert = UIAlertController(title: "Writable Folder Link", message: "Convert from logging in to your whole account to logging in to just this folder: \"" + path + "\". This action will create a Writable Folder Link for this folder, and the app will log into that link instead of your full account.  Use this function on a folder containing your music and playlists.  The rest of your account will no longer be loaded by this app, saving resources and improving privacy and convenience.", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "Yes, convert to a writable folder link", style: .default, handler:
+            { (UIAlertAction) -> () in self.SetAsWritableFolderLink()}));
 
-            alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
 
-            self.present(alert, animated: false, completion: nil)
-        }
+        self.present(alert, animated: false, completion: nil)
     }
     
     
@@ -226,16 +225,15 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     func CheckSetAsMusicFolder()
     {
-        if let path = mega().nodePath(for: currentFolder!) {
-            let alert = UIAlertController(title: "Set Music Root Folder", message: "Makes folder \"" + path + "\" the root folder for this Music screen, so that the rest of your account cannot be browsed from this view.  Subfolders of this folder can be browsed.  It cannot be changed unless you log out and log in again, or the path is no longer available (eg. by moving or renaming it in the cloud).", preferredStyle: .alert)
-            
-            alert.addAction(UIAlertAction(title: "Yes set it", style: .default, handler:
-                { (UIAlertAction) -> () in self.SetAsMusicFolder() }));
+        let path = app().nodePath(currentFolder!)
+        let alert = UIAlertController(title: "Set Music Root Folder", message: "Makes folder \"" + path + "\" the root folder for this Music screen, so that the rest of your account cannot be browsed from this view.  Subfolders of this folder can be browsed.  It cannot be changed unless you log out and log in again, or the path is no longer available (eg. by moving or renaming it in the cloud).", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "Yes set it", style: .default, handler:
+            { (UIAlertAction) -> () in self.SetAsMusicFolder() }));
 
-            alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
 
-            self.present(alert, animated: false, completion: nil)
-        }
+        self.present(alert, animated: false, completion: nil)
     }
     
     func SetAsMusicFolder()
@@ -252,24 +250,23 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
 
     func CheckSetAsPlaylistFolder()
     {
-        if let path = mega().nodePath(for: currentFolder!) {
-            let alert = UIAlertController(title: "Set Playlist Root Folder", message: "Makes folder \"" + path + "\" the root folder for this Playlist screen, so that the rest of your account cannot be browsed from this view.  Subfolders of this folder can be browsed.  It cannot be changed unless you log out and log in again, or the path is no longer available (eg. by moving or renaming it in the cloud).", preferredStyle: .alert)
-            
-            alert.addAction(UIAlertAction(title: "Yes set it", style: .default, handler:
-                { (UIAlertAction) -> () in self.SetAsPlaylistFolder() }));
+        let path = app().nodePath(currentFolder!)
+        let alert = UIAlertController(title: "Set Playlist Root Folder", message: "Makes folder \"" + path + "\" the root folder for this Playlist screen, so that the rest of your account cannot be browsed from this view.  Subfolders of this folder can be browsed.  It cannot be changed unless you log out and log in again, or the path is no longer available (eg. by moving or renaming it in the cloud).", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "Yes set it", style: .default, handler:
+            { (UIAlertAction) -> () in self.SetAsPlaylistFolder() }));
 
-            alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
 
-            self.present(alert, animated: false, completion: nil)
-        }
+        self.present(alert, animated: false, completion: nil)
     }
     
     func SetAsPlaylistFolder()
     {
         app().playlistBrowseFolder = nil;
-        if let path = mega().nodePath(for: currentFolder!) {
+        let path = app().nodePath(currentFolder!)
             let _ = app().storageModel.storeSettingFile(leafname : "playlistPath", content: path);
-        }
+        // TODO: for writable folder links, this, for sessions, mega().nodePath()
         if let playlistPath = app().storageModel.loadSettingFile(leafname: "playlistPath") {
             app().playlistBrowseFolder = mega().node(forPath: playlistPath)
         }
@@ -364,17 +361,38 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     func load(node : MEGANode?)
     {
         if node != nil && rootFolder() != nil {
-            let np = mega().nodePath(for: node!);
-            let rp = mega().nodePath(for: rootFolder()!);
-            if np == nil || rp == nil || !np!.hasPrefix(rp!) { return; }
+            let np = app().nodePath(node!);
+            let rp = app().nodePath(rootFolder()!);
+            if !np.hasPrefix(rp) { return; }
         }
         currentFolder = node;
+        nodeArray = [];
 
         var text : String? = nil;
-        if (currentFolder == nil) {
-            // account risk minimization by only accessing inshares
-            nodeArray.removeAll();
+
+        if (currentFolder == nil && !isPlaylists() && app().musicBrowseFolder != nil) {
+            currentFolder = app().musicBrowseFolder;
+            text = "/";
+        }
+
+        if (currentFolder == nil && isPlaylists() && app().playlistBrowseFolder != nil) {
+            currentFolder = app().playlistBrowseFolder;
+            text = "/";
+        }
+
+        if (currentFolder == nil && app().loginState.accountByFolderLink) {
+            currentFolder = mega().rootNode;
+            text = "/";
+        }
+    
+        if (currentFolder != nil) {
+            AddFilteredNodes(parent: currentFolder!);
+            text = app().nodePath(currentFolder!);
+        }
+        
+        if (currentFolder == nil && app().loginState.accountBySession) {
             if (mega().rootNode != nil) {
+                text = "<Your Account>";
                 nodeArray.append(mega().rootNode!);
                 let shares = mega().inSharesList(MEGASortOrderType.alphabeticalAsc)
                 for i in 0..<shares.size.intValue {
@@ -384,21 +402,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                 }
             }
         }
-        else {
-            nodeArray = [];
-            AddFilteredNodes(parent: currentFolder!);
-            text = mega().nodePath(for: node!);
-            if (text != nil)
-            {
-                if (text != nil) {
-                    let n = text!.firstIndex(of: "/");
-                    if (n != nil)
-                    {
-                        text! = String.init(text!.suffix( from: n!));
-                    }
-                }
-            }
-        }
+
         if (folderPathLabelCtrl != nil)
         {
             folderPathLabelCtrl.text = text == nil ? "" : text;
@@ -473,11 +477,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             if let mCell = cell as? TableViewMusicCellWithNotes {
                 mCell.populateFromNode(node!);
                 if let rf = rootFolder() {
-                    if let rootpath = mega().nodePath(for: rf) {
-                        if let path = mega().nodePath(for: node!) {
-                            mCell.notesLabel?.text = String(path.dropFirst(rootpath.count));
-                        }
-                    }
+                    mCell.notesLabel?.text = app().nodePathBetween(rf, node!);
                 }
             }
             else if let mCell = cell as? TableViewMusicCell {
@@ -555,6 +555,29 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                           { (UIAlertAction) -> () in self.setArtworkForSongsInFolder(node); }));
                 }
                 if (filtering) { alert.addAction(menuAction_songBrowseTo(node, viewController: self)); }
+                if (app().playlistBrowseFolder != nil) {
+                    //alert.addAction(menuAction_addToPlaylistInFolder(node, playlistFolder: app().playlistBrowseFolder!, viewController: self));
+                    alert.addAction(UIAlertAction(title: "Add to Playlist...", style: .default, handler:
+                                                    { (UIAlertAction) -> () in
+                                                        let alert = UIAlertController(title: nil, message: "Add to Playlist", preferredStyle: .alert)
+                                                        
+                                                        let list = mega().children(forParent: app().playlistBrowseFolder!, order: 1);
+                                                        for i in 0..<list.size.intValue {
+                                                            let n = list.node(at: i);
+                                                            if (n != nil) {
+                                                                if (n!.type != MEGANodeType.file && n!.name.hasSuffix(".playlist"))
+                                                                {
+                                                                    alert.addAction(menuAction_addToPlaylistExact(node, viewController: self));
+                                                                }
+                                                                else if (n!.type == .folder)
+                                                                {
+                                                                    alert.addAction(menuAction_addToPlaylistInFolder(node, playlistFolder: n!, viewController: self));
+                                                                }
+                                                            }
+                                                        }
+                                                        self.present(alert, animated: false, completion: nil)
+                                                    }));
+                }
                 alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
                 self.present(alert, animated: false, completion: nil)
             }

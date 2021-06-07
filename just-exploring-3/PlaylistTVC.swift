@@ -30,12 +30,12 @@ class PlaylistTVC: UITableViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         navigationItem.rightBarButtonItem =
-            UIBarButtonItem(title: "Playlists", style: .done, target: self, action: #selector(popVC))
+            UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
     }
     
-    @objc func popVC() {
-        self.navigationController?.popViewController(animated: true);
-    }
+//    @objc func popVC() {
+//        self.navigationController?.popViewController(animated: true);
+//    }
     
     override func viewDidDisappear(_ animated: Bool) {
         navigationItem.rightBarButtonItem = nil;
@@ -49,7 +49,6 @@ class PlaylistTVC: UITableViewController {
         alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
         self.present(alert, animated: false, completion: nil)
     }
-
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated);

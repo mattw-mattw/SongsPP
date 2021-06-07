@@ -207,10 +207,10 @@
 			isa = PBXGroup;
 			children = (
 				84008B9923603A4400BD633F /* Main.storyboard */,
+				84008B9523603A4400BD633F /* AppDelegate.swift */,
 				C90DCBB125FE0E310097792C /* SongsCpp.h */,
 				C90DCBB225FE0E310097792C /* SongsCpp.mm */,
 				84559EDF2372A737005B8342 /* just-exploring-3.entitlements */,
-				84008B9523603A4400BD633F /* AppDelegate.swift */,
 				84559EE2237BFFE4005B8342 /* AVAudioSessionPatch.h */,
 				84559EE3237BFFFB005B8342 /* AVAudioSessionPatch.m */,
 				8498DB90236652D00036B1F6 /* AVPlayerVC.swift */,

@@ -124,10 +124,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         NotificationCenter.default.addObserver(self, selector: #selector(mediaDidEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil);
 
-        if !loginState.goOnlineWritableFolderLink(onProgress: { str in }, onFinish: {b in })
-        {
+        //if !loginState.loginWritableFolderLink(offline: true, onProgress: { str in }, onFinish: {b in })
+        //{
             loginState.goOffline(onProgress: { str in }, onFinish: {b in })
-        }
+        //}
 
         return true
     }
@@ -198,6 +198,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if (swipeRightPlaysSong) { playQueue.queueSong(node: node);}
         else { swipedRightSet.append(node); }
     }
+    
+    func nodePathBetween(_ a: MEGANode?, _ b: MEGANode) -> String
+    {
+        let textb = Songs__.mega().nodePath(for: b) ?? "";
+        let texta = a == nil ? "": (Songs__.mega().nodePath(for: a!) ?? "");
+        if (texta == textb)
+        {
+            return "/";
+        }
+        else if (textb.hasPrefix(texta))
+        {
+            if (texta == "/") { return textb; }
+            return String(textb.dropFirst(texta.count));
+        }
+        return textb;
+    }
+
+    func nodePath(_ node: MEGANode) -> String
+    {
+        return nodePathBetween(Songs__.mega().rootNode, node);
+    }
+
 
 }
 
@@ -255,6 +277,7 @@ func CheckOnlineOrWarn(_ warnMessage: String, uic : UIViewController) -> Bool
     return false;
 }
 
+
 func menuAction_playRightNow(_ node : MEGANode) -> UIAlertAction
 {
     return UIAlertAction(title: "Play right now", style: .default, handler:
@@ -296,6 +319,51 @@ func menuAction_songBrowseTo(_ node : MEGANode, viewController : UIViewControlle
 func menuAction_neverMind() -> UIAlertAction
 {
     return UIAlertAction(title: "Never mind", style: .cancel);
+}
+
+func menuAction_addToPlaylistInFolder(_ node : MEGANode, playlistFolder : MEGANode, viewController : UIViewController) -> UIAlertAction
+{
+    return UIAlertAction(title: "Add to Playlist...", style: .default, handler:
+        { (UIAlertAction) -> () in
+            let alert = UIAlertController(title: nil, message: "Add to Playlist", preferredStyle: .alert)
+            
+            let list = mega().children(forParent: playlistFolder, order: 1);
+            for i in 0..<list.size.intValue {
+                let n = list.node(at: i);
+                if (n != nil) {
+                    if (n!.type != MEGANodeType.file && n!.name.hasSuffix(".playlist"))
+                    {
+                        alert.addAction(menuAction_addToPlaylistExact(node, viewController: viewController));
+                    }
+                    else if (n!.type == .folder)
+                    {
+                        alert.addAction(menuAction_addToPlaylistInFolder(node, playlistFolder: n!, viewController: viewController));
+                    }
+                }
+            }
+            viewController.present(alert, animated: false, completion: nil)
+        });
+}
+
+func menuAction_addToPlaylistExact(_ playlistNode : MEGANode, viewController : UIViewController) -> UIAlertAction
+{
+    return UIAlertAction(title: playlistNode.name, style: .default, handler:
+        { (UIAlertAction) -> () in
+            
+            let json = app().storageModel.getDownloadedPlaylistAsJSON(playlistNode);
+            if var nodes = app().playQueue.JSONToNodeHandleArray(json)
+            {
+                nodes.append(playlistNode);
+                
+                let s = app().playQueue.nodeHandleArrayToJSON(nodes);
+                
+                if let updateFilePath = app().storageModel.playlistPath(node: playlistNode) {
+                    let url = URL(fileURLWithPath: updateFilePath);
+                    try! s.write(to: url, atomically: true, encoding: .ascii)
+                    mega().startUpload(withLocalPath:updateFilePath, parent: app().playlistBrowseFolder!)
+                }
+            }
+        });
 }
 
 

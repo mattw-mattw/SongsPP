@@ -26,11 +26,7 @@ class BrowseNode /*: ObservableObject*/ {
             for i in 0..<children.size.intValue {
                 array.append(children.node(at: i))
             }
-            let np = mega().nodePath(for: n!)
-            if (np != nil)
-            {
-                newPath = np!
-            }
+            newPath = app().nodePath(n!)
         }
         node = n;
         subnodes = array;
@@ -348,13 +344,13 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         var newQueue : [MEGANode] = [];
         var started : Int = 0;
         for i in 0..<nextSongs.count {
-            if (!app().storageModel.fileDownloaded(nextSongs[i]))
+            if (removeAlreadyDownloaded && !app().storageModel.fileDownloaded(nextSongs[i]))
             {
                 newQueue.append(nextSongs[i]);
-                if (app().storageModel.startSongDownloadIfAbsent(nextSongs[i]))  // todo: separate out playlists
-                {
-                    started += 1;
-                }
+            }
+            if (app().storageModel.startSongDownloadIfAbsent(nextSongs[i]))  // todo: separate out playlists
+            {
+                started += 1;
             }
         }
         if (removeAlreadyDownloaded)
@@ -556,16 +552,17 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         return s;
     }
     
-    func JSONToNodeHandleArray(_ json : Any? ) -> [MEGANode]
+    func JSONToNodeHandleArray(_ json : Any? ) -> [MEGANode]?
     {
-        var result : [MEGANode] = [];
+        var result : [MEGANode]? = nil;
         if let array = json as? [Any] {
+            result = [];
             for object in array {
                 if let attribs = object as? [String : Any] {
                     if let handleStr = attribs["h"] {
                         let node = mega().node(forHandle: MEGASdk.handle(forBase64Handle: handleStr as! String));
                         if (node != nil) {
-                            result.append(node!);
+                            result!.append(node!);
                         }
                     }
                 }
@@ -607,11 +604,15 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     {
         let ns = app().storageModel.loadFileAsJSON(filename: app().storageModel.storagePath() + "/nextSongs");
         if (ns != nil) {
-            nextSongs = JSONToNodeHandleArray(ns);
+            if let a = JSONToNodeHandleArray(ns) {
+                nextSongs = a;
+            }
         }
         let ps = app().storageModel.loadFileAsJSON(filename: app().storageModel.storagePath() + "/playedSongs");
         if (ps != nil) {
-            playedSongs = JSONToNodeHandleArray(ps);
+            if let a = JSONToNodeHandleArray(ps) {
+                playedSongs = a;
+            }
         }
     }
 
