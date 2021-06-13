@@ -57,22 +57,23 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     var playedSongs : [MEGANode] = [];
     var currentTimeString = "0:00"
     var nodeInPlayer : MEGANode? = nil;
-    var nodeInPlayerIsFrontOfList = false;
+    var nodeInPlayerIndex : Int = -1;
     var isPlaying : Bool = false;
     var shouldBePlaying : Bool = false;
-    var removeFirstSongOnPlay = false;
+    
+    var noHistoryMode : Bool = false;
+    var noHistoryMode_currentTrackIndex : Int = 0;
 
     func reset()
     {
         player.replaceCurrentItem(with: nil);
         nodeInPlayer = nil;
-        nodeInPlayerIsFrontOfList = false;
+        nodeInPlayerIndex = -1;
         isPlaying = false;
         shouldBePlaying = false;
         currentTimeString = "0:00"
         nextSongs = [];
         playedSongs = [];
-        removeFirstSongOnPlay = false;
     }
 
     override init() {
@@ -83,19 +84,12 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "rate" {
-            if !isPlaying && player.rate > 0 {
-                isPlaying = true;
-                if (removeFirstSongOnPlay && nodeInPlayerIsFrontOfList)
-                {
-                    nextSongs.remove(at: 0)
-                    nodeInPlayerIsFrontOfList = false;
-                    removeFirstSongOnPlay = false;
-                    onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: false);
-                }
-            }
-            if (player.rate == 0)
+            isPlaying = player.rate > 0;
+            if (isPlaying && nodeInPlayerIndex == 0 && !noHistoryMode)
             {
-                isPlaying = false;
+                nextSongs.remove(at: 0)
+                nodeInPlayerIndex = -1;
+                onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: false);
             }
         }
     }
@@ -233,7 +227,12 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
 
     func playRightNow(_ row: Int)
     {
-        if row < nextSongs.count
+        if (noHistoryMode)
+        {
+            noHistoryMode_currentTrackIndex = row;
+            onNextSongsEdited(reloadView: true, triggerPlay: true, canReplacePlayerSong: true);
+        }
+        else if row < nextSongs.count
         {
             let node = nextSongs[row];
             nextSongs.remove(at: row);
@@ -368,10 +367,11 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     }
     
     func playerSongIsEphemeral() -> Bool {
-        return
+        return noHistoryMode && (
             nodeInPlayer == nil || (nextSongs.count > 0 &&
             nodeInPlayer!.handle == nextSongs[0].handle &&
-            player.currentTime().seconds == 0 && nodeInPlayerIsFrontOfList);
+            player.currentTime().seconds == 0 &&
+            nodeInPlayerIndex == 0));
     }
 
     func startNextSongDownloads() -> Bool
@@ -420,21 +420,20 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     {
         if (!playerSongIsEphemeral()) { pushToHistory(); }
         
-        if (nextSongs.count > 0)
+        let songIndex = noHistoryMode ? noHistoryMode_currentTrackIndex : 0;
+        
+        if (nextSongs.count > songIndex)
         {
-            if let fileURL = app().storageModel.getDownloadedFileURL(nextSongs[0]) {
+            if let fileURL = app().storageModel.getDownloadedFileURL(nextSongs[songIndex]) {
                 let play = startIt || isPlaying;
-                nodeInPlayer = nextSongs[0];
-                nodeInPlayerIsFrontOfList = true;
+                nodeInPlayer = nextSongs[songIndex];
+                nodeInPlayerIndex = songIndex;
                 downloadingNodeToStartPlaying = nil;
                 player.replaceCurrentItem(with: AVPlayerItem(url: fileURL));
                 if (play) {
-                    nextSongs.remove(at: 0);
-                    nodeInPlayerIsFrontOfList = false;
-                    self.player.play();
+                    self.player.play();  // if it does start playing, and we're in history mode, observeValue() will remove queue entry 0, ie song really is in player and not queue anymore
                     shouldBePlaying = true;
                 }
-                removeFirstSongOnPlay = !startIt;
                 app().setupNowPlaying(node: nodeInPlayer!)
                 app().playQueueTVC!.playingSongUpdated()
                 return ;
@@ -452,7 +451,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             downloadingNodeToStartPlaying = nil;
         }
         nodeInPlayer = nil;
-        nodeInPlayerIsFrontOfList = false;
+        nodeInPlayerIndex = -1;
         self.player.replaceCurrentItem(with: nil);
         app().setupNowPlaying(node: nodeInPlayer)
         app().playQueueTVC?.playingSongUpdated()
@@ -474,10 +473,12 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     
     func pushToHistory()
     {
+        if (noHistoryMode) { return; }
+        
         if nodeInPlayer != nil {
             playedSongs.insert(nodeInPlayer!, at: 0);
             nodeInPlayer = nil;
-            nodeInPlayerIsFrontOfList = false;
+            nodeInPlayerIndex = -1;
 
             while (playedSongs.count > 100)
             {
@@ -496,7 +497,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 nextSongs.insert(nodeInPlayer!, at: 0);
             }
             nodeInPlayer = nil;
-            nodeInPlayerIsFrontOfList = false;
+            nodeInPlayerIndex = -1;
             for i in 0...index {
                 nextSongs.insert(playedSongs[i], at: 0);
             }
@@ -507,13 +508,26 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
 
     func goNextTrack() -> Bool
     {
-        let replaceable = playerSongIsEphemeral();
-        if (nextSongs.count > 0)
+
+        if (noHistoryMode)
+        {             
+            if (nextSongs.count > noHistoryMode_currentTrackIndex)
+            {
+                noHistoryMode_currentTrackIndex += 1;
+                onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong : true);
+                return true;
+            }
+        }
+        else
         {
-            if (replaceable) { nextSongs.remove(at: 0); }
-            if (!replaceable) { pushToHistory(); }
-            onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong : replaceable);
-            return true;
+            if (nextSongs.count > 0)
+            {
+                let replaceable = playerSongIsEphemeral();
+                if (replaceable) { nextSongs.remove(at: 0); }
+                if (!replaceable) { pushToHistory(); }
+                onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong : replaceable);
+                return true;
+            }
         }
         return false;
     }
@@ -534,7 +548,19 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     {
         if (playedSongs.count > 0)
         {
-            timeTravel(index: 0);
+            if (noHistoryMode)
+            {
+                if (noHistoryMode_currentTrackIndex > 0 && nextSongs.count > noHistoryMode_currentTrackIndex-1)
+                {
+                    noHistoryMode_currentTrackIndex -= 1;
+                    onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong : true);
+                    return true;
+                }
+            }
+            else
+            {
+                timeTravel(index: 0);
+            }
         }
         return false;
     }
@@ -542,7 +568,14 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     func onSongFinishedPlaying()
     {
         let replaceable = playerSongIsEphemeral();
-        pushToHistory();
+        if (noHistoryMode)
+        {
+            noHistoryMode_currentTrackIndex += 1;
+        }
+        else
+        {
+            pushToHistory();
+        }
         onNextSongsEdited(reloadView: true, triggerPlay: true, canReplacePlayerSong: replaceable);
     }
 
@@ -578,6 +611,20 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         return result;
     }
 
+    func toggleNoHistoryMode()
+    {
+        if (noHistoryMode)
+        {
+            noHistoryMode = false;
+            noHistoryMode_currentTrackIndex = -1;
+        }
+        else
+        {
+            noHistoryMode = true;
+            noHistoryMode_currentTrackIndex = nodeInPlayerIndex;
+        }
+        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: false);
+    }
     
     func saveAsPlaylist()
     {

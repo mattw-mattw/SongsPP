@@ -16,6 +16,7 @@ class TableViewMusicCell: UITableViewCell {
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var artistLabel: UILabel!
     @IBOutlet weak var thumbnailView: UIImageView!
+    @IBOutlet var isPlayingIndicator_noHistory: UIImageView?
     
     var node : MEGANode?
     
@@ -83,6 +84,11 @@ class TableViewMusicCell: UITableViewCell {
             progressBar.isHidden = !exists;
             progressBar.progress = exists ? 100 : 0;
             progressBar.setNeedsDisplay();
+        }
+        
+        if (isPlayingIndicator_noHistory != nil)
+        {
+            isPlayingIndicator_noHistory!.isHidden = true;
         }
     }
 }

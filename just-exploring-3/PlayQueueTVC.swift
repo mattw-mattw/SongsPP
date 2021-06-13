@@ -150,11 +150,19 @@ class PlayQueueTVC: UITableViewController {
         alert.addAction(UIAlertAction(title: "Save as playlist", style: .default, handler:
             { (UIAlertAction) -> () in app().playQueue.saveAsPlaylist() }));
 
+        alert.addAction(UIAlertAction(title: app().playQueue.noHistoryMode ? "Disable no-history mode" : "Enable no-history mode", style: .default, handler:
+            { (UIAlertAction) -> () in  self.toggleNoHistoryMode() }));
+
         alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
         self.present(alert, animated: false, completion: nil)
     }
 
-   
+   func toggleNoHistoryMode()
+   {
+        app().playQueue.toggleNoHistoryMode();
+        historyButton.isHidden = app().playQueue.noHistoryMode;
+   }
+    
     func editSong(node : MEGANode?) {
         let vc = self.storyboard?.instantiateViewController(identifier: "EditSongVC") as! EditSongVC
         vc.node = node;
@@ -179,6 +187,7 @@ class PlayQueueTVC: UITableViewController {
     {
         tableView.reloadData();
         updateSongCountLabel();
+        historyButton.isHidden = app().playQueue.noHistoryMode;
     }
     
     func updateSongCountLabel()
@@ -248,7 +257,15 @@ class PlayQueueTVC: UITableViewController {
 
         if let musicCell = cell as? TableViewMusicCell {
             musicCell.populateFromNode(node);
+
+            if (app().playQueue.noHistoryMode &&
+                    indexPath.row == app().playQueue.noHistoryMode_currentTrackIndex
+                    && musicCell.isPlayingIndicator_noHistory != nil)
+            {
+                musicCell.isPlayingIndicator_noHistory!.isHidden = false;
+            }
         }
+        
         return cell
     }
     

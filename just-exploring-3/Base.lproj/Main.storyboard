@@ -258,6 +258,14 @@
                                         <stackView opaque="NO" contentMode="scaleToFill" ambiguous="YES" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="mHZ-bg-qrX">
                                             <rect key="frame" x="0.0" y="0.0" width="428" height="42"/>
                                             <subviews>
+                                                <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="avS-4K-QR1">
+                                                    <rect key="frame" x="-42" y="2.3333333333333321" width="42" height="37.333333333333343"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="42" id="K07-we-Wn9"/>
+                                                        <constraint firstAttribute="width" constant="42" id="khW-Ti-zrH"/>
+                                                    </constraints>
+                                                    <imageReference key="image" image="play.circle.fill" catalog="system" symbolScale="small"/>
+                                                </imageView>
                                                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="nxx-ti-Ire">
                                                     <rect key="frame" x="0.0" y="0.0" width="48" height="42"/>
                                                     <subviews>
@@ -325,6 +333,7 @@
                                     <outlet property="artistLabel" destination="c9M-bR-gwm" id="m3z-77-1QA"/>
                                     <outlet property="bpmLabel" destination="Nx0-6X-bDJ" id="eTF-NB-x8S"/>
                                     <outlet property="durationLabel" destination="CKo-b9-jgu" id="Mas-P0-68O"/>
+                                    <outlet property="isPlayingIndicator_noHistory" destination="avS-4K-QR1" id="CTt-vr-mEx"/>
                                     <outlet property="notesLabel" destination="e7e-TF-P8L" id="9ox-h0-EWf"/>
                                     <outlet property="progressBar" destination="XF3-k5-mTX" id="C2o-sd-DJt"/>
                                     <outlet property="thumbnailView" destination="zbR-Cv-KjF" id="XQJ-Eg-dYF"/>
@@ -347,6 +356,14 @@
                                         <stackView opaque="NO" contentMode="scaleToFill" ambiguous="YES" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="m0o-J0-8pK">
                                             <rect key="frame" x="0.0" y="0.0" width="428" height="42"/>
                                             <subviews>
+                                                <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="LjD-5t-Ul2">
+                                                    <rect key="frame" x="-42" y="2.3333333333333321" width="42" height="37.333333333333343"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="42" id="Weg-1p-p5n"/>
+                                                        <constraint firstAttribute="width" constant="42" id="bWK-Xf-YY7"/>
+                                                    </constraints>
+                                                    <imageReference key="image" image="play.circle.fill" catalog="system" symbolScale="small"/>
+                                                </imageView>
                                                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="00W-HS-vC3">
                                                     <rect key="frame" x="0.0" y="0.0" width="48" height="42"/>
                                                     <subviews>
@@ -407,6 +424,7 @@
                                     <outlet property="artistLabel" destination="nko-Ud-rPG" id="fwD-ux-eb0"/>
                                     <outlet property="bpmLabel" destination="WVP-mH-WtR" id="sCb-vi-zOm"/>
                                     <outlet property="durationLabel" destination="a9F-Iy-i07" id="Pqt-Iw-unj"/>
+                                    <outlet property="isPlayingIndicator_noHistory" destination="LjD-5t-Ul2" id="PfU-C4-f2Z"/>
                                     <outlet property="progressBar" destination="Ojx-oB-wpw" id="8BF-uE-lMh"/>
                                     <outlet property="thumbnailView" destination="OMl-7M-OS8" id="PkH-ZC-Fzp"/>
                                     <outlet property="titleLabel" destination="gi4-Se-N0Q" id="gTb-PH-Riv"/>
@@ -1274,6 +1292,7 @@
         <image name="magnifyingglass" catalog="system" width="128" height="115"/>
         <image name="music.note.list" catalog="system" width="128" height="115"/>
         <image name="play.circle" catalog="system" width="128" height="121"/>
+        <image name="play.circle.fill" catalog="system" width="128" height="121"/>
         <systemColor name="darkTextColor">
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
