@@ -312,7 +312,7 @@ func menuAction_songBrowseTo(_ node : MEGANode, viewController : UIViewControlle
         { (UIAlertAction) -> () in
             app().nodeForBrowseFirstLoad = node;
             app().tabBarContoller?.selectedIndex = 1;
-            app().browseMusicTVC?.browseTo(node);
+            app().browseMusicTVC?.browseToParent(node);
         });
 }
 
@@ -321,9 +321,26 @@ func menuAction_neverMind() -> UIAlertAction
     return UIAlertAction(title: "Never mind", style: .cancel);
 }
 
-func menuAction_addToPlaylistInFolder(_ node : MEGANode, playlistFolder : MEGANode, viewController : UIViewController) -> UIAlertAction
+var recentPlaylists : [MEGANode] = [];
+
+func menuAction_addToPlaylistInFolder_recents(_ node : MEGANode, viewController : UIViewController) -> UIAlertAction
 {
     return UIAlertAction(title: "Add to Playlist...", style: .default, handler:
+        { (UIAlertAction) -> () in
+            let alert = UIAlertController(title: nil, message: "Add to Recent Playlist", preferredStyle: .alert)
+            
+            for i in 0..<recentPlaylists.count {
+                alert.addAction(menuAction_addToPlaylistExact(playlistNode: recentPlaylists[i], nodeToAdd: node, viewController: viewController));
+            }
+            alert.addAction(menuAction_addToPlaylistInFolder(node, playlistFolder: app().playlistBrowseFolder!, viewController: viewController));
+            alert.addAction(menuAction_neverMind());
+            viewController.present(alert, animated: false, completion: nil)
+        });
+}
+
+func menuAction_addToPlaylistInFolder(_ node : MEGANode, playlistFolder : MEGANode, viewController : UIViewController) -> UIAlertAction
+{
+    return UIAlertAction(title: playlistFolder.name, style: .default, handler:
         { (UIAlertAction) -> () in
             let alert = UIAlertController(title: nil, message: "Add to Playlist", preferredStyle: .alert)
             
@@ -331,21 +348,22 @@ func menuAction_addToPlaylistInFolder(_ node : MEGANode, playlistFolder : MEGANo
             for i in 0..<list.size.intValue {
                 let n = list.node(at: i);
                 if (n != nil) {
-                    if (n!.type != MEGANodeType.file && n!.name.hasSuffix(".playlist"))
+                    if (n!.type == MEGANodeType.file && n!.name.hasSuffix(".playlist"))
                     {
-                        alert.addAction(menuAction_addToPlaylistExact(node, viewController: viewController));
+                        alert.addAction(menuAction_addToPlaylistExact(playlistNode: n!, nodeToAdd: node, viewController: viewController));
                     }
-                    else if (n!.type == .folder)
+                    else if (n!.type != .file)
                     {
                         alert.addAction(menuAction_addToPlaylistInFolder(node, playlistFolder: n!, viewController: viewController));
                     }
                 }
             }
+            alert.addAction(menuAction_neverMind());
             viewController.present(alert, animated: false, completion: nil)
         });
 }
 
-func menuAction_addToPlaylistExact(_ playlistNode : MEGANode, viewController : UIViewController) -> UIAlertAction
+func menuAction_addToPlaylistExact(playlistNode : MEGANode, nodeToAdd: MEGANode, viewController : UIViewController) -> UIAlertAction
 {
     return UIAlertAction(title: playlistNode.name, style: .default, handler:
         { (UIAlertAction) -> () in
@@ -353,14 +371,17 @@ func menuAction_addToPlaylistExact(_ playlistNode : MEGANode, viewController : U
             let json = app().storageModel.getDownloadedPlaylistAsJSON(playlistNode);
             if var nodes = app().playQueue.JSONToNodeHandleArray(json)
             {
-                nodes.append(playlistNode);
+                nodes.append(nodeToAdd);
                 
                 let s = app().playQueue.nodeHandleArrayToJSON(nodes);
                 
                 if let updateFilePath = app().storageModel.playlistPath(node: playlistNode) {
                     let url = URL(fileURLWithPath: updateFilePath);
                     try! s.write(to: url, atomically: true, encoding: .ascii)
-                    mega().startUpload(withLocalPath:updateFilePath, parent: app().playlistBrowseFolder!)
+                    mega().startUploadToFile(withLocalPath: updateFilePath, parent: app().playlistBrowseFolder!, filename:playlistNode.name)
+                    
+                    recentPlaylists.append(playlistNode);
+                    
                 }
             }
         });

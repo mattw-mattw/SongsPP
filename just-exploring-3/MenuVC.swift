@@ -28,7 +28,9 @@ class MenuVC: UIViewController {
     {
         loginButton?.isEnabled = !app().loginState.accountBySession && !app().loginState.accountByFolderLink;
         logoutButton?.isEnabled = app().loginState.accountBySession && app().loginState.online;
+        logoutButton?.isHidden = app().loginState.accountByFolderLink;
         forgetFolderLinkButton?.isEnabled = app().loginState.accountByFolderLink;
+        forgetFolderLinkButton?.isHidden = !app().loginState.accountByFolderLink;
         goOfflineButton?.isEnabled = app().loginState.online;
         goOnlineButton?.isEnabled = !app().loginState.online && (app().loginState.accountBySession || app().loginState.accountByFolderLink);
     }

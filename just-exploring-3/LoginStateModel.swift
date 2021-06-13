@@ -280,6 +280,14 @@ class LoginState //: ObservableObject
         self.accountBySession = false;
         self.accountByFolderLink = false;
         self.online = false;
+        app().musicBrowseFolder = nil;
+        app().playlistBrowseFolder = nil;
+        app().browseMusicTVC?.currentFolder = nil;
+        app().browseMusicTVC?.nodeArray = [];
+        app().browsePlaylistsTVC?.currentFolder = nil;
+        app().browsePlaylistsTVC?.nodeArray = [];
+        app().playQueue.reset();
+        app().playQueueTVC?.redraw();
     }
     
     func logout(onFinish : @escaping (Bool) -> ())

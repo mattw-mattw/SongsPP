@@ -47,30 +47,39 @@ class BrowseNode /*: ObservableObject*/ {
 }
 
 class PlayQueue : NSObject /*(ObservableObject*/ {
-    /*@Published*/ var nextSongs : [MEGANode] = [];
-    /*@Published*/ var playedSongs : [MEGANode] = [];
-    
-//    @Published var sliderPos : Double = 0.0;
-//    @Published var currentTime = CMTime()
-//    @Published var duration = CMTime()
-//    @Published var durationString = "0:00"
-    /*@Published*/ var currentTimeString = "0:00"
 
+    // permanent items
     var player : AVPlayer = AVPlayer();
+    var timeObservation : Any? = nil;
+
+    // things to reset
+    var nextSongs : [MEGANode] = [];
+    var playedSongs : [MEGANode] = [];
+    var currentTimeString = "0:00"
     var nodeInPlayer : MEGANode? = nil;
     var nodeInPlayerIsFrontOfList = false;
     var isPlaying : Bool = false;
     var shouldBePlaying : Bool = false;
-    var timeObservation : Any? = nil;
-    
-    
+    var removeFirstSongOnPlay = false;
+
+    func reset()
+    {
+        player.replaceCurrentItem(with: nil);
+        nodeInPlayer = nil;
+        nodeInPlayerIsFrontOfList = false;
+        isPlaying = false;
+        shouldBePlaying = false;
+        currentTimeString = "0:00"
+        nextSongs = [];
+        playedSongs = [];
+        removeFirstSongOnPlay = false;
+    }
 
     override init() {
         super.init()
         player.addObserver(self, forKeyPath: "rate", options: NSKeyValueObservingOptions.new, context: nil)
     }
 
-    var removeFirstSongOnPlay = false;
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "rate" {
@@ -256,8 +265,8 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         nextSongs.remove(at: row);
     }
     
-    var playableExtensions = [ ".mp3", ".m4a", ".aac", ".wav", ".flac", ".aiff", ".au", ".pcm", ".ac3", ".aa", ".aax"];
-    var artworkExtensions = [ ".jpg", ".png" ];
+    let playableExtensions = [ ".mp3", ".m4a", ".aac", ".wav", ".flac", ".aiff", ".au", ".pcm", ".ac3", ".aa", ".aax"];
+    let artworkExtensions = [ ".jpg", ".png" ];
     
     func isPlayable(_ n : MEGANode, orMightContainPlayable : Bool) -> Bool
     {
@@ -336,8 +345,6 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     {
         return node.type != MEGANodeType.file || node.name.hasSuffix(".playlist") && app().storageModel.fileDownloaded(node);
     }
-
-//    var downloadNextOnly = true;
     
     func downloadAllSongsInQueue(_ removeAlreadyDownloaded : Bool) -> Int
     {

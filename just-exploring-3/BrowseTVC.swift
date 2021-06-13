@@ -43,7 +43,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         showHideFolderTrackNames()
 
         if (app().nodeForBrowseFirstLoad != nil && !isPlaylists()) {
-            browseTo(app().nodeForBrowseFirstLoad!);
+            browseToFolder(app().nodeForBrowseFirstLoad!);
         }
         else {
             load(node: rootFolder());
@@ -79,7 +79,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         alert.addAction(UIAlertAction(title: "Queue+Expand+Shuffle all", style: .default, handler:
             { (UIAlertAction) -> () in self.QueueExpandShuffleAll() }));
 
-        if app().loginState.online && app().loginState.accountBySession && !isPlaylists() && currentFolder != nil {
+        if app().loginState.accountBySession && !isPlaylists() && currentFolder != nil && app().musicBrowseFolder == nil {
             alert.addAction(UIAlertAction(title: "Set as the top available folder...", style: .default, handler:
                 { (UIAlertAction) -> () in self.CheckSetAsWritableFolderLink() }));
         }
@@ -187,9 +187,9 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     func CheckSetAsWritableFolderLink()
     {
         let path = app().nodePath(currentFolder!)
-        let alert = UIAlertController(title: "Writable Folder Link", message: "Convert from logging in to your whole account to logging in to just this folder: \"" + path + "\". This action will create a Writable Folder Link for this folder, and the app will log into that link instead of your full account.  Use this function on a folder containing your music and playlists.  The rest of your account will no longer be loaded by this app, saving resources and improving privacy and convenience.", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Writable Folder Link", message: "Convert from logging in to your whole account to logging in to just this folder: \"" + path + "\". This action will create a Writable Folder Link for this folder, and the app will log into that link instead of your full account.  Use this function on a folder containing your Music and Playlists.  The rest of your account will no longer be loaded by this app, saving resources and improving privacy and convenience.  You can still select subfolders for Music and Playlists afterward.", preferredStyle: .alert)
         
-        alert.addAction(UIAlertAction(title: "Yes, convert to a writable folder link", style: .default, handler:
+        alert.addAction(UIAlertAction(title: "Switch login to a Folder Link here", style: .default, handler:
             { (UIAlertAction) -> () in self.SetAsWritableFolderLink()}));
 
         alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
@@ -213,6 +213,14 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     func SetAsWritableFolderLink()
     {
+        if (!app().loginState.online)
+        {
+            let alert = UIAlertController(title: "Please go online first", message: "Creating a writable folder link requires being online", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel));
+            self.present(alert, animated: false, completion: nil)
+            return;
+        }
+        
         startSpinnerControl(message: "Writable Folder Link");
         app().loginState.convertToWritableFolderLink(currentFolder!, 
             onProgress: {(message) in self.busyControl!.message = message + "\n\n";},
@@ -239,9 +247,8 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     func SetAsMusicFolder()
     {
         app().musicBrowseFolder = nil;
-        if let path = mega().nodePath(for: currentFolder!) {
-            let _ = app().storageModel.storeSettingFile(leafname : "musicPath", content: path);
-        }
+        let path = app().nodePath(currentFolder!)
+        let _ = app().storageModel.storeSettingFile(leafname : "musicPath", content: path);
         if let musicPath = app().storageModel.loadSettingFile(leafname: "musicPath") {
             app().musicBrowseFolder = mega().node(forPath: musicPath)
         }
@@ -265,7 +272,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     {
         app().playlistBrowseFolder = nil;
         let path = app().nodePath(currentFolder!)
-            let _ = app().storageModel.storeSettingFile(leafname : "playlistPath", content: path);
+        let _ = app().storageModel.storeSettingFile(leafname : "playlistPath", content: path);
         // TODO: for writable folder links, this, for sessions, mega().nodePath()
         if let playlistPath = app().storageModel.loadSettingFile(leafname: "playlistPath") {
             app().playlistBrowseFolder = mega().node(forPath: playlistPath)
@@ -352,7 +359,13 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         }
     }
     
-    func browseTo(_ node : MEGANode)
+    func browseToFolder(_ node : MEGANode)
+    {
+        showHideFilterElements(filter: false);
+        load(node: node);
+    }
+    
+    func browseToParent(_ node : MEGANode)
     {
         showHideFilterElements(filter: false);
         load(node: mega().parentNode(for: node));
@@ -556,27 +569,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                 }
                 if (filtering) { alert.addAction(menuAction_songBrowseTo(node, viewController: self)); }
                 if (app().playlistBrowseFolder != nil) {
-                    //alert.addAction(menuAction_addToPlaylistInFolder(node, playlistFolder: app().playlistBrowseFolder!, viewController: self));
-                    alert.addAction(UIAlertAction(title: "Add to Playlist...", style: .default, handler:
-                                                    { (UIAlertAction) -> () in
-                                                        let alert = UIAlertController(title: nil, message: "Add to Playlist", preferredStyle: .alert)
-                                                        
-                                                        let list = mega().children(forParent: app().playlistBrowseFolder!, order: 1);
-                                                        for i in 0..<list.size.intValue {
-                                                            let n = list.node(at: i);
-                                                            if (n != nil) {
-                                                                if (n!.type != MEGANodeType.file && n!.name.hasSuffix(".playlist"))
-                                                                {
-                                                                    alert.addAction(menuAction_addToPlaylistExact(node, viewController: self));
-                                                                }
-                                                                else if (n!.type == .folder)
-                                                                {
-                                                                    alert.addAction(menuAction_addToPlaylistInFolder(node, playlistFolder: n!, viewController: self));
-                                                                }
-                                                            }
-                                                        }
-                                                        self.present(alert, animated: false, completion: nil)
-                                                    }));
+                    alert.addAction(menuAction_addToPlaylistInFolder_recents(node, viewController: self));
                 }
                 alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
                 self.present(alert, animated: false, completion: nil)
