@@ -307,6 +307,9 @@ class PlayQueueTVC: UITableViewController {
                 let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
                 alert.addAction(menuAction_songInfo(node!, viewController: self));
                 alert.addAction(menuAction_songBrowseTo(node!, viewController: self));
+                if (app().playlistBrowseFolder != nil) {
+                    alert.addAction(menuAction_addToPlaylistInFolder_recents(node!, viewController: self));
+                }
                 alert.addAction(menuAction_neverMind());
                 self.present(alert, animated: false, completion: nil)
             }

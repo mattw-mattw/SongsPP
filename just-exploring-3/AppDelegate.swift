@@ -141,9 +141,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
         
-        playQueue.saveOnShutdown();
-        
-        
+        playQueue.saveQueueAndHistory(shuttingDown: false);
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
@@ -156,6 +154,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+        playQueue.saveQueueAndHistory(shuttingDown: true);
     }
     
     var mega : MEGASdk? = nil;
@@ -330,7 +329,22 @@ func menuAction_addToPlaylistInFolder_recents(_ node : MEGANode, viewController 
             let alert = UIAlertController(title: nil, message: "Add to Recent Playlist", preferredStyle: .alert)
             
             for i in 0..<recentPlaylists.count {
-                alert.addAction(menuAction_addToPlaylistExact(playlistNode: recentPlaylists[i], nodeToAdd: node, viewController: viewController));
+                
+                // check if playlist is updated
+                var n : MEGANode? = recentPlaylists[i];
+                while (n != nil) {
+                    let p = mega().parentNode(for: n!);
+                    if (p == nil)
+                    {
+                        n = nil;
+                        break;
+                    }
+                    if p!.type != .file { break; }
+                    n = p;
+                }
+                if (n == nil) { continue; }
+                
+                alert.addAction(menuAction_addToPlaylistExact(playlistNode:n!, nodeToAdd: node, viewController: viewController));
             }
             alert.addAction(menuAction_addToPlaylistInFolder(node, overrideName: "Select from all Playlists...", playlistFolder: app().playlistBrowseFolder!, viewController: viewController));
             alert.addAction(menuAction_neverMind());
@@ -368,7 +382,7 @@ func menuAction_addToPlaylistExact(playlistNode : MEGANode, nodeToAdd: MEGANode,
     return UIAlertAction(title: playlistNode.name , style: .default, handler:
         { (UIAlertAction) -> () in
             
-            let json = app().storageModel.getDownloadedPlaylistAsJSON(playlistNode);
+            let json = app().storageModel.getPlaylistFileEditedOrNotAsJSON(playlistNode);
             
             var uploadFolder = mega().parentNode(for: playlistNode);
             while (uploadFolder != nil && uploadFolder!.type == .file)
@@ -381,15 +395,24 @@ func menuAction_addToPlaylistExact(playlistNode : MEGANode, nodeToAdd: MEGANode,
             {
                 nodes.append(nodeToAdd);
                 
-                let s = app().playQueue.nodeHandleArrayToJSON(nodes);
+                let s = app().playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: nodes);
                 
-                if let updateFilePath = app().storageModel.playlistPath(node: playlistNode) {
+                if let updateFilePath = app().storageModel.playlistPath(node: playlistNode, forUpload: true) {
                     let url = URL(fileURLWithPath: updateFilePath);
                     try! s.write(to: url, atomically: true, encoding: .ascii)
                     mega().startUploadToFile(withLocalPath: updateFilePath, parent: uploadFolder!, filename:playlistNode.name)
                     
-                    recentPlaylists.append(playlistNode);
-                    
+                    for i in 0..<recentPlaylists.count {
+                        if (recentPlaylists[i] == playlistNode) {
+                            recentPlaylists.remove(at: i);
+                            break;
+                        }
+                    }
+                    while (recentPlaylists.count > 5)
+                    {
+                        recentPlaylists.remove(at: 5);
+                    }
+                    recentPlaylists.insert(playlistNode, at: 0);
                 }
             }
         });

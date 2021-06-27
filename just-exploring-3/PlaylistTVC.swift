@@ -59,7 +59,7 @@ class PlaylistTVC: UITableViewController {
     func loadPlaylist(node: MEGANode)
     {
         playlistSongs = [];
-        if let json = app().storageModel.getDownloadedPlaylistAsJSON(node) {
+        if let json = app().storageModel.getPlaylistFileEditedOrNotAsJSON(node) {
             if let array = json as? [Any] {
                 for object in array {
                     print("array entry");
@@ -112,38 +112,17 @@ class PlaylistTVC: UITableViewController {
     
     override func tableView(_ tableView: UITableView, shouldShowMenuForRowAt indexPath: IndexPath) -> Bool {
 
-        if (tableView.isEditing) { return false; }
+        //if (tableView.isEditing) { return false; }
         
 
         // long press to show menu for song
-        if (indexPath.row < app().playQueue.nextSongs.count)
+        if (indexPath.row < playlistSongs.count)
         {
-            let node = app().playQueue.nextSongs[indexPath.row];
+            let node = playlistSongs[indexPath.row];
 
             let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
-            
-            alert.addAction(UIAlertAction(title: "Play next", style: .default, handler:
-                { (UIAlertAction) -> () in app().playQueue.moveSongNext(indexPath.row); tableView.reloadData() }));
-            
-            alert.addAction(UIAlertAction(title: "Play right now", style: .default, handler:
-                { (UIAlertAction) -> () in app().playQueue.playRightNow(indexPath.row); tableView.reloadData() }));
-            
-            alert.addAction(UIAlertAction(title: "Send to bottom", style: .default, handler:
-                { (UIAlertAction) -> () in app().playQueue.moveSongLast(indexPath.row); tableView.reloadData() }));
-            
-            if (node.type != MEGANodeType.file)
-            {
-                alert.addAction(UIAlertAction(title: "Expand folder", style: .default, handler:
-                    { (UIAlertAction) -> () in app().playQueue.expandQueueItem(indexPath.row); tableView.reloadData() }));
-            }
-
-            alert.addAction(UIAlertAction(title: "Delete to top", style: .default, handler:
-                { (UIAlertAction) -> () in app().playQueue.deleteToTop(indexPath.row); tableView.reloadData() }));
-            
-            alert.addAction(UIAlertAction(title: "Delete to bottom", style: .default, handler:
-                { (UIAlertAction) -> () in app().playQueue.deleteToBottom(indexPath.row); tableView.reloadData() }));
-            
-            alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+            alert.addAction(menuAction_playNext(node));
+            alert.addAction(menuAction_neverMind());
             self.present(alert, animated: false, completion: nil)
         }
         

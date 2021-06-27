@@ -85,7 +85,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "rate" {
             isPlaying = player.rate > 0;
-            if (isPlaying && nodeInPlayerIndex == 0 && !noHistoryMode)
+            if (isPlaying && nodeInPlayerIndex == 0 && !noHistoryMode && nextSongs.count > 0)
             {
                 nextSongs.remove(at: 0)
                 nodeInPlayerIndex = -1;
@@ -243,7 +243,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     func expandPlaylist(_ row: Int)
     {
         var newrow = row+1;
-        if let json = app().storageModel.getDownloadedPlaylistAsJSON(nextSongs[row]) {
+        if let json = app().storageModel.getPlaylistFileEditedOrNotAsJSON(nextSongs[row]) {
             if let array = json as? [Any] {
                 for object in array {
                     print("array entry");
@@ -333,7 +333,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                     }
                 }
             }
-            else if (node.name.hasSuffix(".playlist") && app().storageModel.fileDownloaded(nextSongs[row]))
+            else if (node.name.hasSuffix(".playlist") && app().storageModel.fileDownloadedByNH(nextSongs[row]))
             {
                 expandPlaylist(row);
             }
@@ -342,7 +342,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     
     func isExpandable(node: MEGANode) -> Bool
     {
-        return node.type != MEGANodeType.file || node.name.hasSuffix(".playlist") && app().storageModel.fileDownloaded(node);
+        return node.type != MEGANodeType.file || node.name.hasSuffix(".playlist") && app().storageModel.fileDownloadedByNH(node);
     }
     
     func downloadAllSongsInQueue(_ removeAlreadyDownloaded : Bool) -> Int
@@ -350,7 +350,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         var newQueue : [MEGANode] = [];
         var started : Int = 0;
         for i in 0..<nextSongs.count {
-            if (removeAlreadyDownloaded && !app().storageModel.fileDownloaded(nextSongs[i]))
+            if (removeAlreadyDownloaded && !app().storageModel.fileDownloadedByFP(nextSongs[i]))
             {
                 newQueue.append(nextSongs[i]);
             }
@@ -388,8 +388,8 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 reloadTableView = true;
             }
             if (index < nextSongs.count &&
-                (app().storageModel.isDownloading(nextSongs[index]) ||
-                    app().storageModel.startDownloadIfAbsent(node: nextSongs[index])))
+                (app().storageModel.isDownloadingByType(nextSongs[index]) ||
+                 app().storageModel.startDownloadIfAbsent(node: nextSongs[index])))
             {
                 numDownloading += 1;
             }
@@ -424,7 +424,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         
         if (nextSongs.count > songIndex)
         {
-            if let fileURL = app().storageModel.getDownloadedFileURL(nextSongs[songIndex]) {
+            if let fileURL = app().storageModel.getDownloadedSongURL(nextSongs[songIndex]) {
                 let play = startIt || isPlaying;
                 nodeInPlayer = nextSongs[songIndex];
                 nodeInPlayerIndex = songIndex;
@@ -579,10 +579,14 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         onNextSongsEdited(reloadView: true, triggerPlay: true, canReplacePlayerSong: replaceable);
     }
 
-    func nodeHandleArrayToJSON(_ array : [MEGANode] ) -> String
+    func nodeHandleArrayToJSON(optionalExtraFirstNode : MEGANode?, array : [MEGANode] ) -> String
     {
         var comma = false;
         var s = "[";
+        if (optionalExtraFirstNode != nil) {
+            s += "{\"h\":\"" + optionalExtraFirstNode!.base64Handle + "\"}";
+            comma = true;
+        }
         for n in array {
             if comma { s += ","; }
             comma = true;
@@ -634,18 +638,18 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             return;
         }
 
-        let s = nodeHandleArrayToJSON(nextSongs);
+        let s = nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: nextSongs);
         let uploadpath = app().storageModel.getUploadPlaylistFileURL();
         let url = URL(fileURLWithPath: uploadpath);
         try! s.write(to: url, atomically: true, encoding: .ascii)
         mega().startUpload(withLocalPath:uploadpath, parent: app().playlistBrowseFolder!)
     }
 
-    func saveOnShutdown()
+    func saveQueueAndHistory(shuttingDown : Bool)
     {
-        if (!playerSongIsEphemeral()) { pushToHistory() };
-        let s1 = nodeHandleArrayToJSON(nextSongs);
-        let s2 = nodeHandleArrayToJSON(playedSongs);
+        if (shuttingDown && !playerSongIsEphemeral()) { pushToHistory() };
+        let s1 = nodeHandleArrayToJSON(optionalExtraFirstNode: playerSongIsEphemeral() ? nil : nodeInPlayer, array: nextSongs);
+        let s2 = nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: playedSongs);
         do {
             try s1.write(toFile: app().storageModel.storagePath() + "/nextSongs", atomically: true, encoding: String.Encoding.utf8);
             try s2.write(toFile: app().storageModel.storagePath() + "/playedSongs", atomically: true, encoding: String.Encoding.utf8);

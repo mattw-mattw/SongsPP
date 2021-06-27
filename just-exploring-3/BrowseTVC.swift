@@ -328,14 +328,14 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         }
         if (!filterIncludeDownloaded && select)
         {
-            if (app().storageModel.fileDownloaded(n))
+            if (app().storageModel.fileDownloadedByType(n))
             {
                 select = false;
             }
         }
         else if (!filterIncludeNonDownloaded && select)
         {
-            if (!app().storageModel.fileDownloaded(n))
+            if (!app().storageModel.fileDownloadedByType(n))
             {
                 select = false;
             }
@@ -355,6 +355,11 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             else if (!filtering || checkFiltered(n!))
             {
                 nodeArray.append(n!)
+
+                if (isPlaylists() && n!.name.hasSuffix(".playlist")) {
+                    _ = app().storageModel.startDownloadIfAbsent(node: n!);
+                }
+
             }
         }
     }

@@ -28,7 +28,7 @@ class TransferHandler: NSObject, MEGATransferDelegate {
             }
             else
             {
-                app().storageModel.fileFailed(fingerprint: n!.fingerprint!);
+                app().storageModel.fileFailed(fingerprint: n!.fingerprint!, node: n!);
             }
         }
     }
@@ -76,6 +76,8 @@ class MEGAHandler: NSObject, MEGADelegate {
         for i in 0..<nodeList.size.intValue {
             let node = nodeList.node(at: i)
             
+            if (node == nil || node!.type != .file) { continue; }
+            
             if (replaceNodeIn(node!, &app().playQueue.nextSongs) ||
                 replaceNodeIn(node!, &app().playQueue.playedSongs) ) {
                 app().playQueueTVC?.redraw();
@@ -92,6 +94,10 @@ class MEGAHandler: NSObject, MEGADelegate {
                 if (replaceNodeIn(node!, &app().browseMusicTVC!.nodeArray)) {
                     app().browseMusicTVC!.redraw();
                 }
+            }
+            
+            if (node!.name.hasSuffix(".playlist")) {
+                _ = app().storageModel.startDownloadIfAbsent(node: node!);
             }
 
         }
@@ -125,6 +131,9 @@ class StorageModel {
     
     var downloadingFP : Set<String> = [];
     var downloadedFP : Set<String> = [];
+    
+    var downloadingNH : Set<UInt64> = [];
+    var downloadedNH : Set<UInt64> = [];
 
     var downloadingThumbnail : Set<String> = [];
     var downloadedThumbnail : Set<String> = [];
@@ -132,7 +141,7 @@ class StorageModel {
     var transferDelegate = TransferHandler();
     var megaDelegate = MEGAHandler();
 
-    func fileDownloaded(_ node: MEGANode) -> Bool
+    func fileDownloadedByFP(_ node: MEGANode) -> Bool
     {
         if (node.fingerprint == nil) { return false; }
         if downloadedFP.contains(node.fingerprint!) { return true; }
@@ -141,11 +150,33 @@ class StorageModel {
         if (exists) { downloadedFP.insert(node.fingerprint); }
         return exists;
     }
+
+    func fileDownloadedByNH(_ node: MEGANode) -> Bool
+    {
+        if downloadedNH.contains(node.handle) { return true; }
+        guard let filename = playlistPath(node: node, forUpload: false) else { return false }
+        let exists = FileManager.default.fileExists(atPath: filename);
+        if (exists) { downloadedNH.insert(node.handle); }
+        return exists;
+    }
+
+    func fileDownloadedByType(_ node: MEGANode) -> Bool
+    {
+        if (node.name.hasSuffix(".playlist")) {
+            return fileDownloadedByNH(node);
+        } else {
+            return fileDownloadedByFP(node);
+        }
+    }
     
     func thumbnailDownloaded(_ node: MEGANode) -> Bool
     {
         if (node.thumbnailAttributeHandle == nil) {return false;}
         let ta = node.thumbnailAttributeHandle!;
+        if (ta.contains("______")) {
+            return false;
+            
+        }
         if downloadedThumbnail.contains(ta) { return true; }
         guard let filename = thumbnailPath(node: node) else { return false }
         let exists = FileManager.default.fileExists(atPath: filename);
@@ -161,10 +192,14 @@ class StorageModel {
         return exists;
     }
     
-    func playlistPath(node: MEGANode) -> String?
+    func playlistPath(node: MEGANode, forUpload: Bool) -> String?
     {
-        //return playlistsFolderPath() + "/" + MEGASdk.base64Handle(forHandle: node.handle)! + ".playlist";
-        return songFingerprintPath(node: node);
+        var s = playlistsFolderPath() + "/" + MEGASdk.base64Handle(forHandle: node.handle)! + ".playlist";
+        //var s = songFingerprintPath(node: node);
+        if forUpload {
+            s += (forUpload ? ".upload": "");
+        }
+        return s;
     }
 
     func songFingerprintPath(node: MEGANode) -> String?
@@ -178,16 +213,10 @@ class StorageModel {
             return nil;
         }
         
-        let fpPath = songsFolderPath() + "/" + node.fingerprint;
-        var withExtension = fpPath;
-        
-        for i in node.name.indices {
-            if (node.name[i] == ".") {
-                withExtension = fpPath + node.name.suffix(from: i);
-            }
-        }
+        let u = URL(fileURLWithPath: node.name);
+        let pathExtension = u.pathExtension;
 
-        return withExtension;
+        return songsFolderPath() + "/" + node.fingerprint + "." + pathExtension;
     }
     
     func thumbnailPath(node: MEGANode) -> String?
@@ -207,7 +236,7 @@ class StorageModel {
         return nil;
     }
     
-    func getDownloadedFileURL(_ node: MEGANode) -> URL?
+    func getDownloadedSongURL(_ node: MEGANode) -> URL?
     {
         guard let filename = songFingerprintPath(node: node) else { return nil }
         return FileManager.default.fileExists(atPath: filename) ? URL(fileURLWithPath: filename) : nil;
@@ -235,11 +264,11 @@ class StorageModel {
         return nil;
     }
     
-    func getDownloadedPlaylistAsJSON(_ node: MEGANode) -> Any?
+    func getPlaylistFileAsJSON(_ node: MEGANode, editedPlaylist: Bool) -> Any?
     {
         do
         {
-            if let filename = playlistPath(node: node) {
+            if let filename = playlistPath(node: node, forUpload: editedPlaylist) {
                 let content = try String(contentsOf: URL(fileURLWithPath: filename), encoding: .utf8);
                 let contentData = content.data(using: .utf8);
                 return try JSONSerialization.jsonObject(with: contentData!, options: []);
@@ -250,13 +279,35 @@ class StorageModel {
         return nil;
     }
 
-    func isDownloading(_ node : MEGANode) -> Bool
+    func getPlaylistFileEditedOrNotAsJSON(_ node: MEGANode) -> Any?
+    {
+        var p = getPlaylistFileAsJSON(node, editedPlaylist: true);
+        if (p == nil) {
+            p = getPlaylistFileAsJSON(node, editedPlaylist: false);
+        }
+        return p;
+    }
+
+    func isDownloadingByFP(_ node : MEGANode) -> Bool
     {
         if (node.fingerprint == nil) { return false; }
         return downloadingFP.contains(node.fingerprint!)
     }
 
+    func isDownloadingByNH(_ node : MEGANode) -> Bool
+    {
+        return downloadingNH.contains(node.handle)
+    }
     
+    func isDownloadingByType(_ node: MEGANode) -> Bool
+    {
+        if (node.name.hasSuffix(".playlist")) {
+            return isDownloadingByNH(node);
+        } else {
+            return isDownloadingByFP(node);
+        }
+    }
+
     func startDownloadIfAbsent( node: MEGANode) -> Bool
     {
         if (!app().loginState.online) { return false; }
@@ -275,12 +326,12 @@ class StorageModel {
         // also start thumbnail downlaoding if it has one and we don't have it already
         _ = thumbnailDownloaded(node);
 
-        if !isDownloading(node) && !fileDownloaded(node)
+        if !isDownloadingByFP(node) && !fileDownloadedByFP(node)
         {
             if let filename = songFingerprintPath(node: node) {
                 mega().startDownloadNode(node, localPath: filename);
                 downloadingFP.insert(node.fingerprint!);
-
+                downloadingNH.insert(node.handle);
                 return true
             }
         }
@@ -291,12 +342,11 @@ class StorageModel {
     {
         if (!app().loginState.online) { return false; }
 
-        if !isDownloading(node) && !fileDownloaded(node)
+        if !isDownloadingByNH(node) && !fileDownloadedByNH(node)
         {
-            if let filename = playlistPath(node: node) {
+            if let filename = playlistPath(node: node, forUpload: false) {
                 mega().startDownloadNode(node, localPath: filename);
-                downloadingFP.insert(node.fingerprint!);
-                //print("downloading \(filename)")
+                downloadingNH.insert(node.handle);
                 return true
             }
         }
@@ -306,12 +356,14 @@ class StorageModel {
     func fileArrived(fingerprint : String, node : MEGANode)
     {
         downloadingFP.remove(fingerprint);
+        downloadingNH.remove(node.handle);
         app().playQueue.songDownloaded(node: node)
     }
    
-   func fileFailed(fingerprint : String)
+   func fileFailed(fingerprint : String, node : MEGANode)
    {
        downloadingFP.remove(fingerprint);
+       downloadingNH.remove(node.handle);
        app().playQueue.songDownloaded(node: nil)
    }
 

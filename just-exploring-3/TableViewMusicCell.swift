@@ -79,7 +79,7 @@ class TableViewMusicCell: UITableViewCell {
         {
             contentView.bringSubviewToFront(progressBar);
         
-            let exists = node != nil ? app().storageModel.fileDownloaded(node!) : false;
+            let exists = node != nil ? app().storageModel.fileDownloadedByType(node!) : false;
 
             progressBar.isHidden = !exists;
             progressBar.progress = exists ? 100 : 0;
