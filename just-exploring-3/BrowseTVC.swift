@@ -428,6 +428,39 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         tableView.reloadData();
     }
     
+    var nodesChanged: Bool = false;
+    var folderChanged: Bool = false;
+    
+    func nodesChanging(_ node: MEGANode)
+    {
+        if (replaceNodeIn(node, &nodeArray)) {
+            nodesChanged = true;
+        }
+        if (currentFolder != nil &&
+           (currentFolder!.handle == node.parentHandle ||
+            currentFolder!.handle == node.handle))
+        {
+            folderChanged = true;
+            if (currentFolder!.handle == node.handle)
+            {
+                currentFolder = node;
+            }
+        }
+    }
+    func nodesFinishedChanging()
+    {
+        if (folderChanged)
+        {
+            load(node: currentFolder);
+        }
+        else if (nodesChanged)
+        {
+            redraw();
+        }
+        nodesChanged = false;
+        folderChanged = false;
+    }
+    
     func loadParentFolder()
     {
         if (currentFolder != nil && currentFolder != rootFolder())

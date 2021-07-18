@@ -258,6 +258,32 @@ func mega(using fileManager : FileManager = .default) -> MEGASdk {
     return a.mega!;
 }
 
+func megaGetLatestFileRevision(_ node : MEGANode?) -> MEGANode?
+{
+    // check if playlist is updated
+    // also check if it even still exists
+    var n = mega().node(forHandle: node!.handle);
+    while (n != nil) {
+        let p = mega().parentNode(for: n!);
+        if (p == nil)
+        {
+            n = nil;
+            break;
+        }
+        if p!.type != .file { break; }
+        n = p;
+    }
+    return n;
+}
+
+func megaGetContainingFolder(_ node : MEGANode?) -> MEGANode?
+{
+    var n = megaGetLatestFileRevision(node);
+    if (n != nil) { n = mega().parentNode(for: n!); }
+    if (n != nil && n!.type == .file) { n = nil; }
+    return n;
+}
+
 func reportMessage(uic : UIViewController, message : String, continuation : (() -> Void)? = nil)
 {
     DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300)) {
@@ -331,17 +357,7 @@ func menuAction_addToPlaylistInFolder_recents(_ node : MEGANode, viewController 
             for i in 0..<recentPlaylists.count {
                 
                 // check if playlist is updated
-                var n : MEGANode? = recentPlaylists[i];
-                while (n != nil) {
-                    let p = mega().parentNode(for: n!);
-                    if (p == nil)
-                    {
-                        n = nil;
-                        break;
-                    }
-                    if p!.type != .file { break; }
-                    n = p;
-                }
+                let n : MEGANode? = megaGetLatestFileRevision(recentPlaylists[i]);
                 if (n == nil) { continue; }
                 
                 alert.addAction(menuAction_addToPlaylistExact(playlistNode:n!, nodeToAdd: node, viewController: viewController));
@@ -397,10 +413,10 @@ func menuAction_addToPlaylistExact(playlistNode : MEGANode, nodeToAdd: MEGANode,
                 
                 let s = app().playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: nodes);
                 
-                if let updateFilePath = app().storageModel.playlistPath(node: playlistNode, forUpload: true) {
+                if let updateFilePath = app().storageModel.playlistPath(node: playlistNode, forEditing: true) {
                     let url = URL(fileURLWithPath: updateFilePath);
                     try! s.write(to: url, atomically: true, encoding: .ascii)
-                    mega().startUploadToFile(withLocalPath: updateFilePath, parent: uploadFolder!, filename:playlistNode.name)
+//                    mega().startUploadToFile(withLocalPath: updateFilePath, parent: uploadFolder!, filename:playlistNode.name)
                     
                     for i in 0..<recentPlaylists.count {
                         if (recentPlaylists[i] == playlistNode) {

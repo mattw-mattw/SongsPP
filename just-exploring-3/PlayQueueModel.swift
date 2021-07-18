@@ -243,7 +243,8 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     func expandPlaylist(_ row: Int)
     {
         var newrow = row+1;
-        if let json = app().storageModel.getPlaylistFileEditedOrNotAsJSON(nextSongs[row]) {
+        let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(nextSongs[row])
+        if (json != nil) {
             if let array = json as? [Any] {
                 for object in array {
                     print("array entry");
@@ -415,6 +416,20 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             app().playQueueTVC?.redraw();
         }
     }
+    
+    func nodesChanging(_ node: MEGANode)
+    {
+        if (nodeInPlayer != nil) &&
+           (nodeInPlayer!.handle == node.handle)
+        {
+            nodeInPlayer = node;
+            app().playQueueTVC?.playingSongUpdated();
+        }
+    }
+    func nodesFinishedChanging()
+    {
+    }
+
     
     func loadPlayer(startIt: Bool)
     {

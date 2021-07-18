@@ -46,7 +46,7 @@ func replaceNodeIn(_ n : MEGANode, _ v : inout [MEGANode]) -> Bool
 {
     var result : Bool = false;
     for i in v.indices {
-        if v[i].handle == n.handle {
+        if v[i].handle == n.handle || (n.type == .file && v[i].type == .file && n.parentHandle == v[i].handle) {
             v[i] = n;
             result = true;
         }
@@ -76,31 +76,22 @@ class MEGAHandler: NSObject, MEGADelegate {
         for i in 0..<nodeList.size.intValue {
             let node = nodeList.node(at: i)
             
-            if (node == nil || node!.type != .file) { continue; }
+            if (node == nil) { continue; }
             
-            if (replaceNodeIn(node!, &app().playQueue.nextSongs) ||
-                replaceNodeIn(node!, &app().playQueue.playedSongs) ) {
-                app().playQueueTVC?.redraw();
-            }
-            
-            if (app().playQueue.nodeInPlayer != nil) &&
-               (app().playQueue.nodeInPlayer!.handle == node!.handle)
-            {
-                app().playQueue.nodeInPlayer = node;
-                app().playQueueTVC?.playingSongUpdated();
-            }
-          
-            if (app().browseMusicTVC != nil) {
-                if (replaceNodeIn(node!, &app().browseMusicTVC!.nodeArray)) {
-                    app().browseMusicTVC!.redraw();
-                }
-            }
+            app().playQueue.nodesChanging(node!);
+            if (app().playQueueTVC != nil) { app().playQueueTVC!.nodesChanging(node!); }
+            if (app().browseMusicTVC != nil) { app().browseMusicTVC!.nodesChanging(node!); }
+            if (app().browsePlaylistsTVC != nil) { app().browsePlaylistsTVC!.nodesChanging(node!); }
             
             if (node!.name.hasSuffix(".playlist")) {
                 _ = app().storageModel.startDownloadIfAbsent(node: node!);
             }
-
         }
+
+        app().playQueue.nodesFinishedChanging();
+        if (app().playQueueTVC != nil) { app().playQueueTVC!.nodesFinishedChanging();}
+        if (app().browseMusicTVC != nil) { app().browseMusicTVC!.nodesFinishedChanging();}
+        if (app().browsePlaylistsTVC != nil) { app().browsePlaylistsTVC!.nodesFinishedChanging();}
     }
     
     func onThumbnailUpdate(thumbHandle : String)
@@ -122,9 +113,7 @@ class MEGAHandler: NSObject, MEGADelegate {
                 app().browseMusicTVC!.redraw();
             }
         }
-
     }
-    
 }
 
 class StorageModel {
@@ -154,7 +143,7 @@ class StorageModel {
     func fileDownloadedByNH(_ node: MEGANode) -> Bool
     {
         if downloadedNH.contains(node.handle) { return true; }
-        guard let filename = playlistPath(node: node, forUpload: false) else { return false }
+        guard let filename = playlistPath(node: node, forEditing: false) else { return false }
         let exists = FileManager.default.fileExists(atPath: filename);
         if (exists) { downloadedNH.insert(node.handle); }
         return exists;
@@ -192,14 +181,31 @@ class StorageModel {
         return exists;
     }
     
-    func playlistPath(node: MEGANode, forUpload: Bool) -> String?
+    func playlistPath(node: MEGANode, forEditing : Bool) -> String?
     {
         var s = playlistsFolderPath() + "/" + MEGASdk.base64Handle(forHandle: node.handle)! + ".playlist";
         //var s = songFingerprintPath(node: node);
-        if forUpload {
-            s += (forUpload ? ".upload": "");
-        }
+        s += (forEditing ? ".editing": "");
+        //s += (forUpload ? ".upload": "");
         return s;
+    }
+    
+    func getOldPlaylistsFolder() -> MEGANode?
+    {
+        var node = app().playlistBrowseFolder;
+        if (node != nil && app().loginState.accountByFolderLink)
+        {
+            node = mega().node(forPath: "˜old-versions˜", node: node!);
+            if (node == nil)
+            {
+                if (app().loginState.online)
+                {
+                    mega().createFolder(withName: "˜old-versions˜", parent: app().playlistBrowseFolder!)
+                }
+                return app().playlistBrowseFolder!
+            }
+        }
+        return node;
     }
 
     func songFingerprintPath(node: MEGANode) -> String?
@@ -264,11 +270,11 @@ class StorageModel {
         return nil;
     }
     
-    func getPlaylistFileAsJSON(_ node: MEGANode, editedPlaylist: Bool) -> Any?
+    func getPlaylistFileAsJSON(_ node: MEGANode, edited : Bool) -> Any?
     {
         do
         {
-            if let filename = playlistPath(node: node, forUpload: editedPlaylist) {
+            if let filename = playlistPath(node: node, forEditing: edited) {
                 let content = try String(contentsOf: URL(fileURLWithPath: filename), encoding: .utf8);
                 let contentData = content.data(using: .utf8);
                 return try JSONSerialization.jsonObject(with: contentData!, options: []);
@@ -279,13 +285,14 @@ class StorageModel {
         return nil;
     }
 
-    func getPlaylistFileEditedOrNotAsJSON(_ node: MEGANode) -> Any?
+    func getPlaylistFileEditedOrNotAsJSON(_ node: MEGANode) -> (Any?, Bool)
     {
-        var p = getPlaylistFileAsJSON(node, editedPlaylist: true);
+        var p = getPlaylistFileAsJSON(node, edited: true);
         if (p == nil) {
-            p = getPlaylistFileAsJSON(node, editedPlaylist: false);
+            p = getPlaylistFileAsJSON(node, edited: false);
+            return (p, false);
         }
-        return p;
+        return (p, true);
     }
 
     func isDownloadingByFP(_ node : MEGANode) -> Bool
@@ -344,7 +351,7 @@ class StorageModel {
 
         if !isDownloadingByNH(node) && !fileDownloadedByNH(node)
         {
-            if let filename = playlistPath(node: node, forUpload: false) {
+            if let filename = playlistPath(node: node, forEditing: false) {
                 mega().startDownloadNode(node, localPath: filename);
                 downloadingNH.insert(node.handle);
                 return true

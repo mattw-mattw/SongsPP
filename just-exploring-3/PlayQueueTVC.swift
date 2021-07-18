@@ -128,6 +128,25 @@ class PlayQueueTVC: UITableViewController {
         }
     }
 
+    var nodesChanged: Bool = false;
+    
+    func nodesChanging(_ node: MEGANode)
+    {
+        if (replaceNodeIn(node, &app().playQueue.nextSongs) ||
+            replaceNodeIn(node, &app().playQueue.playedSongs) )
+        {
+            nodesChanged = true;
+        }
+    }
+    func nodesFinishedChanging()
+    {
+        if (nodesChanged)
+        {
+            redraw();
+            nodesChanged = false;
+        }
+    }
+
     @objc func optionButton() {
         
         if (showHistory) { return; }

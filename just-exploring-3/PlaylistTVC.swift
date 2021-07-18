@@ -12,10 +12,13 @@ import AVKit
 
 
 
-class PlaylistTVC: UITableViewController {
+class PlaylistTVC: UITableViewController, MEGATransferDelegate {
 
     @IBOutlet weak var folderPathLabelCtrl: UILabel!
+    @IBOutlet weak var saveButton: UIButton!
+    @IBOutlet weak var revertButton: UIButton!
 
+    var playlistNode : MEGANode? = nil;
     var playlistSongs : [MEGANode] = [];
     
     override func viewDidLoad() {
@@ -40,26 +43,139 @@ class PlaylistTVC: UITableViewController {
     override func viewDidDisappear(_ animated: Bool) {
         navigationItem.rightBarButtonItem = nil;
     }
-   
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated);
+        adjustControls();
+    }
+
+   
     @objc func optionButton() {
         
         let alert = UIAlertController(title: nil, message: "Options", preferredStyle: .alert)
+
+        alert.addAction(UIAlertAction(title: tableView.isEditing ? "Disable Rearrange" : "Enable Rearrange", style: .default, handler:
+            { (UIAlertAction) -> () in self.tableView.isEditing.toggle() }));
+
+//        alert.addAction(UIAlertAction(title: "Save as playlist", style: .default, handler:
+//            { (UIAlertAction) -> () in app().playQueue.saveAsPlaylist() }));
 
         alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
         self.present(alert, animated: false, completion: nil)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated);
+    
+    var spinnerBusyControl : UIAlertController? = nil;
+
+    func startSpinnerControl(message : String)
+    {
+        spinnerBusyControl = UIAlertController(title: nil, message: message + "\n\n", preferredStyle: .alert)
+        let spinnerIndicator = UIActivityIndicatorView(style: .large)
+        spinnerIndicator.center = CGPoint(x: 135.0, y: 65.5)
+        spinnerIndicator.color = UIColor.black
+        spinnerIndicator.startAnimating()
+        spinnerBusyControl!.view.addSubview(spinnerIndicator)
+        self.present(spinnerBusyControl!, animated: false, completion: nil)
+    }
+    
+    func onTransferFinish(_ api: MEGASdk, transfer request: MEGATransfer, error: MEGAError) {
+        spinnerBusyControl!.dismiss(animated: true);
+        spinnerBusyControl = nil;
+        if (error.type.rawValue != 0)
+        {
+            reportMessage(uic: self, message: "Error uploading: " + error.nameWithErrorCode(error.type.rawValue));
+        }
+        else
+        {
+            self.navigationController?.popViewController(animated: true);
+        }
+    }
+    
+    @IBAction func onSaveButton() {
+        
+        if (CheckOnlineOrWarn("Please go online before uploading the changed playlist", uic: self))
+        {
+            if (playlistNode == nil) { return; }
+            
+            if let parentFolder = megaGetContainingFolder(playlistNode!) {
+            
+                saveAsEditing();
+            
+                startSpinnerControl(message: "Uploading Playlist");
+                
+                if let updateFilePath = app().storageModel.playlistPath(node: playlistNode!, forEditing: true) {
+                    
+                    if (app().loginState.accountByFolderLink && app().playlistBrowseFolder != nil)
+                    {
+                        if let oldPlaylistsFolder = app().storageModel.getOldPlaylistsFolder() {
+                        // folder links don't link versions yet
+                            let formatter = DateFormatter()
+                            formatter.dateFormat = "yyyyMMdd-HHmmss"
+                            var newname = playlistNode!.name;
+                            if (newname == nil) { newname = "playlist.playlist"; }
+                            if newname!.hasSuffix(".playlist") {
+                                newname!.removeSubrange((newname?.lastIndex(where: {$0 == "."})! ?? newname!.endIndex) ..< newname!.endIndex);
+                            }
+                            newname! += ".old." + formatter.string(from: Date()) + ".playlist";
+                            
+                            mega().move(playlistNode!, newParent: oldPlaylistsFolder, newName: newname!)
+                        }
+                    }
+
+                    mega().startUploadToFile(withLocalPath: updateFilePath, parent: parentFolder, filename:playlistNode!.name,
+                         delegate: self);
+                }
+            }
+        
+            adjustControls();
+        }
+    }
+    
+    @IBAction func onRevertButton() {
+        if (playlistNode == nil) { return; }
+        if let updateFilePath = app().storageModel.playlistPath(node: playlistNode!, forEditing: true) {
+            do {
+                try FileManager.default.removeItem(atPath: updateFilePath);
+            } catch {
+                // etc
+            }
+            loadPlaylist(node: playlistNode!)
+        }
+        adjustControls();
+    }
+
+    func adjustControls() {
+        folderPathLabelCtrl.text = playlistNode == nil ? "<playlist>" : playlistNode!.name;
+        
+        var edited = false;
+        if let editingPath = app().storageModel.playlistPath(node: playlistNode!, forEditing: true) {
+            edited = FileManager.default.fileExists(atPath: editingPath);
+        }
+        saveButton.isEnabled = edited;
+        revertButton.isEnabled = edited;
+    }
+    
+    func saveAsEditing() {
+        if (playlistNode == nil) { return; }
+        let s = app().playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: playlistSongs);
+        
+        if let editingPath = app().storageModel.playlistPath(node: playlistNode!, forEditing: true) {
+            let url = URL(fileURLWithPath: editingPath);
+            try! s.write(to: url, atomically: true, encoding: .ascii)
+        }
+        
+        adjustControls();
     }
     
     // MARK: - Table view data source
     
     func loadPlaylist(node: MEGANode)
     {
+        playlistNode = node;
         playlistSongs = [];
-        if let json = app().storageModel.getPlaylistFileEditedOrNotAsJSON(node) {
+        let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(node);
+        if (json != nil)
+        {
             if let array = json as? [Any] {
                 for object in array {
                     print("array entry");
@@ -76,7 +192,15 @@ class PlaylistTVC: UITableViewController {
                 }
             }
         }
+        redraw();
+        adjustControls();
     }
+    
+    func redraw()
+    {
+        tableView.reloadData();
+    }
+
     
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
@@ -139,24 +263,26 @@ class PlaylistTVC: UITableViewController {
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         // Return false if you do not want the specified item to be editable.
-        return indexPath.row > 0;
+        return indexPath.row >= 0;
     }
 
     // Override to support editing the table view.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-//        if editingStyle == .delete && indexPath.row < app().playQueue.nextSongs.count {
-//            app().playQueue.nextSongs.remove(at: indexPath.row)
-//            app().playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false);
-//        }
+        if editingStyle == .delete && indexPath.row < app().playQueue.nextSongs.count {
+            playlistSongs.remove(at: indexPath.row)
+            saveAsEditing();
+            redraw()
+        }
     }
 
     // Override to support rearranging the table view.
     override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-//        if fromIndexPath.row < app().playQueue.nextSongs.count && to.row < app().playQueue.nextSongs.count {
-//            let item = app().playQueue.nextSongs.remove(at: fromIndexPath.row);
-//            app().playQueue.nextSongs.insert(item, at: to.row);
-//            app().playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false);
-//        }
+        if fromIndexPath.row < playlistSongs.count && to.row < playlistSongs.count {
+            let item = playlistSongs.remove(at: fromIndexPath.row);
+            playlistSongs.insert(item, at: to.row);
+            saveAsEditing();
+            redraw()
+        }
     }
 
     /*
