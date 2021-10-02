@@ -275,10 +275,9 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             if (n.isFolder()) { return true; }
         }
         if (n.isFile()) {
-            if let name = n.name {
-                for ext in playableExtensions {
-                    if name.hasSuffix(ext) { return true; }
-                }
+            let name = n.name.lowercased();
+            for ext in playableExtensions {
+                if name.hasSuffix(ext) { return true; }
             }
         }
         return false;
@@ -287,10 +286,9 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     func isArtwork(_ n : MEGANode) -> Bool
     {
         if (n.isFile()) {
-            if let name = n.name {
-                for ext in artworkExtensions {
-                    if name.hasSuffix(ext) { return true; }
-                }
+            let name = n.name.lowercased()
+            for ext in artworkExtensions {
+                if name.hasSuffix(ext) { return true; }
             }
         }
         return false;
@@ -368,7 +366,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     }
     
     func playerSongIsEphemeral() -> Bool {
-        return noHistoryMode && (
+        return noHistoryMode || (
             nodeInPlayer == nil || (nextSongs.count > 0 &&
             nodeInPlayer!.handle == nextSongs[0].handle &&
             player.currentTime().seconds == 0 &&

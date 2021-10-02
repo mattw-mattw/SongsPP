@@ -79,18 +79,27 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         alert.addAction(UIAlertAction(title: "Queue+Expand+Shuffle all", style: .default, handler:
             { (UIAlertAction) -> () in self.QueueExpandShuffleAll() }));
 
-        if app().loginState.accountBySession && !isPlaylists() && currentFolder != nil && app().musicBrowseFolder == nil {
-            alert.addAction(UIAlertAction(title: "Set as the top available folder...", style: .default, handler:
-                { (UIAlertAction) -> () in self.CheckSetAsWritableFolderLink() }));
-        }
+        if (currentFolder != nil)
+        {
 
-        if !isPlaylists() && currentFolder != nil && app().musicBrowseFolder == nil {
-            alert.addAction(UIAlertAction(title: "Set as the Music Folder...", style: .default, handler:
-                { (UIAlertAction) -> () in self.CheckSetAsMusicFolder() }));
-        }
-        if isPlaylists() && currentFolder != nil && app().playlistBrowseFolder == nil {
-            alert.addAction(UIAlertAction(title: "Set as the Playlist Folder...", style: .default, handler:
-                { (UIAlertAction) -> () in self.CheckSetAsPlaylistFolder() }));
+            if app().loginState.accountBySession && !isPlaylists() && app().musicBrowseFolder == nil {
+                alert.addAction(UIAlertAction(title: "Set as the top available folder...", style: .default, handler:
+                    { (UIAlertAction) -> () in self.CheckSetAsWritableFolderLink() }));
+            }
+
+            if !isPlaylists() && app().musicBrowseFolder == nil {
+                alert.addAction(UIAlertAction(title: "Set as the Music Folder...", style: .default, handler:
+                    { (UIAlertAction) -> () in self.CheckSetAsMusicFolder() }));
+            }
+            if isPlaylists() && app().playlistBrowseFolder == nil {
+                alert.addAction(UIAlertAction(title: "Set as the Playlist Folder...", style: .default, handler:
+                    { (UIAlertAction) -> () in self.CheckSetAsPlaylistFolder() }));
+            }
+        
+            if !isPlaylists() {
+                alert.addAction(UIAlertAction(title: "Extract Title/Artist/BPM...", style: .default, handler:
+                    { (UIAlertAction) -> () in self.ExtractTitleArtistBPM() }));
+            }
         }
 
         alert.addAction(menuAction_neverMind());
@@ -278,6 +287,22 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             app().playlistBrowseFolder = mega().node(forPath: playlistPath)
         }
         load(node: rootFolder());
+    }
+    
+    func ExtractTitleArtistBPM()
+    {
+
+        let alert = UIAlertController(title: "Extract Title/Artist/BPM", message: "This operation will try to extract the song track Title, Artist, and BPM from tags in the song files, for those song files that are downloaded already.", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "Extract in this folder", style: .default, handler:
+            { (UIAlertAction) -> () in RecursiveExtractAndApplyTags(self.currentFolder!, recursive: false, uic: self);() }));
+
+        alert.addAction(UIAlertAction(title: "Extract here and all subfolders", style: .default, handler:
+            { (UIAlertAction) -> () in RecursiveExtractAndApplyTags(self.currentFolder!, recursive: true, uic: self); }));
+
+        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+
+        self.present(alert, animated: false, completion: nil)
     }
     
     func nodeListToNodeArray(list : MEGANodeList?) -> [MEGANode]
@@ -606,7 +631,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                           { (UIAlertAction) -> () in self.setArtworkForSongsInFolder(node); }));
                 }
                 if (filtering) { alert.addAction(menuAction_songBrowseTo(node, viewController: self)); }
-                if (app().playlistBrowseFolder != nil) {
+                if (app().playlistBrowseFolder != nil && app().playQueue.isPlayable(node, orMightContainPlayable: false)) {
                     alert.addAction(menuAction_addToPlaylistInFolder_recents(node, viewController: self));
                 }
                 alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));

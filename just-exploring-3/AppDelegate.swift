@@ -251,7 +251,7 @@ func mega(using fileManager : FileManager = .default) -> MEGASdk {
     {
         let path = app().storageModel.storagePath() + "/accountCache/";
         app().storageModel.assureFolderExists(path, doneAlready: &accountFolderDoneAlready);
-        a.mega = MEGASdk.init(appKey: "EelhRa6C", userAgent: "MusicViaMega " + deviceName(), basePath: path == "" ? nil : path)!;
+        a.mega = MEGASdk.init(appKey: "dWRWmTiJ", userAgent: "Songs++ " + deviceName(), basePath: path == "" ? nil : path)!;
         a.mega!.add(a.storageModel.transferDelegate);
         a.mega!.add(a.storageModel.megaDelegate);
     }
@@ -398,7 +398,7 @@ func menuAction_addToPlaylistExact(playlistNode : MEGANode, nodeToAdd: MEGANode,
     return UIAlertAction(title: playlistNode.name , style: .default, handler:
         { (UIAlertAction) -> () in
             
-            let json = app().storageModel.getPlaylistFileEditedOrNotAsJSON(playlistNode);
+            let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(playlistNode);
             
             var uploadFolder = mega().parentNode(for: playlistNode);
             while (uploadFolder != nil && uploadFolder!.type == .file)
@@ -433,5 +433,62 @@ func menuAction_addToPlaylistExact(playlistNode : MEGANode, nodeToAdd: MEGANode,
             }
         });
 }
+
+func ExtractAndApplyTags(_ node : MEGANode) -> Bool
+{
+    if (!app().playQueue.isPlayable(node, orMightContainPlayable: false))
+    { return true; }
+    
+    let songPath = app().storageModel.songFingerprintPath(node: node);
+    if (songPath == nil) { return false; }
+
+    if !FileManager.default.fileExists(atPath: songPath!)
+    { return false; }
+    
+    var title : NSString? = nil;
+    var artist : NSString? = nil;
+    var bpm : NSString? = nil;
+
+    if (SongsCPP.getSongProperties(songPath!, title: &title, artist: &artist, bpm: &bpm))
+    {
+        if (title != nil)
+        {
+            mega().setCustomNodeAttribute(node, name: "title", value: String(title!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
+        }
+        if (artist != nil)
+        {
+            mega().setCustomNodeAttribute(node, name: "artist", value: String(artist!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
+        }
+        if (bpm != nil)
+        {
+            mega().setCustomNodeAttribute(node, name: "BPM", value: String(bpm!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
+        }
+    }
+    return true;
+}
+
+func RecursiveExtractAndApplyTags(_ node : MEGANode, recursive : Bool, uic : UIViewController)
+{
+    if (CheckOnlineOrWarn("Please go online so the file attributes can be updated in MEGA", uic: uic))
+    {
+        if (node.type != .file)
+        {
+            let list = mega().children(forParent: node, order: 1);
+            for i in 0..<list.size.intValue {
+                if let n = list.node(at: i) {
+                    if (n.type == .file)
+                    {
+                        _ = ExtractAndApplyTags(n);
+                    }
+                    else if (recursive)
+                    {
+                        RecursiveExtractAndApplyTags(n, recursive: 	recursive, uic: uic);
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 
