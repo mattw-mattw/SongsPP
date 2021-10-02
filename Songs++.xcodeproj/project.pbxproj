@@ -76,7 +76,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		84008B9223603A4400BD633F /* Songs++.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Songs++.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		84008B9223603A4400BD633F /* Songs⁺̟.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Songs⁺̟.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		84008B9523603A4400BD633F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		84008B9723603A4400BD633F /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		84008B9A23603A4400BD633F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -196,7 +196,7 @@
 		84008B9323603A4400BD633F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				84008B9223603A4400BD633F /* Songs++.app */,
+				84008B9223603A4400BD633F /* Songs⁺̟.app */,
 				84008BA623603A5100BD633F /* Songs++Tests.xctest */,
 				84008BB123603A5100BD633F /* Songs++UITests.xctest */,
 			);
@@ -307,7 +307,7 @@
 			);
 			name = "Songs++";
 			productName = "just-exploring-3";
-			productReference = 84008B9223603A4400BD633F /* Songs++.app */;
+			productReference = 84008B9223603A4400BD633F /* Songs⁺̟.app */;
 			productType = "com.apple.product-type.application";
 		};
 		84008BA523603A5100BD633F /* Songs++Tests */ = {
@@ -663,7 +663,7 @@
 					"/Users/matt/repos/sdk/contrib/cmake/cmake-build-ios/Release-iphoneos",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
-				PRODUCT_NAME = "Songs++";
+				PRODUCT_NAME = "Songs⁺̟";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -677,8 +677,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "Songs++.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = FF48ESATNC;
 				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = (
 					/Users/matt/repos/sdk/bindings/ios,
@@ -696,7 +696,7 @@
 					"/Users/matt/repos/sdk/contrib/cmake/cmake-build-ios/Release-iphoneos",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
-				PRODUCT_NAME = "Songs++";
+				PRODUCT_NAME = "Songs⁺̟";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
