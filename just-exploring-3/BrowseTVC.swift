@@ -542,7 +542,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
 
         var cell : UITableViewCell?
         
-        if (node!.type == MEGANodeType.folder || !showingTrackNames)
+        if (node != nil && (node!.type == MEGANodeType.folder || !showingTrackNames))
         {
             cell = tableView.dequeueReusableCell(withIdentifier: "FolderCell", for: indexPath)
             cell!.textLabel?.text = node!.name + (node!.type == MEGANodeType.folder ? "/" : "");
@@ -550,14 +550,17 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         else
         {
             cell = tableView.dequeueReusableCell(withIdentifier: filtering ? "MusicCellWithNotes" : "MusicCell", for: indexPath)
-            if let mCell = cell as? TableViewMusicCellWithNotes {
-                mCell.populateFromNode(node!);
-                if let rf = rootFolder() {
-                    mCell.notesLabel?.text = app().nodePathBetween(rf, node!);
+            if (node != nil)
+            {
+                if let mCell = cell as? TableViewMusicCellWithNotes {
+                    mCell.populateFromNode(node!);
+                    if let rf = rootFolder() {
+                        mCell.notesLabel?.text = app().nodePathBetween(rf, node!);
+                    }
                 }
-            }
-            else if let mCell = cell as? TableViewMusicCell {
-                mCell.populateFromNode(node!);
+                else if let mCell = cell as? TableViewMusicCell {
+                    mCell.populateFromNode(node!);
+                }
             }
         }
 

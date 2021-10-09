@@ -178,6 +178,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     //var playlistTVC : PlaylistTVC? = nil;
     var tabBarContoller : MainTabBarController? = nil;
+    
+    var explanatoryText : String = "";
 
     func downloadProgress(nodeHandle : UInt64, percent : NSNumber )
     {

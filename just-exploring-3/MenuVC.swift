@@ -221,6 +221,82 @@ class MenuVC: UIViewController {
         self.present(alert, animated: false, completion: nil)
     }
 
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        // Get the new view controller using segue.destination.
+        // Pass the selected object to the new view controller.
 
+        app().explanatoryText = "<tbd>";
+
+        if let button = sender as? UIButton
+        {
+        
+            if (button.tag == 99)
+            {
+                app().explanatoryText = aboutText;
+            }
+            else if (button.tag == 98)
+            {
+                app().explanatoryText = versionText;
+            }
+            else if (button.tag == 97)
+            {
+                app().explanatoryText = howtoText;
+            }
+        }
+    }
+    
+    let aboutText =
+    """
+    About Songs++
+    1.0
+    	
+    A simple and reliable music file player with these great attributes:
+    * Play music files from your MEGA.nz online storage account.
+    * Songs are cached as part of the app's storage.
+    * The next two songs to be played are downloaded and cached.
+    * Operate without an internet connection, playing already cached songs.
+    * Download and cache as many as you want ahead of time.
+    * Browse your songs in the folder and file structure of your MEGA.nz account.
+    * UI design prevents accidentally changing the playing song.
+    * Just one simple list of the upcoming queued songs
+    * Create or update playlists which are simple files.
+    * Save your new and updated playlists back to your MEGA.nz account.
+    * View by filename or by Track and Artist names
+    * Extract Track and Artist names from music files (functionality from libtag)
+    * Make and save short notes on your music tracks, along with BPM
+    * File types considered playable (can be queued, iOS actually plays them): mp3, flac, m4a, aac, wav, aiff, au, pcm, ac3, aa, aax
+    * Starts offline to minimise network use, go online easily anytime.
+    * Choose your music and playlist folders, and browsing outside those folders won't be possible
+    * Convert your login to a Writable Folder Link so that the rest of your account is not even downloaded, for even better privacy and resource use.
+    """;
+    
+    let versionText =
+    """
+    Version history
+    
+    1.0
+    * Initial version
+    """
+    
+    let howtoText =
+    """
+    Usage Guide
+    
+    Quick Tips
+    * Tap-hold for a short time on songs etc to activate menu options
+    
+    Getting Started
+    * If you don't have a MEGA.nz account yet, sign up.
+    * Upload your music to your account (from a laptop/PC is easiest).
+    * Create a Playlist folder if you want to. Music and playlists should be under a common folder.
+    * Log into your MEGA.nz account in this app from the "Log in to MEGA" menu.
+    * Then go to the "Browse Music" tab
+    * Tap on folders to drill into them
+    * Tap on the title row to go back up one folder level
+    * Once in a folder with songs, choose Option->Queue all (top right)
+    * Then go to the "Play Queue" tab
+    * You should see the first two songs downloading, with the blue bars increasing
+    * Once the first blue bar is full, press Play.
+    """
 }
 

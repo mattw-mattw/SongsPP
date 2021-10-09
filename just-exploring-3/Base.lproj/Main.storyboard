@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="xjS-cL-gcQ">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="19162" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="xjS-cL-gcQ">
     <device id="retina6_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19144"/>
         <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
@@ -243,7 +243,7 @@
                         </view>
                         <prototypes>
                             <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCellWithNotes" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCellWithNotes" rowHeight="70" id="yrR-eY-Hvh" customClass="TableViewMusicCellWithNotes" customModule="Songs__" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="222.33333396911621" width="428" height="70"/>
+                                <rect key="frame" x="0.0" y="242.66666603088379" width="428" height="70"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="yrR-eY-Hvh" id="0ee-fP-lNM">
                                     <rect key="frame" x="0.0" y="0.0" width="428" height="70"/>
@@ -341,7 +341,7 @@
                                 </connections>
                             </tableViewCell>
                             <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCell" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCell" id="D2c-Tk-1e2" customClass="TableViewMusicCell" customModule="Songs__">
-                                <rect key="frame" x="0.0" y="292.33333396911621" width="428" height="43.666667938232422"/>
+                                <rect key="frame" x="0.0" y="312.66666603088379" width="428" height="43.666667938232422"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="D2c-Tk-1e2" id="0RE-xK-swf">
                                     <rect key="frame" x="0.0" y="0.0" width="428" height="43.666667938232422"/>
@@ -538,7 +538,7 @@
                         </stackView>
                         <prototypes>
                             <tableViewCell opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCell" id="8jd-pu-bMJ">
-                                <rect key="frame" x="0.0" y="68.333333969116211" width="428" height="43.666667938232422"/>
+                                <rect key="frame" x="0.0" y="88.666666030883789" width="428" height="43.666667938232422"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="8jd-pu-bMJ" id="ABI-Yv-BjS">
                                     <rect key="frame" x="0.0" y="0.0" width="428" height="43.666667938232422"/>
@@ -546,7 +546,7 @@
                                 </tableViewCellContentView>
                             </tableViewCell>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="FolderCell" id="sCD-x8-huX">
-                                <rect key="frame" x="0.0" y="112.00000190734863" width="428" height="43.666667938232422"/>
+                                <rect key="frame" x="0.0" y="132.33333396911621" width="428" height="43.666667938232422"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="sCD-x8-huX" id="vRg-gt-5mJ">
                                     <rect key="frame" x="0.0" y="0.0" width="428" height="43.666667938232422"/>
@@ -639,7 +639,7 @@
                         </stackView>
                         <prototypes>
                             <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCellWithNotes" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCellWithNotes" rowHeight="70" id="Sj5-In-iI8" customClass="TableViewMusicCellWithNotes" customModule="Songs__" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="114.33333396911621" width="428" height="70"/>
+                                <rect key="frame" x="0.0" y="134.66666603088379" width="428" height="70"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Sj5-In-iI8" id="aFd-pD-t0p">
                                     <rect key="frame" x="0.0" y="0.0" width="428" height="70"/>
@@ -705,7 +705,7 @@
                                 </connections>
                             </tableViewCell>
                             <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCell" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCell" id="yk1-0s-KYD" customClass="TableViewMusicCell" customModule="Songs__">
-                                <rect key="frame" x="0.0" y="184.33333396911621" width="428" height="43.666667938232422"/>
+                                <rect key="frame" x="0.0" y="204.66666603088379" width="428" height="43.666667938232422"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="yk1-0s-KYD" id="969-Ak-kR6">
                                     <rect key="frame" x="0.0" y="0.0" width="428" height="43.666667938232422"/>
@@ -867,7 +867,7 @@
                         </stackView>
                         <prototypes>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="FolderCell" id="n9h-w3-Lz6">
-                                <rect key="frame" x="0.0" y="68.333333969116211" width="428" height="43.666667938232422"/>
+                                <rect key="frame" x="0.0" y="88.666666030883789" width="428" height="43.666667938232422"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="n9h-w3-Lz6" id="fHC-l4-mag">
                                     <rect key="frame" x="0.0" y="0.0" width="428" height="43.666667938232422"/>
@@ -878,7 +878,7 @@
                                 </connections>
                             </tableViewCell>
                             <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCellWithNotes" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCellWithNotes" rowHeight="70" id="ueU-86-r4Y" customClass="TableViewMusicCellWithNotes" customModule="Songs__" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="112.00000190734863" width="428" height="70"/>
+                                <rect key="frame" x="0.0" y="132.33333396911621" width="428" height="70"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="ueU-86-r4Y" id="CLE-Ya-wN6">
                                     <rect key="frame" x="0.0" y="0.0" width="428" height="70"/>
@@ -967,7 +967,7 @@
                                 </connections>
                             </tableViewCell>
                             <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCell" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCell" id="0p9-mN-Sdy" customClass="TableViewMusicCell" customModule="Songs__">
-                                <rect key="frame" x="0.0" y="182.00000190734863" width="428" height="43.666667938232422"/>
+                                <rect key="frame" x="0.0" y="202.33333396911621" width="428" height="43.666667938232422"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="0p9-mN-Sdy" id="o1S-pZ-ads">
                                     <rect key="frame" x="0.0" y="0.0" width="428" height="43.666667938232422"/>
@@ -1101,48 +1101,80 @@
                                 <rect key="frame" x="0.0" y="88" width="428" height="706"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="zxj-iJ-WZB">
-                                        <rect key="frame" x="10" y="10" width="428" height="180"/>
+                                        <rect key="frame" x="10" y="10" width="428" height="300"/>
                                         <subviews>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="peq-VQ-lcF">
+                                            <button opaque="NO" tag="99" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wRn-O1-P0l">
                                                 <rect key="frame" x="0.0" y="0.0" width="428" height="30"/>
+                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                <state key="normal" title="About"/>
+                                                <connections>
+                                                    <segue destination="woN-P9-xVM" kind="push" id="2OH-Ib-MJF"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" tag="98" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Pzo-Og-v7H">
+                                                <rect key="frame" x="0.0" y="30" width="428" height="30"/>
+                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                <state key="normal" title="Version history"/>
+                                                <connections>
+                                                    <segue destination="woN-P9-xVM" kind="push" id="FRN-tT-wfg"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" tag="97" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="RBK-S4-lLN">
+                                                <rect key="frame" x="0.0" y="60" width="428" height="30"/>
+                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                <state key="normal" title="How to use the App"/>
+                                                <connections>
+                                                    <segue destination="woN-P9-xVM" kind="push" id="QhH-eg-gF4"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="peq-VQ-lcF">
+                                                <rect key="frame" x="0.0" y="90" width="428" height="30"/>
                                                 <state key="normal" title="Log in to MEGA"/>
                                                 <connections>
                                                     <segue destination="pne-Iy-L3c" kind="push" id="Ukf-Uw-896"/>
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="NjD-mo-dKi">
-                                                <rect key="frame" x="0.0" y="30" width="428" height="30"/>
+                                                <rect key="frame" x="0.0" y="120" width="428" height="30"/>
                                                 <state key="normal" title="Go Offline"/>
                                                 <connections>
                                                     <action selector="onGoOfflineButtonClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="hfL-FY-gDi"/>
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2ZG-JV-Ase">
-                                                <rect key="frame" x="0.0" y="60" width="428" height="30"/>
+                                                <rect key="frame" x="0.0" y="150" width="428" height="30"/>
                                                 <state key="normal" title="Go Online"/>
                                                 <connections>
                                                     <action selector="onGoOnlineButtonClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="X28-FR-G6d"/>
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3eH-OR-ZPL">
-                                                <rect key="frame" x="0.0" y="90" width="428" height="30"/>
+                                                <rect key="frame" x="0.0" y="180" width="428" height="30"/>
                                                 <state key="normal" title="Logout"/>
                                                 <connections>
                                                     <action selector="onLogoutButtonClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="haz-S3-GaO"/>
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="r4s-Ff-fUL">
-                                                <rect key="frame" x="0.0" y="120" width="428" height="30"/>
+                                                <rect key="frame" x="0.0" y="210" width="428" height="30"/>
                                                 <state key="normal" title="Forget Account Folder"/>
                                                 <connections>
                                                     <action selector="onForgetFolderLinkButtonClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="7NA-PU-qmw"/>
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1xl-ZA-dFH">
-                                                <rect key="frame" x="0.0" y="150" width="428" height="30"/>
+                                                <rect key="frame" x="0.0" y="240" width="428" height="30"/>
                                                 <state key="normal" title="Troubleshoot with log files"/>
                                                 <connections>
                                                     <action selector="onTroubleshootWithLogFilesClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="wEO-1K-57m"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MB5-xC-qmh">
+                                                <rect key="frame" x="0.0" y="270" width="428" height="30"/>
+                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                <state key="normal" title="Acknowledgements"/>
+                                                <connections>
+                                                    <segue destination="Tcc-1w-9D5" kind="push" id="wLb-qr-vRz"/>
                                                 </connections>
                                             </button>
                                         </subviews>
@@ -1252,6 +1284,167 @@
             </objects>
             <point key="canvasLocation" x="2814" y="198"/>
         </scene>
+        <!--View TextVC-->
+        <scene sceneID="kvl-At-K6f">
+            <objects>
+                <viewController id="woN-P9-xVM" customClass="ViewTextVC" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Xrq-Zu-dbH">
+                        <rect key="frame" x="0.0" y="0.0" width="428" height="926"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cYw-Pd-haL">
+                                <rect key="frame" x="0.0" y="88" width="428" height="838"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="NPq-Ix-7Pq" userLabel="Content View">
+                                        <rect key="frame" x="8.0000000000000036" y="8" width="57.333333333333343" height="36.333333333333336"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pff-1H-mPc">
+                                                <rect key="frame" x="8" y="7.9999999999999982" width="41.333333333333336" height="20.333333333333329"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                        </subviews>
+                                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                        <constraints>
+                                            <constraint firstAttribute="trailing" secondItem="pff-1H-mPc" secondAttribute="trailing" constant="8" id="41A-Wr-z6V"/>
+                                            <constraint firstItem="pff-1H-mPc" firstAttribute="top" secondItem="NPq-Ix-7Pq" secondAttribute="top" constant="8" id="O9y-qg-Vbb"/>
+                                            <constraint firstItem="pff-1H-mPc" firstAttribute="leading" secondItem="NPq-Ix-7Pq" secondAttribute="leading" constant="8" id="Qop-8t-BYd"/>
+                                            <constraint firstAttribute="bottom" secondItem="pff-1H-mPc" secondAttribute="bottom" constant="8" id="ivX-iv-sUS"/>
+                                        </constraints>
+                                    </view>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="NPq-Ix-7Pq" firstAttribute="height" secondItem="cYw-Pd-haL" secondAttribute="height" multiplier="0.98946" priority="250" id="FLc-SC-Qfp"/>
+                                    <constraint firstAttribute="bottom" secondItem="NPq-Ix-7Pq" secondAttribute="bottom" id="JXV-B7-0pl"/>
+                                    <constraint firstItem="NPq-Ix-7Pq" firstAttribute="width" secondItem="cYw-Pd-haL" secondAttribute="width" multiplier="0.962617" priority="250" id="Vhg-dR-M37"/>
+                                    <constraint firstItem="NPq-Ix-7Pq" firstAttribute="top" secondItem="cYw-Pd-haL" secondAttribute="top" constant="8" id="flk-cF-PyQ"/>
+                                    <constraint firstItem="NPq-Ix-7Pq" firstAttribute="leading" secondItem="cYw-Pd-haL" secondAttribute="leading" constant="8" id="kEJ-S5-xzd"/>
+                                    <constraint firstAttribute="trailing" secondItem="NPq-Ix-7Pq" secondAttribute="trailing" constant="8" id="oFV-bU-MxJ"/>
+                                </constraints>
+                                <viewLayoutGuide key="contentLayoutGuide" id="v9n-7L-iId"/>
+                                <viewLayoutGuide key="frameLayoutGuide" id="Mv8-Z7-h4g"/>
+                            </scrollView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="x5H-LW-0ED"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="cYw-Pd-haL" firstAttribute="top" secondItem="x5H-LW-0ED" secondAttribute="top" id="WmQ-MH-VK1"/>
+                            <constraint firstItem="cYw-Pd-haL" firstAttribute="trailing" secondItem="x5H-LW-0ED" secondAttribute="trailing" id="cuv-xF-GB8"/>
+                            <constraint firstAttribute="bottom" secondItem="cYw-Pd-haL" secondAttribute="bottom" id="gsl-UG-jhz"/>
+                            <constraint firstItem="cYw-Pd-haL" firstAttribute="leading" secondItem="x5H-LW-0ED" secondAttribute="leading" id="mAG-WE-X4s"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" id="w55-fO-CWU"/>
+                    <connections>
+                        <outlet property="TextControl" destination="pff-1H-mPc" id="1sN-ps-FqE"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="FYF-Hl-gmc" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1900.9345794392523" y="922.67818574514047"/>
+        </scene>
+        <!--AcknowledgementsVC-->
+        <scene sceneID="SRS-sO-v6o">
+            <objects>
+                <viewController id="Tcc-1w-9D5" customClass="AcknowledgementsVC" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="soq-2j-XcH">
+                        <rect key="frame" x="0.0" y="0.0" width="428" height="926"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="y9Y-cV-pLd">
+                                <rect key="frame" x="8" y="96.000000000000014" width="412" height="142.33333333333337"/>
+                                <string key="text">Many thanks to the C++ libraries that made this project possible.  Below the libraries are named, and the button will show the licence or copyright notice for that library.  Most of them are dependendies of the MEGA.nz SDK of course.  And thanks to vcpkg which makes these libaries easy to build, and gather the licences.</string>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="cg6-9L-u8C">
+                                <rect key="frame" x="156.66666666666666" y="264" width="114.99999999999997" height="304"/>
+                                <subviews>
+                                    <button opaque="NO" tag="1" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OMK-5J-P1v">
+                                        <rect key="frame" x="0.0" y="0.0" width="115" height="31"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="MEGA.nz SDK"/>
+                                        <connections>
+                                            <segue destination="woN-P9-xVM" kind="push" id="yPm-X0-8GO"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" tag="2" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="G5i-t3-UFM">
+                                        <rect key="frame" x="0.0" y="39" width="115" height="31"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="taglib"/>
+                                        <connections>
+                                            <segue destination="woN-P9-xVM" kind="push" id="h4R-FM-WxM"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" tag="4" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hF8-yD-sak">
+                                        <rect key="frame" x="0.0" y="78" width="115" height="31"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="curl"/>
+                                        <connections>
+                                            <segue destination="woN-P9-xVM" kind="push" id="DsQ-eV-WQZ"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" tag="5" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="0UO-XN-2lW">
+                                        <rect key="frame" x="0.0" y="117" width="115" height="31"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="openssl"/>
+                                        <connections>
+                                            <segue destination="woN-P9-xVM" kind="push" id="6Ob-Bc-42q"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" tag="3" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dKR-Ic-VCW">
+                                        <rect key="frame" x="0.0" y="156" width="115" height="31"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="cryptopp"/>
+                                        <connections>
+                                            <segue destination="woN-P9-xVM" kind="push" id="pRx-hR-bvJ"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" tag="8" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="eBS-aK-Vhr">
+                                        <rect key="frame" x="0.0" y="195" width="115" height="31"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="libsodium"/>
+                                        <connections>
+                                            <segue destination="woN-P9-xVM" kind="push" id="aLU-D8-ALZ"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" tag="6" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dwD-HF-Xbg">
+                                        <rect key="frame" x="0.0" y="234" width="115" height="31"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="sqlite3"/>
+                                        <connections>
+                                            <segue destination="woN-P9-xVM" kind="push" id="LI6-iY-M5b"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" tag="7" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="No6-pm-Yov">
+                                        <rect key="frame" x="0.0" y="273" width="115" height="31"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="zlib"/>
+                                        <connections>
+                                            <segue destination="woN-P9-xVM" kind="push" id="CMV-vJ-hPs"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="kPO-Jd-PUA"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="y9Y-cV-pLd" firstAttribute="leading" secondItem="soq-2j-XcH" secondAttribute="leading" constant="8" id="m5m-aO-tM1"/>
+                            <constraint firstItem="cg6-9L-u8C" firstAttribute="top" secondItem="y9Y-cV-pLd" secondAttribute="bottom" constant="25.666666666666629" id="mjO-m8-59W"/>
+                            <constraint firstItem="cg6-9L-u8C" firstAttribute="centerX" secondItem="kPO-Jd-PUA" secondAttribute="centerX" id="r9B-Fj-Kfi"/>
+                            <constraint firstItem="y9Y-cV-pLd" firstAttribute="top" secondItem="kPO-Jd-PUA" secondAttribute="top" constant="8" id="uee-Mv-oKa"/>
+                            <constraint firstAttribute="trailing" secondItem="y9Y-cV-pLd" secondAttribute="trailing" constant="8" id="zxM-JK-KfC"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" id="soI-Dv-pfK"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="kzo-O7-mqw" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2803.7383177570091" y="933.69330453563725"/>
+        </scene>
         <!--BrowseMusicNav-->
         <scene sceneID="Nz9-j3-PZg">
             <objects>
@@ -1321,9 +1514,12 @@
             <point key="canvasLocation" x="998" y="200"/>
         </scene>
     </scenes>
+    <inferredMetricsTieBreakers>
+        <segue reference="2OH-Ib-MJF"/>
+    </inferredMetricsTieBreakers>
     <resources>
         <image name="book.circle" catalog="system" width="128" height="121"/>
-        <image name="cloud.heavyrain" catalog="system" width="128" height="125"/>
+        <image name="cloud.heavyrain" catalog="system" width="125" height="128"/>
         <image name="ellipsis.circle" catalog="system" width="128" height="121"/>
         <image name="folder" catalog="system" width="128" height="97"/>
         <image name="folder.circle" catalog="system" width="128" height="121"/>
