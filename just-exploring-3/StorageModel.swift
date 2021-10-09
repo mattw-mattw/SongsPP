@@ -68,13 +68,13 @@ func isThumbnailInNodeVec(_ thumbHandle : String, _ v : [MEGANode]) -> Bool
 
 class MEGAHandler: NSObject, MEGADelegate {
 
-    func onNodesUpdate(_ api: MEGASdk, nodeList : MEGANodeList)
+    func onNodesUpdate(_ api: MEGASdk, nodeList : MEGANodeList?)
     {
         if (nodeList == nil) {
             return; // yes it is null sometimes
         }
-        for i in 0..<nodeList.size.intValue {
-            let node = nodeList.node(at: i)
+        for i in 0..<nodeList!.size.intValue {
+            let node = nodeList!.node(at: i)
             
             if (node == nil) { continue; }
             
