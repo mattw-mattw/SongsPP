@@ -71,11 +71,51 @@ class MenuVC: UIViewController {
     }
     
     @IBAction func onLogoutButtonClicked(_ sender: UIButton) {
+        
+        let alert = UIAlertController(title: "Logout", message: "Keeping your cached files can be useful when swapping between a full account, or a writable folder link, by avoiding re-downloading those files.", preferredStyle: .alert)
+        
+        let startA1 = UIAlertAction(title: "Logout and wipe all cached data", style: .default, handler:
+                { (UIAlertAction) -> () in self.logoutAndDealWithCache(deleteCache: true) });
+        
+        let startA2 = UIAlertAction(title: "Logout but keep cached data", style: .default, handler:
+                { (UIAlertAction) -> () in self.logoutAndDealWithCache(deleteCache: false) });
+
+        let cancelA = UIAlertAction(title: "Never mind", style: .cancel);
+
+        alert.addAction(startA1);
+        alert.addAction(startA2);
+        alert.addAction(cancelA);
+
+        self.present(alert, animated: false, completion: nil)
+    }
+    
+    func logoutAndDealWithCache(deleteCache : Bool)
+    {
         startSpinnerControl(message: "Logging out");
-        app().loginState.logout(onFinish: { success in
+        app().loginState.logout(onFinish: { success_in in
+            
+            var success = success_in;
+            
+            if (success)
+            {
+                app().clear();
+                if (deleteCache)
+                {
+                    success = app().storageModel.deleteCachedFiles(includingAccountAndSettings: true);
+                    if (!success)
+                    {
+                        app().loginState.errorMessage = "Failed to erase cache after logout";
+                    }
+                }
+            }
+            
             self.busyControl!.dismiss(animated: true);
             self.busyControl = nil;
-            if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage); }
+
+            if (!success)
+            {
+                reportMessage(uic: self, message: app().loginState.errorMessage);
+            }
             self.setEnabled();
         })
     }
@@ -88,6 +128,30 @@ class MenuVC: UIViewController {
             if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage); }
             self.setEnabled();
         })
+    }
+    
+    @IBAction func OnClearFileCacheClicked(_ sender: Any) {
+        
+        let alert = UIAlertController(title: "Clear Cached Files", message: "Clearing your cached files can be useful to gain storage space for your device, or to cause files to re-download, or to make sure all orphaned local cached files are cleaned up.", preferredStyle: .alert)
+        
+        let startA1 = UIAlertAction(title: "Wipe all cached files", style: .default, handler:
+            { (UIAlertAction) -> () in
+            if (app().storageModel.deleteCachedFiles(includingAccountAndSettings: false))
+                {
+                    reportMessage(uic: self, message: "Cached files cleared");
+                }
+                else
+                {
+                    reportMessage(uic: self, message: "Could not clear all cached files");
+                }
+            });
+        
+        let cancelA = UIAlertAction(title: "Never mind", style: .cancel);
+
+        alert.addAction(startA1);
+        alert.addAction(cancelA);
+
+        self.present(alert, animated: false, completion: nil)
     }
     
     class LogCallback: NSObject, MEGALoggerDelegate {
@@ -181,7 +245,7 @@ class MenuVC: UIViewController {
     
     func logFilePath() -> String
     {
-        return app().storageModel.tempFilesPath() + "iOS_logfile.log";
+        return app().storageModel.tempFilesPath() + "/iOS_logfile.log";
     }
     
     @IBAction func onTroubleshootWithLogFilesClicked(_ sender: UIButton) {
@@ -255,7 +319,7 @@ class MenuVC: UIViewController {
     * Songs are cached as part of the app's storage.
     * The next two songs to be played are downloaded and cached.
     * Operate without an internet connection, playing already cached songs.
-    * Download and cache as many as you want ahead of time.
+    * Download and cache as many songs as you want ahead of time.
     * Browse your songs in the folder and file structure of your MEGA.nz account.
     * UI design prevents accidentally changing the playing song.
     * Just one simple list of the upcoming queued songs
@@ -284,6 +348,7 @@ class MenuVC: UIViewController {
     
     Quick Tips
     * Tap-hold for a short time on songs etc to activate menu options
+    * To be able to see newly added/updated songs, "Go Online" from the menu
     
     Getting Started
     * If you don't have a MEGA.nz account yet, sign up.
@@ -297,6 +362,16 @@ class MenuVC: UIViewController {
     * Then go to the "Play Queue" tab
     * You should see the first two songs downloading, with the blue bars increasing
     * Once the first blue bar is full, press Play.
+    
+    How to download all songs
+    
+    Managing online/offline
+    
+    Managing storage  (backup doens't inlcude cache)
+    
+    
+    
+    
     """
 }
 

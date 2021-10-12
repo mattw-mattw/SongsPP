@@ -30,6 +30,22 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     var filterSearchString : String = "";
     var showingTrackNames : Bool = false;
     
+    func clear()
+    {
+        nodeArray = [];
+        currentFolder = nil;
+        filtering = false;
+        filterIncludeDownloaded = true;
+        filterIncludeNonDownloaded = true;
+        filterSearchString = "";
+        showingTrackNames = false;
+        folderPathLabelCtrl.text = "";
+        filterTextCtrl.text = "";
+        
+        showHideFilterElements(filter: false);
+        redraw();
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -460,6 +476,10 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     {
         if (replaceNodeIn(node, &nodeArray)) {
             nodesChanged = true;
+            if (node.isRemoved() || (currentFolder != nil && node.parentHandle != currentFolder!.handle))
+            {
+                folderChanged = true;
+            }
         }
         if (currentFolder != nil &&
            (currentFolder!.handle == node.parentHandle ||
@@ -598,18 +618,18 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     override func tableView(_ tableView: UITableView, performAction action: Selector, forRowAt indexPath: IndexPath, withSender sender: Any?) {
     }
     
-    override func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let node = nodeArray[indexPath.row];
-        let action = UIContextualAction(style: .normal, title: "Add to swiped-right set", handler:
-            {   (ac: UIContextualAction, view:UIView, success: (Bool)->Void) in
-                app().AddSwipedRightNode(node: node)
-                tableView.reloadData();
-            })
-        action.backgroundColor = .green
-        let v = UISwipeActionsConfiguration(actions: [action]);
-        v.performsFirstActionWithFullSwipe = true;
-        return v;
-    }
+//    override func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+//        let node = nodeArray[indexPath.row];
+//        let action = UIContextualAction(style: .normal, title: "Add to swiped-right set", handler:
+//            {   (ac: UIContextualAction, view:UIView, success: (Bool)->Void) in
+//                app().AddSwipedRightNode(node: node)
+//                tableView.reloadData();
+//            })
+//        action.backgroundColor = .green
+//        let v = UISwipeActionsConfiguration(actions: [action]);
+//        v.performsFirstActionWithFullSwipe = true;
+//        return v;
+//    }
     
     override func tableView(_ tableView: UITableView, shouldShowMenuForRowAt indexPath: IndexPath) -> Bool
     {
@@ -628,7 +648,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                     alert.addAction(menuAction_playLast(node));
                     alert.addAction(menuAction_songInfo(node, viewController: self));
                 }
-                if app().playQueue.isArtwork(node) {
+                if app().playQueue.isArtwork(node) && app().storageModel.thumbnailDownloaded(node) {
 //                    todo:  more text: \n(only works in song full account, not links or shares)
                     alert.addAction(UIAlertAction(title: "Set as artwork for songs in this folder", style: .default, handler:
                           { (UIAlertAction) -> () in self.setArtworkForSongsInFolder(node); }));
@@ -653,19 +673,26 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     func setArtworkForSongsInFolder(_ node : MEGANode)
     {
+        if (!app().loginState.online)
+        {
+            let alert = UIAlertController(title: "Please go online first", message: "Setting artwork for files requires being online", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel));
+            self.present(alert, animated: false, completion: nil)
+            return;
+        }
+        
         if let parent = mega().parentNode(for: node) {
         
-            let list = mega().children(forParent: parent, order: 1);
-            for i in 0..<list.size.intValue {
-                if let n = list.node(at: i) {
-                    if (app().playQueue.isPlayable(n, orMightContainPlayable: false))
-                    {
-                        mega().setPreviewByHandle(n,  sourceNode: node, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
-                            app().storageModel.megaDelegate.onThumbnailUpdate(thumbHandle: node.thumbnailAttributeHandle)
-                        } ));
-                        mega().setThumbnailByHandle(n, sourceNode: node, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
-                            app().storageModel.megaDelegate.onThumbnailUpdate(thumbHandle: node.thumbnailAttributeHandle)
-                        }));
+            if let thumbnailFile = app().storageModel.thumbnailPath(node: node) {
+                let list = mega().children(forParent: parent, order: 1);
+                for i in 0..<list.size.intValue {
+                    if let n = list.node(at: i) {
+                        if (app().playQueue.isPlayable(n, orMightContainPlayable: false))
+                        {
+                            mega().setThumbnailNode(n, sourceFilePath: thumbnailFile, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
+                                app().storageModel.megaDelegate.onThumbnailUpdate(node: node)
+                            } ));
+                        }
                     }
                 }
             }

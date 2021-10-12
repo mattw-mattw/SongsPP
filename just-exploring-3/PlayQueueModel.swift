@@ -64,7 +64,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     var noHistoryMode : Bool = false;
     var noHistoryMode_currentTrackIndex : Int = 0;
 
-    func reset()
+    func clear()
     {
         player.replaceCurrentItem(with: nil);
         nodeInPlayer = nil;
@@ -664,8 +664,8 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         let s1 = nodeHandleArrayToJSON(optionalExtraFirstNode: playerSongIsEphemeral() ? nil : nodeInPlayer, array: nextSongs);
         let s2 = nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: playedSongs);
         do {
-            try s1.write(toFile: app().storageModel.storagePath() + "/nextSongs", atomically: true, encoding: String.Encoding.utf8);
-            try s2.write(toFile: app().storageModel.storagePath() + "/playedSongs", atomically: true, encoding: String.Encoding.utf8);
+            try s1.write(toFile: app().storageModel.settingsPath() + "/nextSongs", atomically: true, encoding: String.Encoding.utf8);
+            try s2.write(toFile: app().storageModel.settingsPath() + "/playedSongs", atomically: true, encoding: String.Encoding.utf8);
         }
         catch {
         }
@@ -673,13 +673,13 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
 
     func restoreOnStartup()
     {
-        let ns = app().storageModel.loadFileAsJSON(filename: app().storageModel.storagePath() + "/nextSongs");
+        let ns = app().storageModel.loadFileAsJSON(filename: app().storageModel.settingsPath() + "/nextSongs");
         if (ns != nil) {
             if let a = JSONToNodeHandleArray(ns) {
                 nextSongs = a;
             }
         }
-        let ps = app().storageModel.loadFileAsJSON(filename: app().storageModel.storagePath() + "/playedSongs");
+        let ps = app().storageModel.loadFileAsJSON(filename: app().storageModel.settingsPath() + "/playedSongs");
         if (ps != nil) {
             if let a = JSONToNodeHandleArray(ps) {
                 playedSongs = a;

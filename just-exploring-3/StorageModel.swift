@@ -46,7 +46,10 @@ func replaceNodeIn(_ n : MEGANode, _ v : inout [MEGANode]) -> Bool
 {
     var result : Bool = false;
     for i in v.indices {
-        if v[i].handle == n.handle || (n.type == .file && v[i].type == .file && n.parentHandle == v[i].handle) {
+        if v[i].handle == n.handle
+            // attempt to handle file versions but not quite right
+            //|| (n.type == .file && v[i].type == .file && n.parentHandle == v[i].handle)
+        {
             v[i] = n;
             result = true;
         }
@@ -86,6 +89,9 @@ class MEGAHandler: NSObject, MEGADelegate {
             if (node!.name.hasSuffix(".playlist")) {
                 _ = app().storageModel.startDownloadIfAbsent(node: node!);
             }
+            
+            // in case it now has a thumbnail, start it downloading
+            _ = app().storageModel.thumbnailDownloaded(node!);
         }
 
         app().playQueue.nodesFinishedChanging();
@@ -94,25 +100,16 @@ class MEGAHandler: NSObject, MEGADelegate {
         if (app().browsePlaylistsTVC != nil) { app().browsePlaylistsTVC!.nodesFinishedChanging();}
     }
     
-    func onThumbnailUpdate(thumbHandle : String)
+    func onThumbnailUpdate(node : MEGANode)
     {
-        if (isThumbnailInNodeVec(thumbHandle, app().playQueue.nextSongs) ||
-            isThumbnailInNodeVec(thumbHandle, app().playQueue.playedSongs) ) {
-            app().playQueueTVC?.redraw();
-        }
-        
-        if (app().playQueue.nodeInPlayer != nil) &&
-           (app().playQueue.nodeInPlayer!.thumbnailAttributeHandle != nil &&
-                app().playQueue.nodeInPlayer!.thumbnailAttributeHandle! == thumbHandle)
-        {
-            app().playQueueTVC?.playingSongUpdated();
-        }
-        
-        if (app().browseMusicTVC != nil) {
-            if (isThumbnailInNodeVec(thumbHandle, app().browseMusicTVC!.nodeArray)) {
-                app().browseMusicTVC!.redraw();
-            }
-        }
+        app().playQueue.nodesChanging(node);
+        if (app().playQueueTVC != nil) { app().playQueueTVC!.nodesChanging(node); }
+        if (app().browseMusicTVC != nil) { app().browseMusicTVC!.nodesChanging(node); }
+        if (app().browsePlaylistsTVC != nil) { app().browsePlaylistsTVC!.nodesChanging(node); }
+        app().playQueue.nodesFinishedChanging();
+        if (app().playQueueTVC != nil) { app().playQueueTVC!.nodesFinishedChanging();}
+        if (app().browseMusicTVC != nil) { app().browseMusicTVC!.nodesFinishedChanging();}
+        if (app().browsePlaylistsTVC != nil) { app().browsePlaylistsTVC!.nodesFinishedChanging();}
     }
 }
 
@@ -129,6 +126,45 @@ class StorageModel {
 
     var transferDelegate = TransferHandler();
     var megaDelegate = MEGAHandler();
+    
+    var alreadyCreatedFolders : Set<String> = [];
+
+    func clear()
+    {
+        downloadingFP = [];
+        downloadedFP = [];
+        
+        downloadingNH = [];
+        downloadedNH = [];
+
+        downloadingThumbnail = [];
+        downloadedThumbnail = [];
+
+        alreadyCreatedFolders = [];
+    }
+    
+    func deleteCachedFiles(includingAccountAndSettings : Bool) -> Bool
+    {
+        clear();
+        
+        var result : Bool = true;
+        do
+        {
+            if (includingAccountAndSettings)
+            {
+                try FileManager.default.removeItem(at: URL(fileURLWithPath: storageBasePath()));
+            }
+            else
+            {
+                try FileManager.default.removeItem(at: URL(fileURLWithPath: cacheFilesPath()));
+            }
+            try FileManager.default.removeItem(at: URL(fileURLWithPath: tempFilesPath()));
+        }
+        catch {
+            result = false;
+        }
+        return result;
+    }
 
     func fileDownloadedByFP(_ node: MEGANode) -> Bool
     {
@@ -175,8 +211,10 @@ class StorageModel {
             mega().getThumbnailNode(node, destinationFilePath: filename, delegate:
                     MEGARequestOneShot(onFinish:
                         { (e: MEGAError) -> Void in
-                            self.megaDelegate.onThumbnailUpdate(thumbHandle: ta)
-                            self.downloadingThumbnail.remove(ta);}));
+                            self.downloadedThumbnail.insert(ta); // prevent cycle if it doesn't work
+                            self.downloadingThumbnail.remove(ta);
+                            self.megaDelegate.onThumbnailUpdate(node: node);
+            }));
         }
         return exists;
     }
@@ -252,9 +290,7 @@ class StorageModel {
     {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyyMMdd-HHmmss"
-        var doneAlready = false;
-        assureFolderExists(tempFilesPath() + "/upload/", doneAlready: &doneAlready);
-        return tempFilesPath() + "/upload/" + formatter.string(from: Date()) + ".playlist";
+        return uploadFilesPath() + "/" + formatter.string(from: Date()) + ".playlist";
     }
     
     func loadFileAsJSON(filename : String) -> Any?
@@ -378,7 +414,7 @@ class StorageModel {
     func loadSettingFile(leafname : String) -> String?
     {
         do {
-            return try String(contentsOf: URL(fileURLWithPath: storagePath() + "/" + leafname), encoding: .utf8);
+            return try String(contentsOf: URL(fileURLWithPath: settingsPath() + "/" + leafname), encoding: .utf8);
         }
         catch {
         }
@@ -388,7 +424,7 @@ class StorageModel {
     func storeSettingFile(leafname : String, content : String) -> Bool
     {
         do {
-            try content.write(toFile: storagePath() + "/" + leafname, atomically: true, encoding: String.Encoding.utf8);
+            try content.write(toFile: settingsPath() + "/" + leafname, atomically: true, encoding: String.Encoding.utf8);
             return true;
         }
         catch {
@@ -399,16 +435,16 @@ class StorageModel {
     func deleteSettingFile(leafname : String)
     {
         do {
-            try FileManager.default.removeItem(atPath: storagePath() + "/" + leafname)
+            try FileManager.default.removeItem(atPath: settingsPath() + "/" + leafname)
         }
         catch {
-            print("Failed to remove file " + storagePath() + "/" + leafname)
+            print("Failed to remove file " + settingsPath() + "/" + leafname)
         }
     }
     
-    func assureFolderExists(_ url : String, doneAlready : inout Bool) -> Void
+    func assureFolderExists(_ url : String, doneName : String) -> Void
     {
-        if (doneAlready) { return; }
+        if (alreadyCreatedFolders.contains(doneName)) { return; }
         do {
             if !FileManager.default.fileExists(atPath: url) {
                 try FileManager.default.createDirectory(atPath: url, withIntermediateDirectories: true, attributes: nil);
@@ -417,56 +453,67 @@ class StorageModel {
             urv.isExcludedFromBackup = true;
             var attribUrl = URL(fileURLWithPath: url)
             try attribUrl.setResourceValues(urv);
-            doneAlready = true;
+            alreadyCreatedFolders.insert(doneName);
         }
         catch
         {
             print("directory does not exist and could not be created or could not be set non-backup: \(url)")
         }
     }
-    
-    var createdFolder1 = false;
-    var createdFolder2 = false;
-    var createdFolder3 = false;
-    var createdFolder4 = false;
-    var createdFolder5 = false;
 
-    func storagePath() -> String
+    func storageBasePath() -> String
     {
         // choosing applicationSupportDirectory means the files will not be accessible from other apps,
         // won't be removed by the system (unlike cache directories) and we can set flags to prevent
         // the files being synced by iTunes or iCloud.
         // https://developer.apple.com/library/archive/qa/qa1719/_index.html
         let folderUrls = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask);
-        assureFolderExists(folderUrls[0].standardizedFileURL.path, doneAlready: &createdFolder1);
-        let path = folderUrls[0].appendingPathComponent("dl").standardizedFileURL.path;
-        assureFolderExists(path, doneAlready: &createdFolder2)
-        return path;
+        let p = folderUrls[0].standardizedFileURL.path;
+        assureFolderExists(p, doneName: "base");
+        return p;
+    }
+
+    func accountPath() -> String
+    {
+        let p = storageBasePath() + "/account";
+        assureFolderExists(p, doneName: "account");
+        return p;
+    }
+
+    func settingsPath() -> String
+    {
+        let p = storageBasePath() + "/settings";
+        assureFolderExists(p, doneName: "settings");
+        return p;
+    }
+
+    func cacheFilesPath() -> String
+    {
+        let p = storageBasePath() + "/cache";
+        assureFolderExists(p, doneName: "cache");
+        return p;
     }
 
     func songsFolderPath() -> String
     {
-        let p = storagePath() + "/songs";
-        assureFolderExists(p, doneAlready: &createdFolder3)
+        let p = cacheFilesPath() + "/songs";
+        assureFolderExists(p, doneName: "songs")
         return p;
     }
 
     func thumbnailsFolderPath() -> String
     {
-        let p = storagePath() + "/thumbnails";
-        assureFolderExists(p, doneAlready: &createdFolder4)
+        let p = cacheFilesPath() + "/thumbnails";
+        assureFolderExists(p, doneName: "thumbnails")
         return p;
     }
 
     func playlistsFolderPath() -> String
     {
-        let p = storagePath() + "/playlists";
-        assureFolderExists(p, doneAlready: &createdFolder5)
+        let p = cacheFilesPath() + "/playlists";
+        assureFolderExists(p, doneName: "playlists")
         return p;
     }
-
-    var createdCacheFolder1 = false;
-    var createdCacheFolder2 = false;
 
     func tempFilesPath() -> String
     {
@@ -474,10 +521,19 @@ class StorageModel {
         // Contents of this directory is not included in the backups. When the device is low on disk space then iOS can help by clearing caches. Files will never be removed
         // from your cache if your application is running and OS will start by clearing caches from apps that haven’t been used in a while.
         let cacheUrls = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask);
-        assureFolderExists(cacheUrls[0].standardizedFileURL.path, doneAlready: &createdCacheFolder1);
+        assureFolderExists(cacheUrls[0].standardizedFileURL.path, doneName: "tempBase");
         let tmpPath = cacheUrls[0].appendingPathComponent("tmp").standardizedFileURL.path;
-        assureFolderExists(tmpPath, doneAlready: &createdCacheFolder2)
+        assureFolderExists(tmpPath, doneName: "tmp")
         return tmpPath;
     }
+    
+    func uploadFilesPath() -> String
+    {
+        let p = tempFilesPath() + "/uploads";
+        assureFolderExists(p, doneName: "uploads")
+        return p;
+    }
+
 
 }
+

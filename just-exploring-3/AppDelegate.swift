@@ -170,16 +170,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var nodeForBrowseFirstLoad : MEGANode? = nil;
     
-    var swipedRightSet : [MEGANode] = [];
-    
     var playQueueTVC : PlayQueueTVC? = nil;
     var browseMusicTVC : BrowseTVC? = nil;
     var browsePlaylistsTVC : BrowseTVC? = nil;
     
-    //var playlistTVC : PlaylistTVC? = nil;
     var tabBarContoller : MainTabBarController? = nil;
     
     var explanatoryText : String = "";
+    
+    func clear()
+    {
+        // get back to on-start state
+        loginState.clear();
+        playQueue.clear();
+        storageModel.clear();
+
+        needsRestoreOnStartup = true;
+        musicBrowseFolder = nil;
+        playlistBrowseFolder = nil;
+        nodeForBrowseFirstLoad = nil;
+        if playQueueTVC != nil { playQueueTVC!.clear(); }
+        if browseMusicTVC != nil { browseMusicTVC!.clear(); }
+        if browsePlaylistsTVC != nil { browsePlaylistsTVC!.clear(); }
+        explanatoryText = "";
+    }
 
     func downloadProgress(nodeHandle : UInt64, percent : NSNumber )
     {
@@ -194,11 +208,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var swipeRightPlaysSong : Bool = true;
     
-    func AddSwipedRightNode(node: MEGANode)
-    {
-        if (swipeRightPlaysSong) { playQueue.queueSong(node: node);}
-        else { swipedRightSet.append(node); }
-    }
+//    func AddSwipedRightNode(node: MEGANode)
+//    {
+//        if (swipeRightPlaysSong) { playQueue.queueSong(node: node);}
+//        else { swipedRightSet.append(node); }
+//    }
     
     func nodePathBetween(_ a: MEGANode?, _ b: MEGANode) -> String
     {
@@ -251,9 +265,8 @@ func mega(using fileManager : FileManager = .default) -> MEGASdk {
     let a = app();
     if (a.mega == nil)
     {
-        let path = app().storageModel.storagePath() + "/accountCache/";
-        app().storageModel.assureFolderExists(path, doneAlready: &accountFolderDoneAlready);
-        a.mega = MEGASdk.init(appKey: "dWRWmTiJ", userAgent: "Songs++ " + deviceName(), basePath: path == "" ? nil : path)!;
+        let path = app().storageModel.accountPath() + "/";
+        a.mega = MEGASdk.init(appKey: "dWRWmTiJ", userAgent: "Songs++ " + deviceName(), basePath: path)!;
         a.mega!.add(a.storageModel.transferDelegate);
         a.mega!.add(a.storageModel.megaDelegate);
     }

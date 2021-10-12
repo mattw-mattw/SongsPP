@@ -13,8 +13,16 @@ import AVKit
 class PlayQueueTVC: UITableViewController {
 
     var pvc : AVPlayerViewController? = nil;
-//    var headerControl : UISegmentedControl? = nil;
-    //var audioSession = AVAudioSession.sharedInstance()
+    var showHistory : Bool = false;
+
+    func clear()
+    {
+        app().playQueue.player.replaceCurrentItem(with: nil);
+        app().playQueue.nodeInPlayer = nil;
+        playingSongUpdated();
+        showHistory = false;
+        redraw();
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -62,7 +70,6 @@ class PlayQueueTVC: UITableViewController {
     
     @IBOutlet weak var historyButton: UIButton!
     @IBOutlet weak var queueButton: UIButton!
-    var showHistory : Bool = false;
 
     @IBAction func HistoryButtonHit(_ sender: Any) {
         queueButton.setTitleShadowColor(UIColor.clear, for: .normal);

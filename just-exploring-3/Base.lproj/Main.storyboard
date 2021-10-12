@@ -255,7 +255,7 @@
                                                 <constraint firstAttribute="height" constant="2" id="WBy-vd-tql"/>
                                             </constraints>
                                         </progressView>
-                                        <stackView opaque="NO" contentMode="scaleToFill" ambiguous="YES" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="mHZ-bg-qrX">
+                                        <stackView opaque="NO" contentMode="scaleToFill" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="mHZ-bg-qrX">
                                             <rect key="frame" x="0.0" y="0.0" width="428" height="42"/>
                                             <subviews>
                                                 <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="avS-4K-QR1">
@@ -312,6 +312,9 @@
                                                     </subviews>
                                                 </stackView>
                                             </subviews>
+                                            <constraints>
+                                                <constraint firstItem="GvI-I2-vOb" firstAttribute="top" secondItem="mHZ-bg-qrX" secondAttribute="top" priority="250" id="pE8-nw-TIg"/>
+                                            </constraints>
                                         </stackView>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="notes" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="e7e-TF-P8L">
                                             <rect key="frame" x="6" y="44" width="362" height="21"/>
@@ -329,6 +332,9 @@
                                         <constraint firstItem="mHZ-bg-qrX" firstAttribute="leading" secondItem="0ee-fP-lNM" secondAttribute="leading" id="qpG-MA-NYR"/>
                                     </constraints>
                                 </tableViewCellContentView>
+                                <constraints>
+                                    <constraint firstItem="mHZ-bg-qrX" firstAttribute="top" secondItem="yrR-eY-Hvh" secondAttribute="top" id="4Oa-DZ-8II"/>
+                                </constraints>
                                 <connections>
                                     <outlet property="artistLabel" destination="c9M-bR-gwm" id="m3z-77-1QA"/>
                                     <outlet property="bpmLabel" destination="Nx0-6X-bDJ" id="eTF-NB-x8S"/>
@@ -353,7 +359,7 @@
                                                 <constraint firstAttribute="height" constant="2" id="JBq-33-vM9"/>
                                             </constraints>
                                         </progressView>
-                                        <stackView opaque="NO" contentMode="scaleToFill" ambiguous="YES" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="m0o-J0-8pK">
+                                        <stackView opaque="NO" contentMode="scaleToFill" spacing="1" translatesAutoresizingMaskIntoConstraints="NO" id="m0o-J0-8pK">
                                             <rect key="frame" x="0.0" y="0.0" width="428" height="42"/>
                                             <subviews>
                                                 <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="LjD-5t-Ul2">
@@ -415,6 +421,7 @@
                                     <constraints>
                                         <constraint firstAttribute="bottom" secondItem="Ojx-oB-wpw" secondAttribute="bottom" id="RPX-VF-0g5"/>
                                         <constraint firstAttribute="trailing" secondItem="m0o-J0-8pK" secondAttribute="trailing" id="aUA-Vo-zaf"/>
+                                        <constraint firstItem="m0o-J0-8pK" firstAttribute="top" secondItem="0RE-xK-swf" secondAttribute="top" id="g8g-bs-SI8"/>
                                         <constraint firstItem="Ojx-oB-wpw" firstAttribute="leading" secondItem="0RE-xK-swf" secondAttribute="leading" id="jLk-3p-JBc"/>
                                         <constraint firstAttribute="trailing" secondItem="Ojx-oB-wpw" secondAttribute="trailing" id="vA9-xX-Jfb"/>
                                         <constraint firstItem="m0o-J0-8pK" firstAttribute="leading" secondItem="0RE-xK-swf" secondAttribute="leading" id="zLl-Yi-Tof"/>
@@ -466,11 +473,11 @@
                                 <stackView opaque="NO" contentMode="scaleToFill" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="a6d-bW-czh">
                                     <rect key="frame" x="0.0" y="0.0" width="428" height="42"/>
                                     <subviews>
-                                        <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8YN-xd-5Yy">
+                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8YN-xd-5Yy">
                                             <rect key="frame" x="0.0" y="0.0" width="28" height="42"/>
                                             <constraints>
                                                 <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="42" id="0x3-sz-6Px"/>
-                                                <constraint firstAttribute="width" relation="lessThanOrEqual" constant="28" id="Fzp-bS-Uxq"/>
+                                                <constraint firstAttribute="width" constant="28" id="Fzp-bS-Uxq"/>
                                             </constraints>
                                             <state key="normal">
                                                 <imageReference key="image" image="magnifyingglass" catalog="system" symbolScale="large"/>
@@ -479,13 +486,13 @@
                                                 <action selector="onFilterButton:" destination="e9C-Td-deu" eventType="touchUpInside" id="ukU-fr-8BE"/>
                                             </connections>
                                         </button>
-                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="&lt;folder path&gt;" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="pwA-qJ-R9t">
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="&lt;folder path&gt;" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="pwA-qJ-R9t">
                                             <rect key="frame" x="29.999999999999993" y="0.0" width="103.33333333333331" height="42"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                             <color key="textColor" systemColor="linkColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
-                                        <textField opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Filter text" textAlignment="natural" minimumFontSize="17" clearButtonMode="always" translatesAutoresizingMaskIntoConstraints="NO" id="fIP-CH-NkK">
+                                        <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Filter text" textAlignment="natural" minimumFontSize="17" clearButtonMode="always" translatesAutoresizingMaskIntoConstraints="NO" id="fIP-CH-NkK">
                                             <rect key="frame" x="135.33333333333337" y="0.0" width="202.66666666666663" height="42"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                             <textInputTraits key="textInputTraits"/>
@@ -1101,7 +1108,7 @@
                                 <rect key="frame" x="0.0" y="88" width="428" height="706"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="zxj-iJ-WZB">
-                                        <rect key="frame" x="10" y="10" width="428" height="300"/>
+                                        <rect key="frame" x="10" y="10" width="428" height="330"/>
                                         <subviews>
                                             <button opaque="NO" tag="99" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wRn-O1-P0l">
                                                 <rect key="frame" x="0.0" y="0.0" width="428" height="30"/>
@@ -1150,7 +1157,7 @@
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3eH-OR-ZPL">
                                                 <rect key="frame" x="0.0" y="180" width="428" height="30"/>
-                                                <state key="normal" title="Logout"/>
+                                                <state key="normal" title="Logout..."/>
                                                 <connections>
                                                     <action selector="onLogoutButtonClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="haz-S3-GaO"/>
                                                 </connections>
@@ -1162,15 +1169,23 @@
                                                     <action selector="onForgetFolderLinkButtonClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="7NA-PU-qmw"/>
                                                 </connections>
                                             </button>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1xl-ZA-dFH">
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2X6-ym-ho0">
                                                 <rect key="frame" x="0.0" y="240" width="428" height="30"/>
+                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                <state key="normal" title="Clear File Cache.."/>
+                                                <connections>
+                                                    <action selector="OnClearFileCacheClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="luf-ux-S8j"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1xl-ZA-dFH">
+                                                <rect key="frame" x="0.0" y="270" width="428" height="30"/>
                                                 <state key="normal" title="Troubleshoot with log files"/>
                                                 <connections>
                                                     <action selector="onTroubleshootWithLogFilesClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="wEO-1K-57m"/>
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MB5-xC-qmh">
-                                                <rect key="frame" x="0.0" y="270" width="428" height="30"/>
+                                                <rect key="frame" x="0.0" y="300" width="428" height="30"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                 <state key="normal" title="Acknowledgements"/>
                                                 <connections>

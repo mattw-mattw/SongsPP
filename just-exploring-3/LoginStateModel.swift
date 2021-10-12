@@ -191,7 +191,7 @@ class LoginState //: ObservableObject
         let onlineSidAcct = app().storageModel.loadSettingFile(leafname: "onlineSidAcct")
         let onlineSidLink = app().storageModel.loadSettingFile(leafname: "onlineSidLink")
         if ((onlineSidAcct ?? onlineSidLink) == nil) {
-            eraseState()
+            clear();
             errorMessage = "No online session info found";
             onFinish(false)
             return
@@ -265,13 +265,12 @@ class LoginState //: ObservableObject
         }
         self.errorMessage = "Could not store login details";
         self.processing = false;
-        eraseState();
+        clear();
         return false;
     }
 
-    func eraseState()
+    func clear()
     {
-        if (!self.accountBySession && mega().isLoggedIn() != 0) { mega().logout() }
         app().storageModel.deleteSettingFile(leafname: "onlineSidAcct")
         app().storageModel.deleteSettingFile(leafname: "offlineSidAcct")
         app().storageModel.deleteSettingFile(leafname: "onlineSidLink")
@@ -281,14 +280,6 @@ class LoginState //: ObservableObject
         self.accountBySession = false;
         self.accountByFolderLink = false;
         self.online = false;
-        app().musicBrowseFolder = nil;
-        app().playlistBrowseFolder = nil;
-        app().browseMusicTVC?.currentFolder = nil;
-        app().browseMusicTVC?.nodeArray = [];
-        app().browsePlaylistsTVC?.currentFolder = nil;
-        app().browsePlaylistsTVC?.nodeArray = [];
-        app().playQueue.reset();
-        app().playQueueTVC?.redraw();
     }
     
     func logout(onFinish : @escaping (Bool) -> ())
@@ -303,7 +294,7 @@ class LoginState //: ObservableObject
             self.processing = false;
             if (e.type == .apiOk)
             {
-                self.eraseState();
+                self.clear();
                 self.printState("logout success")
                 onFinish(true);
             }
@@ -330,7 +321,7 @@ class LoginState //: ObservableObject
             self.processing = false;
             if (e.type == .apiOk)
             {
-                self.eraseState();
+                self.clear();
                 self.printState("Link forgotten")
                 onFinish(true);
             }
