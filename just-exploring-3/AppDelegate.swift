@@ -459,7 +459,7 @@ func menuAction_addToPlaylistExact(playlistNode : MEGANode, nodeToAdd: MEGANode,
         });
 }
 
-func ExtractAndApplyTags(_ node : MEGANode) -> Bool
+func ExtractAndApplyTags(_ node : MEGANode, overwriteExistingTags : Bool, countProcessed : inout Int, countNotDownloaded : inout Int, countNoTags : inout Int, countUpdated : inout Int) -> Bool
 {
     if (!app().playQueue.isPlayable(node, orMightContainPlayable: false))
     { return true; }
@@ -468,50 +468,100 @@ func ExtractAndApplyTags(_ node : MEGANode) -> Bool
     if (songPath == nil) { return false; }
 
     if !FileManager.default.fileExists(atPath: songPath!)
-    { return false; }
+    { countNotDownloaded += 1; return false; }
     
     var title : NSString? = nil;
     var artist : NSString? = nil;
     var bpm : NSString? = nil;
 
+    countProcessed += 1;
+    
     if (SongsCPP.getSongProperties(songPath!, title: &title, artist: &artist, bpm: &bpm))
     {
-        if (title != nil)
+        if (title == nil && artist == nil && bpm == nil)
         {
-            mega().setCustomNodeAttribute(node, name: "title", value: String(title!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
+            countNoTags += 1;
+        }
+        
+        if (t	itle != nil)
+        {
+            if (node.customTitle == nil || (node.customTitle != String(title!) && overwriteExistingTags))
+            {
+                mega().setCustomNodeAttribute(node, name: "title", value: String(title!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
+                countUpdated += 1;
+            }
         }
         if (artist != nil)
         {
-            mega().setCustomNodeAttribute(node, name: "artist", value: String(artist!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
+            if (node.customArtist == nil || (node.customArtist != String(artist!) && overwriteExistingTags))
+            {
+                mega().setCustomNodeAttribute(node, name: "artist", value: String(artist!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
+                countUpdated += 1;
+            }
         }
         if (bpm != nil)
         {
-            mega().setCustomNodeAttribute(node, name: "BPM", value: String(bpm!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
+            if (node.customBPM == nil || (node.customBPM != String(bpm!) && overwriteExistingTags))
+            {
+                mega().setCustomNodeAttribute(node, name: "BPM", value: String(bpm!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
+                countUpdated += 1;
+            }
         }
+    }
+    else
+    {
+        countNoTags += 1;
     }
     return true;
 }
 
-func RecursiveExtractAndApplyTags(_ node : MEGANode, recursive : Bool, uic : UIViewController)
+func ExtractAndApplyTagsRecurse(_ node : MEGANode, recursive : Bool, overwriteExistingTags: Bool, countProcessed : inout Int, countNotDownloaded : inout Int, countNoTags : inout Int, countUpdated : inout Int)
 {
-    if (CheckOnlineOrWarn("Please go online so the file attributes can be updated in MEGA", uic: uic))
+    if (node.type != .file)
     {
-        if (node.type != .file)
-        {
-            let list = mega().children(forParent: node, order: 1);
-            for i in 0..<list.size.intValue {
-                if let n = list.node(at: i) {
-                    if (n.type == .file)
-                    {
-                        _ = ExtractAndApplyTags(n);
-                    }
-                    else if (recursive)
-                    {
-                        RecursiveExtractAndApplyTags(n, recursive: 	recursive, uic: uic);
-                    }
+        let list = mega().children(forParent: node, order: 1);
+        for i in 0..<list.size.intValue {
+            if let n = list.node(at: i) {
+                if (n.type == .file)
+                {
+                    _ = ExtractAndApplyTags(n, overwriteExistingTags: overwriteExistingTags, countProcessed: &countProcessed, countNotDownloaded: &countNotDownloaded, countNoTags: &countNoTags, countUpdated: &countUpdated);
+                }
+                else if (recursive)
+                {
+                    ExtractAndApplyTagsRecurse(n, recursive: recursive, overwriteExistingTags: overwriteExistingTags, countProcessed: &countProcessed, countNotDownloaded: &countNotDownloaded, countNoTags: &countNoTags, countUpdated: &countUpdated);
                 }
             }
         }
+    }
+}
+
+func ExtractAndApplyTags(_ node : MEGANode, recursive : Bool, overwriteExistingTags: Bool, uic : UIViewController)
+{
+    if (CheckOnlineOrWarn("Please go online first so the file attributes can be updated in MEGA", uic: uic))
+    {
+        var countProcessed = 0;
+        var countNotDownloaded = 0;
+        var countNoTags = 0;
+        var countUpdated = 0;
+        ExtractAndApplyTagsRecurse(node, recursive: recursive, overwriteExistingTags: overwriteExistingTags, countProcessed: &countProcessed, countNotDownloaded: &countNotDownloaded, countNoTags: &countNoTags, countUpdated: &countUpdated);
+        var message = "Processed " + String(countProcessed) + " files.";
+        if (countNotDownloaded > 0)
+        {
+            message += " " + String(countNotDownloaded) + " were skipped as they have not been downloaded yet.";
+        }
+        if (countNoTags > 0)
+        {
+            message += " " + String(countNoTags) + " had no Title/Artist/BPM tags.";
+        }
+        if (overwriteExistingTags)
+        {
+            message += " Set or updated " + String(countUpdated) + " fields that were new or different.";
+        }
+        else
+        {
+            message += " Set " + String(countUpdated) + " fields that had not been set yet.";
+        }
+        reportMessage(uic: uic, message: message);
     }
 }
 

@@ -9,6 +9,51 @@
 import Foundation
 import UIKit
 
+class ContextMenuCheckbox : NSObject, UITextFieldDelegate {
+    
+    var flag : Bool = false;
+    var imageButton : UIButton = UIButton(frame: CGRect(x: 0, y: 0, width: 50, height: 50));
+
+    init(_ text: String, _ initial : Bool)
+    {
+        super.init();
+        flag = initial;
+        imageButton.setImage(UIImage(systemName: "circle")!, for: .normal)
+        imageButton.setImage(UIImage(systemName: "checkmark.circle")!, for: .selected)
+        imageButton.setTitle("  " + text, for: .normal);
+        imageButton.setTitle("  " + text, for: .selected);
+    }
+    
+    func takeOverTextField(newTextField : UITextField)
+    {
+        newTextField.text = ""
+        newTextField.isEnabled = true;
+        
+        flag = !flag;
+        toggleCheckbox(newTextField);
+        
+        newTextField.leftView = imageButton;
+        newTextField.leftViewMode = .always;
+        
+        newTextField.delegate = self;
+    }
+    
+    
+    @objc func toggleCheckbox(_ textField: UITextField) {
+        flag = !flag;
+        imageButton.isEnabled = true;
+        imageButton.isSelected = flag;
+        imageButton.addTarget(self, action: #selector(self.toggleCheckbox(_:)), for: .touchUpInside)
+    }
+
+    
+    
+    func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool
+    {
+        return false;
+    }
+}
+
 class BrowseTVC: UITableViewController, UITextFieldDelegate {
 
     var nodeArray : [MEGANode] = [];
@@ -317,22 +362,56 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         load(node: rootFolder());
     }
     
+    @objc func checkBoxAction(_ sender: UIButton)
+    {
+        if sender.isSelected
+        {
+            sender.isSelected = false
+            let btnImage    = UIImage(systemName: "checkmark.circle")!
+            sender.setBackgroundImage(btnImage, for: UIControl.State())
+        }else {
+            sender.isSelected = true
+            let btnImage    = UIImage(systemName: "circle")!
+            sender.setBackgroundImage(btnImage, for: UIControl.State())
+        }
+    }
+    
+    let extractTagsOverwritesExistingTagsCheckbox = ContextMenuCheckbox("Overwrite existing tags", false);
+    let extractTagsProcessSubfolders = ContextMenuCheckbox("Process all subfolders", true);
+
     func ExtractTitleArtistBPM()
     {
 
-        let alert = UIAlertController(title: "Extract Title/Artist/BPM", message: "This operation will try to extract the song track Title, Artist, and BPM from tags in the song files, for those song files that are downloaded already.", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Extract Title/Artist/BPM", message: "This operation will try to extract the song track Title, Artist, and BPM from tags in the song files in this folder (and optionally folders below), for those song files that are downloaded already.", preferredStyle: .alert)
         
-        alert.addAction(UIAlertAction(title: "Extract in this folder", style: .default, handler:
-            { (UIAlertAction) -> () in RecursiveExtractAndApplyTags(self.currentFolder!, recursive: false, uic: self);() }));
+//        let btnImage    = UIImage(systemName: "checkmark.circle")!
+//        let imageButton : UIButton = UIButton(frame: CGRect(x: 0, y: 0, width: 50, height: 50))
+//        imageButton.setBackgroundImage(btnImage, for: UIControl.State())
+//        imageButton.addTarget(self, action: #selector(checkBoxAction(_:)), for: .touchUpInside)
+//        alert.view.addSubview(imageButton)
 
-        alert.addAction(UIAlertAction(title: "Extract here and all subfolders", style: .default, handler:
-            { (UIAlertAction) -> () in RecursiveExtractAndApplyTags(self.currentFolder!, recursive: true, uic: self); }));
+        alert.addTextField( configurationHandler: { newTextField in
+            self.extractTagsOverwritesExistingTagsCheckbox.takeOverTextField(newTextField: newTextField)
+        });
+        alert.addTextField( configurationHandler: { newTextField in
+            self.extractTagsProcessSubfolders.takeOverTextField(newTextField: newTextField)
+        });
+
+        alert.addAction(UIAlertAction(title: "Extract now", style: .default, handler: {
+            (UIAlertAction) -> () in ExtractAndApplyTags(
+                self.currentFolder!,
+                recursive: self.extractTagsProcessSubfolders.flag,
+                overwriteExistingTags: self.extractTagsOverwritesExistingTagsCheckbox.flag,
+                uic: self);() }));
+
+//        alert.addAction(UIAlertAction(title: "Extract here and all subfolders", style: .default, handler:
+//            { (UIAlertAction) -> () in RecursiveExtractAndApplyTags(self.currentFolder!, recursive: true, uic: self); }));
 
         alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
 
         self.present(alert, animated: false, completion: nil)
     }
-    
+
     func nodeListToNodeArray(list : MEGANodeList?) -> [MEGANode]
     {
         var nodes : [MEGANode] = [];
