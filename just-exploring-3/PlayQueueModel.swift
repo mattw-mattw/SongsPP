@@ -46,7 +46,7 @@ class BrowseNode /*: ObservableObject*/ {
     }
 }
 
-class PlayQueue : NSObject /*(ObservableObject*/ {
+class PlayQueue : NSObject, UITextFieldDelegate {
 
     // permanent items
     var player : AVPlayer = AVPlayer();
@@ -57,7 +57,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     var playedSongs : [MEGANode] = [];
     var currentTimeString = "0:00"
     var nodeInPlayer : MEGANode? = nil;
-    var nodeInPlayerIndex : Int = -1;
+    var nodeInPlayerStarted : Bool = false;
     var isPlaying : Bool = false;
     var shouldBePlaying : Bool = false;
     
@@ -68,7 +68,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     {
         player.replaceCurrentItem(with: nil);
         nodeInPlayer = nil;
-        nodeInPlayerIndex = -1;
+        nodeInPlayerStarted = false;
         isPlaying = false;
         shouldBePlaying = false;
         currentTimeString = "0:00"
@@ -85,11 +85,16 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "rate" {
             isPlaying = player.rate > 0;
-            if (isPlaying && nodeInPlayerIndex == 0 && !noHistoryMode && nextSongs.count > 0)
+            if (isPlaying && !nodeInPlayerStarted)
             {
-                nextSongs.remove(at: 0)
-                nodeInPlayerIndex = -1;
-                onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: false);
+                nodeInPlayerStarted = true;
+                
+                if (!noHistoryMode && nodeInPlayer != nil &&
+                    nextSongs.count > 0 && nextSongs[0].handle == nodeInPlayer!.handle)
+                {
+                    nextSongs.remove(at: 0)
+                    onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: false);
+                }
             }
         }
     }
@@ -151,7 +156,12 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     func addSongNext(_ node: MEGANode)
     {
         let replaceable = playerSongIsEphemeral();
-        nextSongs.insert(node, at: 0);
+
+        var v : [MEGANode] = [];
+        app().storageModel.loadSongsFromNodeRecursive(node: node, &v);
+
+        nextSongs.insert(contentsOf: v, at: 0);
+        
         onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
     }
 
@@ -168,7 +178,11 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     func addSongLast(_ node: MEGANode)
     {
         let replaceable = playerSongIsEphemeral();
-        nextSongs.insert(node, at: nextSongs.count);
+        
+        var v : [MEGANode] = [];
+        app().storageModel.loadSongsFromNodeRecursive(node: node, &v);
+        nextSongs.insert(contentsOf: v, at: nextSongs.count);
+        
         onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
     }
     
@@ -185,13 +199,9 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     func shuffleQueue()
     {
         let replaceable = playerSongIsEphemeral();
-        var newQueue : [MEGANode] = []
-        while nextSongs.count > 0 {
-            let row = Int.random(in: 0..<nextSongs.count)
-            newQueue.append(nextSongs[row])
-            nextSongs.remove(at: row)
-        }
-        nextSongs.append(contentsOf: newQueue);
+
+        nextSongs = shuffleArray(&nextSongs);
+       
         onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable)
     }
     
@@ -205,6 +215,11 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 nextSongs.remove(at: 0);
             }
         }
+        
+        if noHistoryMode_currentTrackIndex <= row {
+            noHistoryMode_currentTrackIndex = nextSongs.count + 100000;
+        }
+        
         onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
     }
 
@@ -215,6 +230,11 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         {
             nextSongs.remove(at: row);
         }
+        
+        if noHistoryMode_currentTrackIndex >= row {
+            noHistoryMode_currentTrackIndex = nextSongs.count + 100000;
+        }
+        
         onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
     }
     
@@ -240,30 +260,30 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         }
     }
 
-    func expandPlaylist(_ row: Int)
-    {
-        var newrow = row+1;
-        let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(nextSongs[row])
-        if (json != nil) {
-            if let array = json as? [Any] {
-                for object in array {
-                    print("array entry");
-                    if let attribs = object as? [String : Any] {
-                        print("as object");
-                        if let handleStr = attribs["h"] {
-                            print(handleStr);
-                            let node = mega().node(forHandle: MEGASdk.handle(forBase64Handle: handleStr as! String));
-                            if (node != nil) {
-                                nextSongs.insert(node!, at: newrow);
-                                newrow += 1;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        nextSongs.remove(at: row);
-    }
+//    func expandPlaylist(_ row: Int)
+//    {
+//        var newrow = row+1;
+//        let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(nextSongs[row])
+//        if (json != nil) {
+//            if let array = json as? [Any] {
+//                for object in array {
+//                    print("array entry");
+//                    if let attribs = object as? [String : Any] {
+//                        print("as object");
+//                        if let handleStr = attribs["h"] {
+//                            print(handleStr);
+//                            let node = mega().node(forHandle: MEGASdk.handle(forBase64Handle: handleStr as! String));
+//                            if (node != nil) {
+//                                nextSongs.insert(node!, at: newrow);
+//                                newrow += 1;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        nextSongs.remove(at: row);
+//    }
     
     let playableExtensions = [ ".mp3", ".m4a", ".aac", ".wav", ".flac", ".aiff", ".au", ".pcm", ".ac3", ".aa", ".aax"];
     let artworkExtensions = [ ".jpg", ".png" ];
@@ -294,55 +314,55 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         return false;
     }
 
-    func expandAll()
-    {
-        let replaceable = playerSongIsEphemeral();
-        var expanded = false
-        var row : Int = 0;
-        while (row < nextSongs.count)
-        {
-            if (isExpandable(node: nextSongs[row])) {
-                expandQueueItem(row);
-                expanded = true;
-            }
-            else {
-                row += 1;
-            }
-        }
-        if expanded { onNextSongsEdited(reloadView : true, triggerPlay: false, canReplacePlayerSong: replaceable) }
-    }
-    
-    func expandQueueItem(_ row: Int)
-    {
-        if (row >= 0 && row < nextSongs.count)
-        {
-            let node = nextSongs[row];
-            if (node.type != MEGANodeType.file)
-            {
-                nextSongs.remove(at: row);
-                let nodeList = mega().children(forParent: node, order: 1)
-                var insertPos = row;
-                for i in 0..<nodeList.size.intValue
-                {
-                    if let n = nodeList.node(at: i) {
-                        if isPlayable(n, orMightContainPlayable: true) {
-                            nextSongs.insert(n, at: insertPos)
-                            insertPos += 1;
-                        }
-                    }
-                }
-            }
-            else if (node.name.hasSuffix(".playlist") && app().storageModel.fileDownloadedByNH(nextSongs[row]))
-            {
-                expandPlaylist(row);
-            }
-        }
-    }
-    
-    func isExpandable(node: MEGANode) -> Bool
-    {
-        return node.type != MEGANodeType.file || node.name.hasSuffix(".playlist") && app().storageModel.fileDownloadedByNH(node);
-    }
+//    func expandAll()
+//    {
+//        let replaceable = playerSongIsEphemeral();
+//        var expanded = false
+//        var row : Int = 0;
+//        while (row < nextSongs.count)
+//        {
+//            if (isExpandable(node: nextSongs[row])) {
+//                expandQueueItem(row);
+//                expanded = true;
+//            }
+//            else {
+//                row += 1;
+//            }
+//        }
+//        if expanded { onNextSongsEdited(reloadView : true, triggerPlay: false, canReplacePlayerSong: replaceable) }
+//    }
+//
+//    func expandQueueItem(_ row: Int)
+//    {
+//        if (row >= 0 && row < nextSongs.count)
+//        {
+//            let node = nextSongs[row];
+//            if (node.type != MEGANodeType.file)
+//            {
+//                nextSongs.remove(at: row);
+//                let nodeList = mega().children(forParent: node, order: 1)
+//                var insertPos = row;
+//                for i in 0..<nodeList.size.intValue
+//                {
+//                    if let n = nodeList.node(at: i) {
+//                        if isPlayable(n, orMightContainPlayable: true) {
+//                            nextSongs.insert(n, at: insertPos)
+//                            insertPos += 1;
+//                        }
+//                    }
+//                }
+//            }
+//            else if (node.name.hasSuffix(".playlist") && app().storageModel.fileDownloadedByNH(nextSongs[row]))
+//            {
+//                expandPlaylist(row);
+//            }
+//        }
+//    }
+//
+//    func isExpandable(node: MEGANode) -> Bool
+//    {
+//        return node.type != MEGANodeType.file || node.name.hasSuffix(".playlist") && app().storageModel.fileDownloadedByNH(node);
+//    }
     
     func downloadAllSongsInQueue(_ removeAlreadyDownloaded : Bool) -> Int
     {
@@ -366,26 +386,36 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
     }
     
     func playerSongIsEphemeral() -> Bool {
-        return noHistoryMode || (
-            nodeInPlayer == nil || (nextSongs.count > 0 &&
-            nodeInPlayer!.handle == nextSongs[0].handle &&
-            player.currentTime().seconds == 0 &&
-            nodeInPlayerIndex == 0));
+        
+        if nodeInPlayer == nil { return true; }
+        
+        if (noHistoryMode)
+        {
+            return !nodeInPlayerStarted;
+        }
+        else
+        {
+            return nextSongs.count > 0 &&
+                   nodeInPlayer!.handle == nextSongs[0].handle &&
+                   player.currentTime().seconds == 0 &&
+                   !nodeInPlayerStarted;
+        }
     }
 
     func startNextSongDownloads() -> Bool
     {
-        var reloadTableView : Bool = false;
-        var index = 0;
+        let reloadTableView : Bool = false;
+        let baseIndex = noHistoryMode ? noHistoryMode_currentTrackIndex : 0;
+        var index = baseIndex;
         var numDownloading = 0;
         while (index < nextSongs.count) {
-            if (index >= 2) { break }
+            if (index >= baseIndex + (noHistoryMode ? 3 : 2)) { break }
             
-            while (nextSongs.count > index && isExpandable(node: nextSongs[index]))
-            {
-                expandQueueItem(index);
-                reloadTableView = true;
-            }
+//            while (nextSongs.count > index && isExpandable(node: nextSongs[index]))
+//            {
+//                expandQueueItem(index);
+//                reloadTableView = true;
+//            }
             if (index < nextSongs.count &&
                 (app().storageModel.isDownloadingByType(nextSongs[index]) ||
                  app().storageModel.startDownloadIfAbsent(node: nextSongs[index])))
@@ -440,7 +470,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             if let fileURL = app().storageModel.getDownloadedSongURL(nextSongs[songIndex]) {
                 let play = startIt || isPlaying;
                 nodeInPlayer = nextSongs[songIndex];
-                nodeInPlayerIndex = songIndex;
+                nodeInPlayerStarted = false;
                 downloadingNodeToStartPlaying = nil;
                 player.replaceCurrentItem(with: AVPlayerItem(url: fileURL));
                 if (play) {
@@ -464,7 +494,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
             downloadingNodeToStartPlaying = nil;
         }
         nodeInPlayer = nil;
-        nodeInPlayerIndex = -1;
+        nodeInPlayerStarted = false;
         self.player.replaceCurrentItem(with: nil);
         app().setupNowPlaying(node: nodeInPlayer)
         app().playQueueTVC?.playingSongUpdated()
@@ -491,7 +521,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         if nodeInPlayer != nil {
             playedSongs.insert(nodeInPlayer!, at: 0);
             nodeInPlayer = nil;
-            nodeInPlayerIndex = -1;
+            nodeInPlayerStarted = false;
 
             while (playedSongs.count > 100)
             {
@@ -510,7 +540,7 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
                 nextSongs.insert(nodeInPlayer!, at: 0);
             }
             nodeInPlayer = nil;
-            nodeInPlayerIndex = -1;
+            nodeInPlayerStarted = false;
             for i in 0...index {
                 nextSongs.insert(playedSongs[i], at: 0);
             }
@@ -519,9 +549,20 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
         onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong : replaceable);
     }
 
+    func goToTappedRow(_ row: Int)
+    {
+        if (noHistoryMode)
+        {
+            if (row < nextSongs.count && playerSongIsEphemeral())
+            {
+                noHistoryMode_currentTrackIndex = row;
+                onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong : true);
+            }
+        }
+    }
+    
     func goNextTrack() -> Bool
     {
-
         if (noHistoryMode)
         {             
             if (nextSongs.count > noHistoryMode_currentTrackIndex)
@@ -630,38 +671,62 @@ class PlayQueue : NSObject /*(ObservableObject*/ {
 
     func toggleNoHistoryMode()
     {
-        if (noHistoryMode)
-        {
-            noHistoryMode = false;
-            noHistoryMode_currentTrackIndex = -1;
-        }
-        else
-        {
-            noHistoryMode = true;
-            noHistoryMode_currentTrackIndex = nodeInPlayerIndex;
-        }
-        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: false);
+        let ephemeral = playerSongIsEphemeral();
+        noHistoryMode = !noHistoryMode;
+        noHistoryMode_currentTrackIndex = 0;
+        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: ephemeral);
     }
     
-    func saveAsPlaylist()
+    func saveAsPlaylist(uic : UIViewController)
     {
         if (!app().loginState.online)
         {
             reportMessage(uic: app().playQueueTVC!, message: "Please go online to upload the playlist")
             return;
         }
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        var inputName = formatter.string(from: Date());
+        
+        let textInput = UIAlertController(title: "New playlist name", message: "The .playlist filename extension will be added automatically.  The playlist will appear in your playlist root folder.  The date and time are offered as a default name.", preferredStyle: .alert)
+        
+        textInput.addTextField( configurationHandler: { newTextField in
+            newTextField.text = inputName;
+            newTextField.returnKeyType = .go
+            newTextField.delegate = self
+        });
 
-        let s = nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: nextSongs);
-        let uploadpath = app().storageModel.getUploadPlaylistFileURL();
-        let url = URL(fileURLWithPath: uploadpath);
-        try! s.write(to: url, atomically: true, encoding: .ascii)
-        mega().startUpload(withLocalPath:uploadpath, parent: app().playlistBrowseFolder!)
+        textInput.addAction(UIAlertAction(title: "Create playlist", style: .default, handler:
+            { (UIAlertAction) -> () in
+                if (textInput.textFields != nil) {
+                    if textInput.textFields!.first != nil {
+                        if (textInput.textFields!.first!.text != nil) {
+                            inputName = textInput.textFields!.first!.text!;
+                        }
+                    }
+                }
+                let s = self.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: self.nextSongs);
+                let uploadpath = app().storageModel.uploadFilesPath() + "/" + inputName + ".playlist";
+                let url = URL(fileURLWithPath: uploadpath);
+                try! s.write(to: url, atomically: true, encoding: .ascii)
+                mega().startUpload(withLocalPath:uploadpath, parent: app().playlistBrowseFolder!)
+            }));
+        
+        textInput.addAction(menuAction_neverMind());
+        uic.present(textInput, animated: false, completion: nil)
+    }
+
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        // select the date/time default playlist name
+        textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
+        textField.becomeFirstResponder()
     }
 
     func saveQueueAndHistory(shuttingDown : Bool)
     {
         if (shuttingDown && !playerSongIsEphemeral()) { pushToHistory() };
-        let s1 = nodeHandleArrayToJSON(optionalExtraFirstNode: playerSongIsEphemeral() ? nil : nodeInPlayer, array: nextSongs);
+        let s1 = nodeHandleArrayToJSON(optionalExtraFirstNode: noHistoryMode || playerSongIsEphemeral() ? nil : nodeInPlayer, array: nextSongs);
         let s2 = nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: playedSongs);
         do {
             try s1.write(toFile: app().storageModel.settingsPath() + "/nextSongs", atomically: true, encoding: String.Encoding.utf8);

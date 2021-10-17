@@ -230,17 +230,13 @@ class StorageModel {
     
     func getOldPlaylistsFolder() -> MEGANode?
     {
-        var node = app().playlistBrowseFolder;
-        if (node != nil && app().loginState.accountByFolderLink)
+        var node : MEGANode? = nil;
+        if (app().playlistBrowseFolder != nil)
         {
-            node = mega().node(forPath: "˜old-versions˜", node: node!);
-            if (node == nil)
+            node = mega().node(forPath: "old-playlist-versions", node: app().playlistBrowseFolder!);
+            if (node == nil && app().loginState.online)
             {
-                if (app().loginState.online)
-                {
-                    mega().createFolder(withName: "˜old-versions˜", parent: app().playlistBrowseFolder!)
-                }
-                return app().playlistBrowseFolder!
+                mega().createFolder(withName: "old-playlist-versions", parent: app().playlistBrowseFolder!)
             }
         }
         return node;
@@ -285,14 +281,7 @@ class StorageModel {
         guard let filename = songFingerprintPath(node: node) else { return nil }
         return FileManager.default.fileExists(atPath: filename) ? URL(fileURLWithPath: filename) : nil;
     }
-
-    func getUploadPlaylistFileURL() -> String
-    {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyyMMdd-HHmmss"
-        return uploadFilesPath() + "/" + formatter.string(from: Date()) + ".playlist";
-    }
-    
+  
     func loadFileAsJSON(filename : String) -> Any?
     {
         do
@@ -330,6 +319,52 @@ class StorageModel {
         }
         return (p, true);
     }
+    
+    func loadSongsFromPlaylistRecursive(node: MEGANode, _ v : inout [MEGANode])
+    {
+        let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(node);
+        if (json != nil)
+        {
+            if let array = json as? [Any] {
+                for object in array {
+                    print("array entry");
+                    if let attribs = object as? [String : Any] {
+                        print("as object");
+                        if let handleStr = attribs["h"] {
+                            print(handleStr);
+                            let node = mega().node(forHandle: MEGASdk.handle(forBase64Handle: handleStr as! String));
+                            if (node != nil) {
+                                loadSongsFromNodeRecursive(node: node!, &v);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    func loadSongsFromNodeRecursive(node: MEGANode, _ v : inout [MEGANode])
+    {
+        if (node.type != MEGANodeType.file)
+        {
+            let nodeList = mega().children(forParent: node, order: 1)
+            for i in 0..<nodeList.size.intValue
+            {
+                if let n = nodeList.node(at: i) {
+                    loadSongsFromNodeRecursive(node: n, &v);
+                }
+            }
+        }
+        else if (node.name.hasSuffix(".playlist") && app().storageModel.fileDownloadedByNH(node))
+        {
+            loadSongsFromPlaylistRecursive(node: node, &v);
+        }
+        else if app().playQueue.isPlayable(node, orMightContainPlayable: false)
+        {
+            v.append(node)
+        }
+    }
+    
 
     func isDownloadingByFP(_ node : MEGANode) -> Bool
     {

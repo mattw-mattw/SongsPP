@@ -299,6 +299,17 @@ func megaGetContainingFolder(_ node : MEGANode?) -> MEGANode?
     return n;
 }
 
+func shuffleArray(_ a : inout [MEGANode]) -> [MEGANode]
+{
+    var newQueue : [MEGANode] = []
+    while a.count > 0 {
+        let row = Int.random(in: 0..<a.count)
+        newQueue.append(a[row])
+        a.remove(at: row)
+    }
+    return newQueue;
+}
+
 func reportMessage(uic : UIViewController, message : String, continuation : (() -> Void)? = nil)
 {
     DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300)) {
@@ -431,7 +442,6 @@ func menuAction_addToPlaylistExact(playlistNode : MEGANode, nodeToAdd: MEGANode,
                 if let updateFilePath = app().storageModel.playlistPath(node: playlistNode, forEditing: true) {
                     let url = URL(fileURLWithPath: updateFilePath);
                     try! s.write(to: url, atomically: true, encoding: .ascii)
-//                    mega().startUploadToFile(withLocalPath: updateFilePath, parent: uploadFolder!, filename:playlistNode.name)
                     
                     for i in 0..<recentPlaylists.count {
                         if (recentPlaylists[i] == playlistNode) {

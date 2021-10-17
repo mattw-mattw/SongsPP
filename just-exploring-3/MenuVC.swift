@@ -121,11 +121,43 @@ class MenuVC: UIViewController {
     }
     
     @IBAction func onForgetFolderLinkButtonClicked(_ sender: UIButton) {
+        
+        let alert = UIAlertController(title: "Forget folder link", message: "This operation is the equivalent of logging out when using a writable folder link. You have the option to wipe cached files or not also. Keeping your cached files can be useful if you log back into your full account as you won't need to re-download those files.", preferredStyle: .alert)
+        
+        let startA1 = UIAlertAction(title: "Forget folder and wipe all cached data", style: .default, handler:
+                { (UIAlertAction) -> () in self.forgetFolderLinkAndDealWithCache(deleteCache: true) });
+        
+        let startA2 = UIAlertAction(title: "Forget folder but keep cached data", style: .default, handler:
+                { (UIAlertAction) -> () in self.forgetFolderLinkAndDealWithCache(deleteCache: false) });
+
+        let cancelA = UIAlertAction(title: "Never mind", style: .cancel);
+
+        alert.addAction(startA1);
+        alert.addAction(startA2);
+        alert.addAction(cancelA);
+
+        self.present(alert, animated: false, completion: nil)
+    }
+    
+    func forgetFolderLinkAndDealWithCache(deleteCache: Bool)
+    {
         startSpinnerControl(message: "Forgetting Folder Link");
         app().loginState.forgetFolderLink(onFinish: { success in
             self.busyControl!.dismiss(animated: true);
             self.busyControl = nil;
-            if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage); }
+            if (success) {
+                if (deleteCache)
+                {
+                    if (!app().storageModel.deleteCachedFiles(includingAccountAndSettings: true))
+                    {
+                        reportMessage(uic: self, message: "Failed to erase cache after forget folder link");
+                    }
+                }
+                app().clear();
+            }
+            else {
+                reportMessage(uic: self, message: app().loginState.errorMessage);
+            }
             self.setEnabled();
         })
     }
@@ -347,30 +379,66 @@ class MenuVC: UIViewController {
     Usage Guide
     
     Quick Tips
-    * Tap-hold for a short time on songs etc to activate menu options
-    * To be able to see newly added/updated songs, "Go Online" from the menu
+    * Tap-hold for a short time on songs etc to see menu options.
+    * To be able to see newly added/updated songs, "Go Online" from the menu.
+    * Use the iOS control center for next/previous track and volume.
+    * Use the MEGA.nz website or app for creating folders, moving songs/playlists between folders, deleting files etc.
     
     Getting Started
     * If you don't have a MEGA.nz account yet, sign up.
     * Upload your music to your account (from a laptop/PC is easiest).
-    * Create a Playlist folder if you want to. Music and playlists should be under a common folder.
+    * Create a Playlist folder if you don't have one yet. Music and Playlists should be under a common folder.
     * Log into your MEGA.nz account in this app from the "Log in to MEGA" menu.
-    * Then go to the "Browse Music" tab
-    * Tap on folders to drill into them
-    * Tap on the title row to go back up one folder level
-    * Once in a folder with songs, choose Option->Queue all (top right)
-    * Then go to the "Play Queue" tab
-    * You should see the first two songs downloading, with the blue bars increasing
+    * Then go to the "Browse Music" tab.
+    * Tap on folders to drill into them.
+    * Tap on the title row to go back up one folder level.
+    * Navigate to your top-level Music folder and Option->Set as the Music Folder.
+    * On the Playlists tab, navigate to your top-level Playlists folder and Option->Set as the Playlist Folder.
+    * On the Brows Music tab, navigate to your favourite music and choose Option->Queue all (top right).
+    * Then go to the "Play Queue" tab.
+    * You should see the first two songs downloading, with the blue bars increasing.
     * Once the first blue bar is full, press Play.
     
     How to download all songs
+    * First queue all your songs from your Browse Music root folder, Option->Queue all.
+    * Then from the Play Queue tab, Option->Download entire queue.
+    * For large downloads, have your device charging as decrypting many files is quite power intensive.
     
     Managing online/offline
+    * When the app starts up, it will be in offline mode.
+    * Offline mode means it won't try to use the internet, saving battery and bandwidth.
+    * Go Online from the Menu tab anytime.
+    * In Online mode, updates from your MEGA.nz account will be received.
+    * To make any adjustments such as saving playlists, you must be in Online mode.
     
-    Managing storage  (backup doens't inlcude cache)
+    Managing storage
+    * Downloaded and cached songs, thumbnails, and playlists are part of the App's storage
+    * These cached files won't be backed up in your iCloud phone backup, or PC backup, saving time and space.
+    * You can always download them from MEGA.nz again.
+    * If you need to free up space on the phone, use Menu->Clear File Cache.
     
+    Playlists
+    * Choose your Playlists folder, in Playlists tab, if you haven't already.
+    * Navigate to the folder your playlists are/will be stored in, and Option->Set as Playlists Folder.
+    * To make a new playlist, assemble some songs in the Play Queue, and then Option->Save as playlist (you must be in Online Mode).
+    * To add a song to a playlist, tap-hold on a song and choose "Add to Playlist..."
+    * From the Play Queue that option is not available to save menu space, so select "Browse To" first, then add it.
+    * Rearrange a playlist or remove songs by Option->Enable Rearrange from within the playlist.
+    * Playlist adds/edits are not automatically saved, you need to browse to it in the Playlists tab, and press "Save" (you must be in Online Mode).
+    * You can organize your playlists in folders too, that should be done in your MEGA.nz account from PC or the official MEGA.nz app.
     
+    Play Queue / History / no-history mode
     
+    View songs by filename or by Track/Artist names
+    
+    Search Music
+    *
+    
+    Edit song details with "Info..." context menu
+    *
+    
+    Miscellaneous
+    * App supports light and dark mode, according to system settings.
     
     """
 }

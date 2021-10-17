@@ -98,7 +98,6 @@ class LoginState //: ObservableObject
                                 app().playQueue.restoreOnStartup();
                                 app().needsRestoreOnStartup = false;
                             }
-                            _ = app().storageModel.getOldPlaylistsFolder(); // create if needed
                             app().playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable)
                         } else {
                             self.errorMessage = "Login succeeded but FetchNodes failed: " + e.nameWithErrorCode(e.type.rawValue);

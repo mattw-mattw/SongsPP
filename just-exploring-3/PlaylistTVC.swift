@@ -20,6 +20,7 @@ class PlaylistTVC: UITableViewController, MEGATransferDelegate {
 
     var playlistNode : MEGANode? = nil;
     var playlistSongs : [MEGANode] = [];
+    var playlistToLoad : MEGANode? = nil;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,6 +35,7 @@ class PlaylistTVC: UITableViewController, MEGATransferDelegate {
     override func viewDidAppear(_ animated: Bool) {
         navigationItem.rightBarButtonItem =
             UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
+        
     }
     
 //    @objc func popVC() {
@@ -46,6 +48,13 @@ class PlaylistTVC: UITableViewController, MEGATransferDelegate {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated);
+
+        if (playlistToLoad != nil)
+        {
+            // load it again if the user switched away and back, they may have added songs
+            loadPlaylist(node: playlistToLoad!)
+        }
+
         adjustControls();
     }
 
@@ -101,8 +110,6 @@ class PlaylistTVC: UITableViewController, MEGATransferDelegate {
             
                 saveAsEditing();
             
-                startSpinnerControl(message: "Uploading Playlist");
-                
                 if let updateFilePath = app().storageModel.playlistPath(node: playlistNode!, forEditing: true) {
                     
                     if (app().loginState.accountByFolderLink && app().playlistBrowseFolder != nil)
@@ -120,8 +127,15 @@ class PlaylistTVC: UITableViewController, MEGATransferDelegate {
                             
                             mega().move(playlistNode!, newParent: oldPlaylistsFolder, newName: newname!)
                         }
+                        else
+                        {
+                            reportMessage(uic: self, message: "Creating old-versions folder, as creating file versions through writable folder links doesn't work yet.  Until that works, the old version of the playlist will be put in that folder with a timestamp from when it was replaced.  Please retry, the folder should be created by now.");
+                            return;
+                        }
                     }
 
+                    startSpinnerControl(message: "Uploading Playlist");
+                    
                     mega().startUploadToFile(withLocalPath: updateFilePath, parent: parentFolder, filename:playlistNode!.name,
                          delegate: self);
                 }
@@ -246,6 +260,7 @@ class PlaylistTVC: UITableViewController, MEGATransferDelegate {
 
             let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
             alert.addAction(menuAction_playNext(node));
+            alert.addAction(menuAction_songBrowseTo(node, viewController: self));
             alert.addAction(menuAction_neverMind());
             self.present(alert, animated: false, completion: nil)
         }

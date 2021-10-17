@@ -59,7 +59,11 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         showHideFolderTrackNames()
 
         if (app().nodeForBrowseFirstLoad != nil && !isPlaylists()) {
-            browseToFolder(app().nodeForBrowseFirstLoad!);
+            if app().nodeForBrowseFirstLoad!.type == .file {
+                browseToParent(app().nodeForBrowseFirstLoad!);
+            } else {
+                browseToFolder(app().nodeForBrowseFirstLoad!);
+            }
         }
         else {
             load(node: rootFolder());
@@ -77,9 +81,17 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         // self.clearsSelectionOnViewWillAppear = false
     }
     
+    var selectRowOnAppear = -1;
+    
     override func viewDidAppear(_ animated: Bool) {
         navigationItem.rightBarButtonItem =
               UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
+        
+        if (selectRowOnAppear >= 0 && selectRowOnAppear < nodeArray.count)
+        {
+            tableView.selectRow(at: IndexPath(row: selectRowOnAppear, section: 0), animated: true, scrollPosition: .middle)
+        }
+        selectRowOnAppear = -1;
     }
     
     @objc func onParentTap(sender : UITapGestureRecognizer) {
@@ -92,8 +104,8 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         alert.addAction(UIAlertAction(title: "Queue all", style: .default, handler:
             { (UIAlertAction) -> () in self.QueueAll() }));
 
-        alert.addAction(UIAlertAction(title: "Queue+Expand+Shuffle all", style: .default, handler:
-            { (UIAlertAction) -> () in self.QueueExpandShuffleAll() }));
+        alert.addAction(UIAlertAction(title: "Shuffle queue all", style: .default, handler:
+            { (UIAlertAction) -> () in self.ShuffleQueueAll() }));
 
         if (currentFolder != nil)
         {
@@ -334,14 +346,20 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
 
     func QueueAll()
     {
-        app().playQueue.queueSongs(nodes: nodeArray)
+        var v : [MEGANode] = [];
+        for n in nodeArray {
+            app().storageModel.loadSongsFromNodeRecursive(node: n, &v);
+        }
+        app().playQueue.queueSongs(nodes: v)
     }
 
-    func QueueExpandShuffleAll()
+    func ShuffleQueueAll()
     {
-        app().playQueue.queueSongs(nodes: nodeArray)
-        app().playQueue.expandAll()
-        app().playQueue.shuffleQueue()
+        var v : [MEGANode] = [];
+        for n in nodeArray {
+            app().storageModel.loadSongsFromNodeRecursive(node: n, &v);
+        }
+        app().playQueue.queueSongs(nodes: shuffleArray(&v));
     }
 
     func checkFiltered(_ n : MEGANode) -> Bool
@@ -415,6 +433,27 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     {
         showHideFilterElements(filter: false);
         load(node: mega().parentNode(for: node));
+        redraw()
+        hilight(node: node);
+    }
+    
+    func hilight(node: MEGANode)
+    {
+        var row = 0;
+        for n in nodeArray {
+            if n.handle == node.handle { break }
+            row += 1;
+        }
+        if (row < nodeArray.count)
+        {
+            if viewIfLoaded?.window != nil {
+                tableView.selectRow(at: IndexPath(row: row, section: 0), animated: true, scrollPosition: .middle)
+            }
+            else
+            {
+                selectRowOnAppear = row;
+            }
+        }
     }
     
     func load(node : MEGANode?)
@@ -593,7 +632,11 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // tap a row to drill into it, if it's a folder
+
+        if (self.presentedViewController != nil) {
+            // it was a tap-hold for menu
+        }
+
         tableView.deselectRow(at: indexPath, animated: false)
         if (indexPath.row < nodeArray.count)
         {
@@ -605,7 +648,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             else if (node.type == MEGANodeType.file && node.name.hasSuffix(".playlist"))
             {
                 let vc = self.storyboard?.instantiateViewController(identifier: "Playlist") as! PlaylistTVC
-                vc.loadPlaylist(node: node)
+                vc.playlistToLoad = node;
                 self.navigationController?.pushViewController(vc, animated: true)
             }
         }
@@ -637,29 +680,28 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         if (indexPath.row < nodeArray.count)
         {
             let node = nodeArray[indexPath.row];
-            if (node.type == .file) {
             
-                let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
-                
-                //UILabel.appearance(whenContainedInInstancesOf: [UIAlertController.self]).numberOfLines = 3;
-                
-                if app().playQueue.isPlayable(node, orMightContainPlayable: false) {
-                    alert.addAction(menuAction_playNext(node));
-                    alert.addAction(menuAction_playLast(node));
-                    alert.addAction(menuAction_songInfo(node, viewController: self));
-                }
-                if app().playQueue.isArtwork(node) && app().storageModel.thumbnailDownloaded(node) {
-//                    todo:  more text: \n(only works in song full account, not links or shares)
-                    alert.addAction(UIAlertAction(title: "Set as artwork for songs in this folder", style: .default, handler:
-                          { (UIAlertAction) -> () in self.setArtworkForSongsInFolder(node); }));
-                }
-                if (filtering) { alert.addAction(menuAction_songBrowseTo(node, viewController: self)); }
-                if (app().playlistBrowseFolder != nil && app().playQueue.isPlayable(node, orMightContainPlayable: false)) {
-                    alert.addAction(menuAction_addToPlaylistInFolder_recents(node, viewController: self));
-                }
-                alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
-                self.present(alert, animated: false, completion: nil)
+            let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
+            
+            if app().playQueue.isPlayable(node, orMightContainPlayable: true) {
+                alert.addAction(menuAction_playNext(node));
+                alert.addAction(menuAction_playLast(node));
             }
+            if app().playQueue.isPlayable(node, orMightContainPlayable: false) {
+                alert.addAction(menuAction_songInfo(node, viewController: self));
+            }
+            if app().playQueue.isArtwork(node) && app().storageModel.thumbnailDownloaded(node) {
+                alert.addAction(UIAlertAction(title: "Set as artwork for songs in this folder", style: .default, handler:
+                      { (UIAlertAction) -> () in self.setArtworkForSongsInFolder(node); }));
+            }
+            if (filtering) {
+                alert.addAction(menuAction_songBrowseTo(node, viewController: self));
+            }
+            if (app().playlistBrowseFolder != nil && app().playQueue.isPlayable(node, orMightContainPlayable: false)) {
+                alert.addAction(menuAction_addToPlaylistInFolder_recents(node, viewController: self));
+            }
+            alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+            self.present(alert, animated: false, completion: nil)
         }
         
         return false;

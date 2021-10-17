@@ -444,7 +444,7 @@
                         </connections>
                     </tableView>
                     <tabBarItem key="tabBarItem" title="Play Queue" image="play.circle" catalog="system" selectedImage="play.circle" id="WlT-Md-rwF"/>
-                    <navigationItem key="navigationItem" id="Dxf-HA-pBx"/>
+                    <navigationItem key="navigationItem" title="Play Queue" id="Dxf-HA-pBx"/>
                     <connections>
                         <outlet property="historyButton" destination="nuh-tK-loz" id="mdo-y9-iZO"/>
                         <outlet property="playingSongImage" destination="HI9-Fp-qHY" id="KME-d2-pvV"/>
@@ -567,7 +567,7 @@
                         </connections>
                     </tableView>
                     <tabBarItem key="tabBarItem" title="Playlists" image="book.circle" catalog="system" selectedImage="book.circle" id="41H-oe-QcX"/>
-                    <navigationItem key="navigationItem" id="NP9-ve-lr2"/>
+                    <navigationItem key="navigationItem" title="Playlists" id="NP9-ve-lr2"/>
                     <connections>
                         <outlet property="filterDownloadedButton" destination="2qq-C5-iLP" id="8sk-K1-Pdm"/>
                         <outlet property="filterEnableButton" destination="8YN-xd-5Yy" id="TCS-NL-ZgK"/>
@@ -1164,7 +1164,7 @@
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="r4s-Ff-fUL">
                                                 <rect key="frame" x="0.0" y="210" width="428" height="30"/>
-                                                <state key="normal" title="Forget Account Folder"/>
+                                                <state key="normal" title="Forget Account Folder..."/>
                                                 <connections>
                                                     <action selector="onForgetFolderLinkButtonClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="7NA-PU-qmw"/>
                                                 </connections>
@@ -1220,7 +1220,7 @@
                     </view>
                     <tabBarItem key="tabBarItem" title="Menu" image="ellipsis.circle" catalog="system" selectedImage="ellipsis.circle" id="oMP-W6-xlZ"/>
                     <toolbarItems/>
-                    <navigationItem key="navigationItem" id="aNv-C9-32d"/>
+                    <navigationItem key="navigationItem" title="Menu" id="aNv-C9-32d"/>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
                         <outlet property="forgetFolderLinkButton" destination="r4s-Ff-fUL" id="MKg-es-z5z"/>
