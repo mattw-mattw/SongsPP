@@ -47,7 +47,7 @@ class LoginState //: ObservableObject
         print( "\(codePoint) \(online) \(accountBySession) \(accountByFolderLink) \(processing) \(processingTitle) \(errorMessage)" )
     }
 
-    func login(user : String, pw: String, onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ())
+    func login(user : String, pw: String, twoFactor: String, onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ())
     {
         printState("login start")
         
@@ -59,7 +59,7 @@ class LoginState //: ObservableObject
         accountBySession = false;
         accountByFolderLink = false;
 
-        mega().login(withEmail: user, password: pw,
+        mega().multiFactorAuthLogin(withEmail: user, password: pw, pin:twoFactor,
                      delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
                         if (e.type == .apiOk) {
                             if (self.saveSession(isWriteableLink: false))

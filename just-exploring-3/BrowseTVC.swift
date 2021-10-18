@@ -70,18 +70,19 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     @IBOutlet weak var folderNamesIcon: UIButton!
     @IBOutlet weak var trackNamesIcon: UIButton!
     var filtering : Bool = false;
-    var filterIncludeDownloaded = true;
-    var filterIncludeNonDownloaded = true;
     var filterSearchString : String = "";
     var showingTrackNames : Bool = false;
+    
+    let filterIncludeDownloaded = ContextMenuCheckbox("Include downloaded", true);
+    let filterIncludeNonDownloaded = ContextMenuCheckbox("Include non-downloaded", true);
     
     func clear()
     {
         nodeArray = [];
         currentFolder = nil;
         filtering = false;
-        filterIncludeDownloaded = true;
-        filterIncludeNonDownloaded = true;
+        filterIncludeDownloaded.flag = true;
+        filterIncludeNonDownloaded.flag = true;
         filterSearchString = "";
         showingTrackNames = false;
         folderPathLabelCtrl.text = "";
@@ -240,29 +241,20 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         }
     }
     
+
     @IBAction func onFilterDownloadedButton(_ sender: UIButton) {
-        let alert = UIAlertController(title: nil, message: "Include downloaded", preferredStyle: .alert)
+        let alert = UIAlertController(title: nil, message: "Filter on cached or not", preferredStyle: .alert)
         
-        alert.addAction(UIAlertAction(title: bullet(filterIncludeDownloaded && filterIncludeNonDownloaded) + "All", style: .default, handler:
-            { (UIAlertAction) -> () in
-                self.filterIncludeDownloaded = true;
-                self.filterIncludeNonDownloaded = true;
-                self.reFilter(); }));
-
-        alert.addAction(UIAlertAction(title: bullet(!filterIncludeNonDownloaded) + "Only downloaded", style: .default, handler:
-            { (UIAlertAction) -> () in
-                self.filterIncludeDownloaded = true;
-                self.filterIncludeNonDownloaded = false;
-                self.reFilter(); }));
-
-        alert.addAction(UIAlertAction(title: bullet(!filterIncludeDownloaded) + "Only non-downloaded", style: .default, handler:
-            { (UIAlertAction) -> () in
-                self.filterIncludeDownloaded = false;
-                self.filterIncludeNonDownloaded = true;
-                self.reFilter(); }));
-
-        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
-
+        alert.addTextField( configurationHandler: { newTextField in
+            self.filterIncludeDownloaded.takeOverTextField(newTextField: newTextField)
+        });
+        alert.addTextField( configurationHandler: { newTextField in
+            self.filterIncludeNonDownloaded.takeOverTextField(newTextField: newTextField)
+        });
+        
+        alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (UIAlertAction) -> () in
+            self.reFilter();
+        }));
         self.present(alert, animated: false, completion: nil)
     }
     
@@ -464,14 +456,14 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         {
             select = n.customBPM!.lowercased().contains(filterSearchString.lowercased())
         }
-        if (!filterIncludeDownloaded && select)
+        if (!filterIncludeDownloaded.flag && select)
         {
             if (app().storageModel.fileDownloadedByType(n))
             {
                 select = false;
             }
         }
-        else if (!filterIncludeNonDownloaded && select)
+        else if (!filterIncludeNonDownloaded.flag && select)
         {
             if (!app().storageModel.fileDownloadedByType(n))
             {
@@ -628,7 +620,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     {
         if (currentFolder != nil && currentFolder != rootFolder())
         {
-            load(node: mega().parentNode(for: currentFolder!));
+            browseToParent(currentFolder!);
         }
     }
     
@@ -692,9 +684,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             {
                 if let mCell = cell as? TableViewMusicCellWithNotes {
                     mCell.populateFromNode(node!);
-                    if let rf = rootFolder() {
-                        mCell.notesLabel?.text = app().nodePathBetween(rf, node!);
-                    }
+                    mCell.notesLabel?.text = app().nodePathBetween(currentFolder, node!);
                 }
                 else if let mCell = cell as? TableViewMusicCell {
                     mCell.populateFromNode(node!);
@@ -714,6 +704,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
 
         if (self.presentedViewController != nil) {
             // it was a tap-hold for menu
+            return;
         }
 
         tableView.deselectRow(at: indexPath, animated: false)

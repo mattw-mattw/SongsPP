@@ -96,7 +96,7 @@ class PlayQueueTVC: UITableViewController {
     
     func setOptionButton(history : Bool)
     {
-        navigationItem.rightBarButtonItem = history ? nil :
+        navigationItem.rightBarButtonItem = //history ? nil :
               UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
     }
     
@@ -157,7 +157,10 @@ class PlayQueueTVC: UITableViewController {
 
     @objc func optionButton() {
         
-        if (showHistory) { return; }
+        if (showHistory) {
+            reportMessage(uic: self, message: "Please switch to Queue instead of History to use this Menu, to be clear about the songs being operated on.");
+            return;
+        }
         
         let alert = UIAlertController(title: nil, message: "Options", preferredStyle: .alert)
 //        let b = playQueue.downloadNextOnly;
@@ -187,7 +190,7 @@ class PlayQueueTVC: UITableViewController {
    func toggleNoHistoryMode()
    {
        playQueue.toggleNoHistoryMode();
-        historyButton.isHidden = playQueue.noHistoryMode;
+       historyButton.isHidden = playQueue.noHistoryMode;
    }
     
     func editSong(node : MEGANode?) {
@@ -437,6 +440,7 @@ class PlayQueueTVC: UITableViewController {
 
         if (self.presentedViewController != nil) {
             // it was a tap-hold for menu
+            return;
         }
 
         tableView.deselectRow(at: indexPath, animated: false)

@@ -51,7 +51,7 @@ class LoginVC: UIViewController {
     
     @IBAction func onLoginButtonClicked(_ sender: UIButton) {
         startSpinnerControl(message: "Logging in");
-        app().loginState.login(user: emailText.text!, pw: passwordText.text!,
+        app().loginState.login(user: emailText.text!, pw: passwordText.text!, twoFactor: "",
                             onProgress: {(message) in self.loginBusyControl!.message = message + "\n\n";},
                             onFinish: { (success) in
                                 self.loginBusyControl!.dismiss(animated: true);

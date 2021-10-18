@@ -269,6 +269,7 @@ func mega(using fileManager : FileManager = .default) -> MEGASdk {
         a.mega = MEGASdk.init(appKey: "dWRWmTiJ", userAgent: "Songs++ " + deviceName(), basePath: path)!;
         a.mega!.add(a.storageModel.transferDelegate);
         a.mega!.add(a.storageModel.megaDelegate);
+        a.mega!.platformSetRLimitNumFile(50000);
     }
     return a.mega!;
 }
@@ -483,7 +484,7 @@ func ExtractAndApplyTags(_ node : MEGANode, overwriteExistingTags : Bool, countP
             countNoTags += 1;
         }
         
-        if (t	itle != nil)
+        if (title != nil)
         {
             if (node.customTitle == nil || (node.customTitle != String(title!) && overwriteExistingTags))
             {

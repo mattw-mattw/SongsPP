@@ -45,7 +45,47 @@ class MenuVC: UIViewController {
         busyControl!.view.addSubview(spinnerIndicator)
         self.present(busyControl!, animated: false, completion: nil)
     }
+    
+    @IBAction func onLoginClicked(_ sender: Any) {
+        let alert = UIAlertController(title: "Log in to MEGA.nz", message: "Log in with your MEGA.nz email and password.  If you have 2FA turned on, enter that also.", preferredStyle: .alert)
+        
+        alert.addTextField( configurationHandler: { newTextField in
+            newTextField.placeholder = "email";
+            newTextField.returnKeyType = .next
+        });
 
+        alert.addTextField( configurationHandler: { newTextField in
+            newTextField.placeholder = "password";
+            newTextField.isSecureTextEntry = true;
+            newTextField.returnKeyType = .next
+        });
+
+        alert.addTextField( configurationHandler: { newTextField in
+            newTextField.placeholder = "2FA code";
+            newTextField.returnKeyType = .next
+        });
+
+        alert.addAction(UIAlertAction(title: "Log in", style: .default, handler: { (UIAlertAction) -> () in
+            if (alert.textFields != nil && alert.textFields!.count == 3) {
+                let email = alert.textFields![0].text ?? "";
+                let pw = alert.textFields![1].text ?? "";
+                let twoFA = alert.textFields![2].text ?? "";
+                self.startSpinnerControl(message: "Logging in");
+                app().loginState.login(user: email, pw: pw, twoFactor: twoFA,
+                                    onProgress: {(message) in self.busyControl!.message = message + "\n\n";},
+                                    onFinish: { (success) in
+                                        self.busyControl!.dismiss(animated: true);
+                                        self.busyControl = nil;
+                                        if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage); }
+                                        if (success) { self.navigationController?.popViewController(animated: true); }
+                                        self.setEnabled()
+                                    })
+            }}));
+        
+        alert.addAction(menuAction_neverMind());
+        present(alert, animated: false, completion: nil)
+    }
+    
     @IBAction func onGoOfflineButtonClicked(_ sender: UIButton) {
         startSpinnerControl(message: "Going Offline");
         app().loginState.goOffline(
@@ -392,12 +432,22 @@ class MenuVC: UIViewController {
     * Then go to the "Browse Music" tab.
     * Tap on folders to drill into them.
     * Tap on the title row to go back up one folder level.
+    * (Option here for an advanced version, see the next secton below)
     * Navigate to your top-level Music folder and Option->Set as the Music Folder.
     * On the Playlists tab, navigate to your top-level Playlists folder and Option->Set as the Playlist Folder.
     * On the Brows Music tab, navigate to your favourite music and choose Option->Queue all (top right).
     * Then go to the "Play Queue" tab.
     * You should see the first two songs downloading, with the blue bars increasing.
     * Once the first blue bar is full, press Play.
+    
+    Getting Started (advanced version)
+    * This version logs into just your Music/Playlist folders for better security and less resource use.
+    * As above, but before setting Music or Playlist folders, instead "Set as the top available folder"
+    * For that, choose a folder that contains both your Music and Playlist folders.
+    * Your login will be converted to a Writable Folder Link instead.
+    * Only that portion of your account will even be downloaded from the servers.
+    * Less storage used, less RAM used, less network used, better security.
+    * After that, continue as above and select your Music and Playlist folders.
     
     How to download all songs
     * First queue all your songs from your Browse Music root folder, Option->Queue all.
@@ -427,15 +477,34 @@ class MenuVC: UIViewController {
     * Playlist adds/edits are not automatically saved, you need to browse to it in the Playlists tab, and press "Save" (you must be in Online Mode).
     * You can organize your playlists in folders too, that should be done in your MEGA.nz account from PC or the official MEGA.nz app.
     
-    Play Queue / History / no-history mode
+    Play Queue / History / No-history mode
+    * In Play Queue, each song that finishes playing will move to the History section
+    * Tap History to see the played songs, and Queue to go back to the upcoming songs.
+    * Activate Option->Enable no-history mode when you want to keep swapping between the same songs.
+    * In no-history mode, the queue doesn't change, and an indicator moves down to the next song when one ends.
     
-    View songs by filename or by Track/Artist names
-    
-    Search Music
-    *
-    
+    Track/Artist names and Thumbnails
+    * In the Play Queue tab, the songs are shown by Track/Artist name, and the thumbnail picture, if available.
+    * If those are not available, the file name is shown.
+    * In the Browse Music tab, file and folder names are shown by default.
+    * Tap the circled folder icon (top right) to switch to see Track/Artist name instead of filename.
+    * If Track and Artist names are not showing, try extracting them from the file.
+    * Extract Track/Artist names by tap-hold and choose "Info..." from the menu (more details below).
+    * You can also attempt to extract Title/Artist in bulk in a folder tree with Option->Extract in Browse Music tab.
+        
     Edit song details with "Info..." context menu
-    *
+    * Tap "Extract tags from File" to see if the names can be pulled from the file itself.
+    * If not, you can type in the Title and Artist yourself.
+    * Additionally you can save a short Note about the song, and record the BPM.
+    * Remember to press "Save all" before exiting the Info page, otherwise changes are discarded.
+
+    Search Music
+    * In the Browse Music tab, tap the magnifying glass (top left) to search the current folder and folders below.
+    * Type some text into the search field and press Return.
+    * Songs that have matching text in the filename, Title, Artist, or Notes will be shown.
+    * The usual options are available from the tap-hold menu
+    * Tap the circle-folder icon (top right) to see them shown by Track/Artist names, with relative path.
+    * You can also filter to show only downloaded (or not) songs with the rain-cloud icon (top right)
     
     Miscellaneous
     * App supports light and dark mode, according to system settings.

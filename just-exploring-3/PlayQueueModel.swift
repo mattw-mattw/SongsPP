@@ -673,6 +673,16 @@ class PlayQueue : NSObject, UITextFieldDelegate {
     {
         let ephemeral = playerSongIsEphemeral();
         noHistoryMode = !noHistoryMode;
+        
+        if (noHistoryMode && !ephemeral && nodeInPlayer != nil)
+        {
+            nextSongs.insert(nodeInPlayer!, at: 0)
+        }
+        if (!noHistoryMode && noHistoryMode_currentTrackIndex == 0 && nodeInPlayer != nil && nextSongs.count > 0 && nextSongs[0].handle == nodeInPlayer!.handle)
+        {
+            nextSongs.remove(at: 0)
+        }
+        
         noHistoryMode_currentTrackIndex = 0;
         onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: ephemeral);
     }
