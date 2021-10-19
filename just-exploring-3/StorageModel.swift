@@ -202,6 +202,7 @@ class StorageModel {
             return false;
             
         }
+        //print ("thumbnail handle " + ta + " for " + node.name)
         if downloadedThumbnail.contains(ta) { return true; }
         guard let filename = thumbnailPath(node: node) else { return false }
         let exists = FileManager.default.fileExists(atPath: filename);

@@ -420,29 +420,29 @@ class MenuVC: UIViewController {
     
     Quick Tips
     * Tap-hold for a short time on songs etc to see menu options.
-    * To be able to see newly added/updated songs, "Go Online" from the menu.
+    * To be able to see newly added/updated songs, `Go Online` from the menu.
     * Use the iOS control center for next/previous track and volume.
     * Use the MEGA.nz website or app for creating folders, moving songs/playlists between folders, deleting files etc.
     
     Getting Started
-    * If you don't have a MEGA.nz account yet, sign up.
+    * If you don't have a MEGA.nz account yet, sign up at https://mega.nz.
     * Upload your music to your account (from a laptop/PC is easiest).
     * Create a Playlist folder if you don't have one yet. Music and Playlists should be under a common folder.
-    * Log into your MEGA.nz account in this app from the "Log in to MEGA" menu.
-    * Then go to the "Browse Music" tab.
+    * Log into your MEGA.nz account in this app from the `Log in to MEGA` menu.
+    * Then go to the `Browse Music` tab.
     * Tap on folders to drill into them.
     * Tap on the title row to go back up one folder level.
     * (Option here for an advanced version, see the next secton below)
-    * Navigate to your top-level Music folder and Option->Set as the Music Folder.
-    * On the Playlists tab, navigate to your top-level Playlists folder and Option->Set as the Playlist Folder.
-    * On the Brows Music tab, navigate to your favourite music and choose Option->Queue all (top right).
-    * Then go to the "Play Queue" tab.
+    * Navigate to your top-level Music folder and `Option->Set as the Music Folder`.
+    * On the Playlists tab, navigate to your top-level Playlists folder and `Option->Set as the Playlist Folder`.
+    * On the Brows Music tab, navigate to your favourite music and choose `Option->Queue all` (top right).
+    * Then go to the `Play Queue` tab.
     * You should see the first two songs downloading, with the blue bars increasing.
     * Once the first blue bar is full, press Play.
     
     Getting Started (advanced version)
     * This version logs into just your Music/Playlist folders for better security and less resource use.
-    * As above, but before setting Music or Playlist folders, instead "Set as the top available folder"
+    * As above, but before setting Music or Playlist folders, instead `Set as the top available folder`
     * For that, choose a folder that contains both your Music and Playlist folders.
     * Your login will be converted to a Writable Folder Link instead.
     * Only that portion of your account will even be downloaded from the servers.
@@ -450,8 +450,8 @@ class MenuVC: UIViewController {
     * After that, continue as above and select your Music and Playlist folders.
     
     How to download all songs
-    * First queue all your songs from your Browse Music root folder, Option->Queue all.
-    * Then from the Play Queue tab, Option->Download entire queue.
+    * First queue all your songs from your Browse Music root folder, `Option->Queue all`.
+    * Then from the Play Queue tab, `Option->Download entire queue`.
     * For large downloads, have your device charging as decrypting many files is quite power intensive.
     
     Managing online/offline
@@ -469,18 +469,19 @@ class MenuVC: UIViewController {
     
     Playlists
     * Choose your Playlists folder, in Playlists tab, if you haven't already.
-    * Navigate to the folder your playlists are/will be stored in, and Option->Set as Playlists Folder.
-    * To make a new playlist, assemble some songs in the Play Queue, and then Option->Save as playlist (you must be in Online Mode).
-    * To add a song to a playlist, tap-hold on a song and choose "Add to Playlist..."
-    * From the Play Queue that option is not available to save menu space, so select "Browse To" first, then add it.
-    * Rearrange a playlist or remove songs by Option->Enable Rearrange from within the playlist.
-    * Playlist adds/edits are not automatically saved, you need to browse to it in the Playlists tab, and press "Save" (you must be in Online Mode).
+    * Navigate to the folder your playlists are/will be stored in, and `Option->Set as Playlists Folder`.
+    * To make a new playlist, assemble some songs in the Play Queue, and then `Option->Save as playlist` (you must be in Online Mode).
+    * To add a song to a playlist, tap-hold on a song and choose `Add to Playlist...`
+    * From the Play Queue that option is not available to save menu space, so select `Browse To` first, then add it.
+    * Rearrange a playlist or remove songs by `Option->Rearrange mode` from within the playlist.
+    * Playlist adds/edits are not automatically saved, you need to browse to it in the Playlists tab, and press `Save` (you must be in Online Mode).
     * You can organize your playlists in folders too, that should be done in your MEGA.nz account from PC or the official MEGA.nz app.
     
     Play Queue / History / No-history mode
-    * In Play Queue, each song that finishes playing will move to the History section
+    * In Play Queue, by default it's in history moved.
+    * In history mode, each song that plays disappears from the top of the queue, moved to the History section.
     * Tap History to see the played songs, and Queue to go back to the upcoming songs.
-    * Activate Option->Enable no-history mode when you want to keep swapping between the same songs.
+    * Activate `Mode->No-History mode` when you don't want the played song to move to the History list.
     * In no-history mode, the queue doesn't change, and an indicator moves down to the next song when one ends.
     
     Track/Artist names and Thumbnails
@@ -489,14 +490,21 @@ class MenuVC: UIViewController {
     * In the Browse Music tab, file and folder names are shown by default.
     * Tap the circled folder icon (top right) to switch to see Track/Artist name instead of filename.
     * If Track and Artist names are not showing, try extracting them from the file.
-    * Extract Track/Artist names by tap-hold and choose "Info..." from the menu (more details below).
-    * You can also attempt to extract Title/Artist in bulk in a folder tree with Option->Extract in Browse Music tab.
+    * Extract Track/Artist names by tap-hold and choose `Info...` from the menu (more details below).
+    * You can also attempt to extract Title/Artist in bulk in a folder tree with `Option->Extract` in Browse Music tab.
         
-    Edit song details with "Info..." context menu
-    * Tap "Extract tags from File" to see if the names can be pulled from the file itself.
+    Edit song details with the `Info...` context menu
+    * Tap `Extract tags from File` to see if the names can be pulled from the file itself.
     * If not, you can type in the Title and Artist yourself.
     * Additionally you can save a short Note about the song, and record the BPM.
-    * Remember to press "Save all" before exiting the Info page, otherwise changes are discarded.
+    * Remember to press `Save all` before exiting the Info page, otherwise changes are discarded.
+    
+    Add Thumbnails for songs that don't have them yet
+    * If a song file has an embedded image then its thumbnail should have been set on upload, otherwise it won't have one initially.
+    * If you have songs in a folder from an album, often that folder will have an artwork file too
+    * Tap-hold on the artwork file (it should be .jpg or .png) and `Option->Set as artwork for songs in this folder`.
+    * You can always upload a suitable .jpg in order to use that function if one is not there already.
+    * If a thumbnail won't change, you can remove all copies in the cloud account, and then re-upload (it must be removed from the trash also).
 
     Search Music
     * In the Browse Music tab, tap the magnifying glass (top left) to search the current folder and folders below.

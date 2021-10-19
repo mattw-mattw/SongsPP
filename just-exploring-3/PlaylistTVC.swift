@@ -11,8 +11,29 @@ import UIKit
 import AVKit
 
 
+class TransferOnFinishDelegate: NSObject, MEGATransferDelegate {
+    
+    var finishFunc : ((_ e: MEGAError, _ h: MEGAHandle) -> Void)?;
+    
+    init(onFinish : @escaping (_ e: MEGAError, _ h: MEGAHandle) -> Void) {
+        finishFunc = onFinish;
+    }
+    
+    func onTransferStart(_ api: MEGASdk, transfer: MEGATransfer) {
+    }
+    
+    func onTransferUpdate(_ api: MEGASdk, transfer: MEGATransfer) {
+    }
+    
+    func onTransferFinish(_ api: MEGASdk, transfer request: MEGATransfer, error: MEGAError) {
+        if (finishFunc != nil ) { finishFunc!(error, request.nodeHandle) }
+    }
+    
+    func onTransferTemporaryError(_ api: MEGASdk, transfer request: MEGATransfer, error: MEGAError) {
+    }
+}
 
-class PlaylistTVC: UITableViewController, MEGATransferDelegate {
+class PlaylistTVC: UITableViewController {
 
     @IBOutlet weak var folderPathLabelCtrl: UILabel!
     @IBOutlet weak var saveButton: UIButton!
@@ -21,6 +42,7 @@ class PlaylistTVC: UITableViewController, MEGATransferDelegate {
     var playlistNode : MEGANode? = nil;
     var playlistSongs : [MEGANode] = [];
     var playlistToLoad : MEGANode? = nil;
+    var loadedOk : Bool = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -36,6 +58,14 @@ class PlaylistTVC: UITableViewController, MEGATransferDelegate {
         navigationItem.rightBarButtonItem =
             UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
         
+        if (!loadedOk)
+        {
+            let alert = UIAlertController(title: "Playlist absent", message: "The playlist has not been downloaded yet.  Please go online so it can download, and it will be available shortly afterward", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Ok", style: .cancel));
+            self.present(alert, animated: false, completion: { () -> Void in
+                self.navigationController?.popViewController(animated: true);
+            })
+        }
     }
     
 //    @objc func popVC() {
@@ -58,18 +88,19 @@ class PlaylistTVC: UITableViewController, MEGATransferDelegate {
         adjustControls();
     }
 
-   
+    let rearrangeModeCheckbox = ContextMenuCheckbox("Rearrange mode", false);
+    
     @objc func optionButton() {
         
         let alert = UIAlertController(title: nil, message: "Options", preferredStyle: .alert)
 
-        alert.addAction(UIAlertAction(title: tableView.isEditing ? "Disable Rearrange" : "Enable Rearrange", style: .default, handler:
-            { (UIAlertAction) -> () in self.tableView.isEditing.toggle() }));
+        alert.addTextField( configurationHandler: { newTextField in
+            self.rearrangeModeCheckbox.takeOverTextField(newTextField: newTextField)
+        });
 
-//        alert.addAction(UIAlertAction(title: "Save as playlist", style: .default, handler:
-//            { (UIAlertAction) -> () in app().playQueue.saveAsPlaylist() }));
-
-        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+        alert.addAction(UIAlertAction(title: "Done", style: .cancel, handler: { (UIAlertAction) -> Void in
+            self.tableView.isEditing = self.rearrangeModeCheckbox.flag;
+        }));
         self.present(alert, animated: false, completion: nil)
     }
     
@@ -85,19 +116,6 @@ class PlaylistTVC: UITableViewController, MEGATransferDelegate {
         spinnerIndicator.startAnimating()
         spinnerBusyControl!.view.addSubview(spinnerIndicator)
         self.present(spinnerBusyControl!, animated: false, completion: nil)
-    }
-    
-    func onTransferFinish(_ api: MEGASdk, transfer request: MEGATransfer, error: MEGAError) {
-        spinnerBusyControl!.dismiss(animated: true);
-        spinnerBusyControl = nil;
-        if (error.type.rawValue != 0)
-        {
-            reportMessage(uic: self, message: "Error uploading: " + error.nameWithErrorCode(error.type.rawValue));
-        }
-        else
-        {
-            self.navigationController?.popViewController(animated: true);
-        }
     }
     
     @IBAction func onSaveButton() {
@@ -137,7 +155,35 @@ class PlaylistTVC: UITableViewController, MEGATransferDelegate {
                     startSpinnerControl(message: "Uploading Playlist");
                     
                     mega().startUploadToFile(withLocalPath: updateFilePath, parent: parentFolder, filename:playlistNode!.name,
-                         delegate: self);
+                                             delegate: TransferOnFinishDelegate(onFinish: { (e: MEGAError, h: MEGAHandle) -> Void in
+
+                        self.spinnerBusyControl!.dismiss(animated: true);
+                        self.spinnerBusyControl = nil;
+
+                        if (e.type == .apiOk) {
+                            do {
+                                try FileManager.default.removeItem(atPath: updateFilePath);
+                                
+                                if let newNode = mega().node(forHandle: h) {
+                                    for i in 0..<app().recentPlaylists.count {
+                                        if (app().recentPlaylists[i].handle == self.playlistNode!.handle)
+                                        {
+                                            app().recentPlaylists[i] = newNode;
+                                        }
+                                    }
+                                }
+                                
+                                // go back to list of playlists, the new one should be replaced there now
+                                self.navigationController?.popViewController(animated: true);
+                                
+                            } catch {
+                                reportMessage(uic: self, message: "Could not remove the upload file afterward");
+                            }
+                        } else {
+                            reportMessage(uic: self, message: "Error uploading: " + e.nameWithErrorCode(e.type.rawValue));
+                        }
+
+                    }));
                 }
             }
         
@@ -188,7 +234,10 @@ class PlaylistTVC: UITableViewController, MEGATransferDelegate {
         playlistNode = node;
         playlistSongs = [];
         let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(node);
-        if (json != nil)
+        
+        loadedOk = json != nil;
+        
+        if (loadedOk)
         {
             if let array = json as? [Any] {
                 for object in array {

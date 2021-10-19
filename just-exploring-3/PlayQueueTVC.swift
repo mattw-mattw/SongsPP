@@ -77,7 +77,7 @@ class PlayQueueTVC: UITableViewController {
         queueButton.setTitleShadowColor(UIColor.clear, for: .normal);
         historyButton.setTitleShadowColor(UIColor.white, for: .normal);
         showHistory = true;
-        setOptionButton(history: showHistory)
+        setOptionModeButtons();
         redraw()
     }
     
@@ -85,7 +85,7 @@ class PlayQueueTVC: UITableViewController {
         queueButton.setTitleShadowColor(UIColor.white, for: .normal);
         historyButton.setTitleShadowColor(UIColor.clear, for: .normal);
         showHistory = false;
-        setOptionButton(history: showHistory)
+        setOptionModeButtons();
         redraw()
     }
     
@@ -94,10 +94,12 @@ class PlayQueueTVC: UITableViewController {
         return showHistory ? playQueue.playedSongs : playQueue.nextSongs;
     }
     
-    func setOptionButton(history : Bool)
+    func setOptionModeButtons()
     {
-        navigationItem.rightBarButtonItem = //history ? nil :
+        navigationItem.rightBarButtonItem =
               UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
+        navigationItem.leftBarButtonItem =
+              UIBarButtonItem(title: "Mode", style: .done, target: self, action: #selector(modeButton))
     }
     
 //    override func viewDidAppear(_ animated: Bool) {
@@ -155,6 +157,9 @@ class PlayQueueTVC: UITableViewController {
         }
     }
 
+    let rearrangeModeCheckbox = ContextMenuCheckbox("Rearrange mode", false);
+    let noHistoryModeCheckbox = ContextMenuCheckbox("No-History mode", false);
+    
     @objc func optionButton() {
         
         if (showHistory) {
@@ -163,7 +168,6 @@ class PlayQueueTVC: UITableViewController {
         }
         
         let alert = UIAlertController(title: nil, message: "Options", preferredStyle: .alert)
-//        let b = playQueue.downloadNextOnly;
         
         alert.addAction(UIAlertAction(title: "Download entire queue", style: .default, handler:
             { (UIAlertAction) -> () in self.checkDownloadAll() }));
@@ -171,27 +175,38 @@ class PlayQueueTVC: UITableViewController {
         alert.addAction(UIAlertAction(title: "Shuffle queue", style: .default, handler:
                                         { (UIAlertAction) -> () in self.playQueue.shuffleQueue() }));
         
-//        alert.addAction(UIAlertAction(title: "Expand all", style: .default, handler:
-//            { (UIAlertAction) -> () in playQueue.expandAll() }));
-        
-        alert.addAction(UIAlertAction(title: tableView.isEditing ? "Disable Rearrange" : "Enable Rearrange", style: .default, handler:
-            { (UIAlertAction) -> () in self.tableView.isEditing.toggle() }));
-
         alert.addAction(UIAlertAction(title: "Save as playlist", style: .default, handler:
                                         { (UIAlertAction) -> () in self.playQueue.saveAsPlaylist(uic: self) }));
 
-        alert.addAction(UIAlertAction(title: playQueue.noHistoryMode ? "Disable no-history mode" : "Enable no-history mode", style: .default, handler:
-            { (UIAlertAction) -> () in  self.toggleNoHistoryMode() }));
-
         alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+
         self.present(alert, animated: false, completion: nil)
     }
+    
+    @objc func modeButton() {
+        
+        let alert = UIAlertController(title: nil, message: "Mode", preferredStyle: .alert)
+        
+        alert.addTextField( configurationHandler: { newTextField in
+            self.rearrangeModeCheckbox.takeOverTextField(newTextField: newTextField)
+        });
 
-   func toggleNoHistoryMode()
-   {
-       playQueue.toggleNoHistoryMode();
-       historyButton.isHidden = playQueue.noHistoryMode;
-   }
+        alert.addTextField( configurationHandler: { newTextField in
+            self.noHistoryModeCheckbox.takeOverTextField(newTextField: newTextField)
+        });
+        
+        alert.addAction(UIAlertAction(title: "Done", style: .cancel, handler: { (UIAlertAction) -> Void in
+
+            self.tableView.isEditing = self.rearrangeModeCheckbox.flag;
+            
+            if (self.playQueue.noHistoryMode != self.noHistoryModeCheckbox.flag) {
+                self.playQueue.toggleNoHistoryMode();
+                self.historyButton.isHidden = self.playQueue.noHistoryMode;
+            }
+        }));
+
+        self.present(alert, animated: false, completion: nil)
+    }
     
     func editSong(node : MEGANode?) {
         let vc = self.storyboard?.instantiateViewController(identifier: "EditSongVC") as! EditSongVC
@@ -220,7 +235,7 @@ class PlayQueueTVC: UITableViewController {
             }
         }
         
-        setOptionButton(history: showHistory)
+        setOptionModeButtons();
         playingSongUpdated();
         redraw();
     }

@@ -22,6 +22,8 @@ class ContextMenuCheckbox : NSObject, UITextFieldDelegate {
         imageButton.setImage(UIImage(systemName: "checkmark.circle")!, for: .selected)
         imageButton.setTitle("  " + text, for: .normal);
         imageButton.setTitle("  " + text, for: .selected);
+        imageButton.setTitleColor(.label, for: .normal)
+        imageButton.setTitleColor(.label, for: .selected)
     }
     
     func takeOverTextField(newTextField : UITextField)
@@ -38,15 +40,12 @@ class ContextMenuCheckbox : NSObject, UITextFieldDelegate {
         newTextField.delegate = self;
     }
     
-    
     @objc func toggleCheckbox(_ textField: UITextField) {
         flag = !flag;
         imageButton.isEnabled = true;
         imageButton.isSelected = flag;
         imageButton.addTarget(self, action: #selector(self.toggleCheckbox(_:)), for: .touchUpInside)
     }
-
-    
     
     func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool
     {
@@ -182,7 +181,14 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
 
     func showHideFilterElements(filter : Bool)
     {
-        filtering = filter;
+        if isPlaylists() {
+            filtering = false;
+            filterEnableButton.isHidden = true;
+            folderNamesIcon.isHidden = true;
+            trackNamesIcon.isHidden = true;
+        } else {
+            filtering = filter;
+        }
         folderPathLabelCtrl.isHidden = filtering;
         filterTextCtrl.isHidden = !filtering;
         filterDownloadedButton.isHidden = !filtering;
@@ -191,8 +197,13 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     func showHideFolderTrackNames()
     {
-        folderNamesIcon.isHidden = showingTrackNames;
-        trackNamesIcon.isHidden = !showingTrackNames;
+        if isPlaylists() {
+            folderNamesIcon.isHidden = true;
+            trackNamesIcon.isHidden = true;
+        } else {
+            folderNamesIcon.isHidden = showingTrackNames;
+            trackNamesIcon.isHidden = !showingTrackNames;
+        }
     }
     
     @IBAction func onTrackNames(_ sender: UIButton) {

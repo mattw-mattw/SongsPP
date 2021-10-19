@@ -178,6 +178,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var explanatoryText : String = "";
     
+    var recentPlaylists : [MEGANode] = [];
+    
     func clear()
     {
         // get back to on-start state
@@ -193,6 +195,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if browseMusicTVC != nil { browseMusicTVC!.clear(); }
         if browsePlaylistsTVC != nil { browsePlaylistsTVC!.clear(); }
         explanatoryText = "";
+        recentPlaylists = [];
     }
 
     func downloadProgress(nodeHandle : UInt64, percent : NSNumber )
@@ -373,18 +376,16 @@ func menuAction_neverMind() -> UIAlertAction
     return UIAlertAction(title: "Never mind", style: .cancel);
 }
 
-var recentPlaylists : [MEGANode] = [];
-
 func menuAction_addToPlaylistInFolder_recents(_ node : MEGANode, viewController : UIViewController) -> UIAlertAction
 {
     return UIAlertAction(title: "Add to Playlist...", style: .default, handler:
         { (UIAlertAction) -> () in
             let alert = UIAlertController(title: nil, message: "Add to Recent Playlist", preferredStyle: .alert)
             
-            for i in 0..<recentPlaylists.count {
+            for i in 0..<app().recentPlaylists.count {
                 
                 // check if playlist is updated
-                let n : MEGANode? = megaGetLatestFileRevision(recentPlaylists[i]);
+                let n : MEGANode? = megaGetLatestFileRevision(app().recentPlaylists[i]);
                 if (n == nil) { continue; }
                 
                 alert.addAction(menuAction_addToPlaylistExact(playlistNode:n!, nodeToAdd: node, viewController: viewController));
@@ -444,17 +445,17 @@ func menuAction_addToPlaylistExact(playlistNode : MEGANode, nodeToAdd: MEGANode,
                     let url = URL(fileURLWithPath: updateFilePath);
                     try! s.write(to: url, atomically: true, encoding: .ascii)
                     
-                    for i in 0..<recentPlaylists.count {
-                        if (recentPlaylists[i] == playlistNode) {
-                            recentPlaylists.remove(at: i);
+                    for i in 0..<app().recentPlaylists.count {
+                        if (app().recentPlaylists[i] == playlistNode) {
+                            app().recentPlaylists.remove(at: i);
                             break;
                         }
                     }
-                    while (recentPlaylists.count > 5)
+                    while (app().recentPlaylists.count > 5)
                     {
-                        recentPlaylists.remove(at: 5);
+                        app().recentPlaylists.remove(at: 5);
                     }
-                    recentPlaylists.insert(playlistNode, at: 0);
+                    app().recentPlaylists.insert(playlistNode, at: 0);
                 }
             }
         });
