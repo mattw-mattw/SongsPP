@@ -200,7 +200,6 @@ class StorageModel {
         let ta = node.thumbnailAttributeHandle!;
         if (ta.contains("______")) {
             return false;
-            
         }
         //print ("thumbnail handle " + ta + " for " + node.name)
         if downloadedThumbnail.contains(ta) { return true; }

@@ -1174,7 +1174,7 @@
                                 <rect key="frame" x="0.0" y="88" width="428" height="706"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="zxj-iJ-WZB">
-                                        <rect key="frame" x="10" y="10" width="428" height="330"/>
+                                        <rect key="frame" x="10" y="10" width="428" height="361"/>
                                         <subviews>
                                             <button opaque="NO" tag="99" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wRn-O1-P0l">
                                                 <rect key="frame" x="0.0" y="0.0" width="428" height="30"/>
@@ -1250,8 +1250,16 @@
                                                     <action selector="onTroubleshootWithLogFilesClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="wEO-1K-57m"/>
                                                 </connections>
                                             </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="g4N-XQ-NqX">
+                                                <rect key="frame" x="0.0" y="300" width="428" height="31"/>
+                                                <state key="normal" title="Button"/>
+                                                <buttonConfiguration key="configuration" style="plain" title="Reload account from servers..."/>
+                                                <connections>
+                                                    <action selector="onReloadAccountClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="wii-xh-UCK"/>
+                                                </connections>
+                                            </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MB5-xC-qmh">
-                                                <rect key="frame" x="0.0" y="300" width="428" height="30"/>
+                                                <rect key="frame" x="0.0" y="331" width="428" height="30"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                 <state key="normal" title="Acknowledgements"/>
                                                 <connections>
@@ -1294,6 +1302,7 @@
                         <outlet property="goOnlineButton" destination="2ZG-JV-Ase" id="Jim-3g-YR1"/>
                         <outlet property="loginButton" destination="peq-VQ-lcF" id="TuP-2S-JoM"/>
                         <outlet property="logoutButton" destination="3eH-OR-ZPL" id="EcD-mC-JnE"/>
+                        <outlet property="reloadAccountButton" destination="g4N-XQ-NqX" id="woP-G2-Mb1"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="hi8-xj-igx" userLabel="First Responder" sceneMemberID="firstResponder"/>

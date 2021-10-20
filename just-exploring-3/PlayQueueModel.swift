@@ -97,6 +97,14 @@ class PlayQueue : NSObject, UITextFieldDelegate {
                 }
             }
         }
+        if keyPath == "status" {
+            if let item = object as? AVPlayerItem {
+                if let e = item.error {
+                    // just says "cannot open"
+                    // e.localizedDescription;
+                }
+            }
+        }
     }
     func StringTime(_ nn : Double) -> String
     {
@@ -472,7 +480,13 @@ class PlayQueue : NSObject, UITextFieldDelegate {
                 nodeInPlayer = nextSongs[songIndex];
                 nodeInPlayerStarted = false;
                 downloadingNodeToStartPlaying = nil;
-                player.replaceCurrentItem(with: AVPlayerItem(url: fileURL));
+                
+                let playerItem = AVPlayerItem(url: fileURL);
+                playerItem.addObserver(self,
+                                         forKeyPath: #keyPath(AVPlayerItem.status),
+                                       options: [.old, .new], context: nil)
+                
+                player.replaceCurrentItem(with: playerItem);
                 if (play) {
                     self.player.play();  // if it does start playing, and we're in history mode, observeValue() will remove queue entry 0, ie song really is in player and not queue anymore
                     shouldBePlaying = true;

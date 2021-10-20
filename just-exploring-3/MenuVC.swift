@@ -18,7 +18,8 @@ class MenuVC: UIViewController {
     @IBOutlet weak var forgetFolderLinkButton : UIButton?
     @IBOutlet weak var goOfflineButton : UIButton?
     @IBOutlet weak var goOnlineButton : UIButton?
-
+    @IBOutlet var reloadAccountButton: UIButton!
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated);
         setEnabled();
@@ -33,6 +34,7 @@ class MenuVC: UIViewController {
         forgetFolderLinkButton?.isHidden = !app().loginState.accountByFolderLink;
         goOfflineButton?.isEnabled = app().loginState.online;
         goOnlineButton?.isEnabled = !app().loginState.online && (app().loginState.accountBySession || app().loginState.accountByFolderLink);
+        reloadAccountButton.isEnabled = app().loginState.online && (app().loginState.accountBySession || app().loginState.accountByFolderLink);
     }
     
     func startSpinnerControl(message : String)
@@ -108,6 +110,34 @@ class MenuVC: UIViewController {
                 if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage); }
                 self.setEnabled();
         })
+    }
+    
+    @IBAction func onReloadAccountClicked(_ sender: Any) {
+        
+        let alert = UIAlertController(title: "Reload Account", message: "This action re-fetches and caches your account folder and file tree from the servers.  It can be useful if you think it has gotten out of sync, for example thumnails applied to a file not showing in other folders where that file appears.  This may be more likely with writable folder links.", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "Reload Account", style: .default, handler: { (UIAlertAction) -> () in
+            
+            self.startSpinnerControl(message: "Reloading Account");
+            
+            mega().localLogout();
+            do {
+                try FileManager.default.removeItem(atPath: app().storageModel.accountPath());
+            }
+            catch {
+            }
+            app().storageModel.alreadyCreatedFolders = [];
+            app().loginState.goOnline(onProgress: { str in }, onFinish: {b in
+                self.busyControl!.dismiss(animated: true);
+                self.busyControl = nil;
+                if (!b) { reportMessage(uic: self, message: app().loginState.errorMessage); }
+            });
+        }));
+
+        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+        self.present(alert, animated: false, completion: nil)
+                                      
+        
     }
     
     @IBAction func onLogoutButtonClicked(_ sender: UIButton) {
@@ -503,8 +533,9 @@ class MenuVC: UIViewController {
     * If a song file has an embedded image then its thumbnail should have been set on upload, otherwise it won't have one initially.
     * If you have songs in a folder from an album, often that folder will have an artwork file too
     * Tap-hold on the artwork file (it should be .jpg or .png) and `Option->Set as artwork for songs in this folder`.
+    * You may have album folders converted from your CDs which may not contain artwork.
     * You can always upload a suitable .jpg in order to use that function if one is not there already.
-    * If a thumbnail won't change, you can remove all copies in the cloud account, and then re-upload (it must be removed from the trash also).
+    * If a thumbnail on a song won't change, you can remove all copies in the cloud account, and then re-upload (it must be removed from the trash first also).
 
     Search Music
     * In the Browse Music tab, tap the magnifying glass (top left) to search the current folder and folders below.
