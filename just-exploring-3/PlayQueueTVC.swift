@@ -38,14 +38,17 @@ class PlayQueueTVC: UITableViewController {
         //playerPlaceholder.addSubview(pvc!.view);
         //pvc!.view.frame = playerPlaceholder.bounds;
         //topHStack.addArrangedSubview(payingSongImage)
-        topHStack.addArrangedSubview(pvc!.view)
+        pvc!.view.frame = CGRect(x: 0, y: 0, width: playerLocationView.frame.width, height: playerLocationView.frame.height);
         
+        playerLocationView.addSubview(pvc!.view);
+        pvc!.didMove(toParent: self);
         pvc!.player = playQueue.player;
+
         app().playQueueTVC = self;
         tableView.estimatedRowHeight = 43.5;
         tableView.rowHeight = UITableView.automaticDimension;
         tableView.isEditing = false;
-        
+	
 //        segmentedControl.addTarget(self, action: #selector(segmentedIndexChanged(_:)), for: .valueChanged)
 
         //try! self.audioSession.setCategory(AVAudioSession.Category.playback)
@@ -220,8 +223,10 @@ class PlayQueueTVC: UITableViewController {
     @IBOutlet weak var songCountLabel : UILabel!;
 //    @IBOutlet weak var segmentedControl : UISegmentedControl!;
     @IBOutlet weak var topHStack: UIStackView!
+    @IBOutlet var topHStackContent: UIStackView!
     @IBOutlet weak var playingSongImage: UIImageView!
     @IBOutlet weak var playingSongText: UILabel!
+    @IBOutlet var playerLocationView: UIView!
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated);
@@ -280,14 +285,7 @@ class PlayQueueTVC: UITableViewController {
 //    }
     
     func GetAppIcon() -> UIImage {
-       var appIcon: UIImage! {
-           guard let iconsDictionary = Bundle.main.infoDictionary?["CFBundleIcons"] as? [String:Any],
-         let primaryIconsDictionary = iconsDictionary["CFBundlePrimaryIcon"] as? [String:Any],
-         let iconFiles = primaryIconsDictionary["CFBundleIconFiles"] as? [String],
-         let lastIcon = iconFiles.last else { return nil }
-         return UIImage(named: lastIcon)
-       }
-      return appIcon
+        return UIImage(named: "HighResIcon")!;
     }
     
     func playingSongUpdated()

@@ -663,6 +663,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Songs++.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = FF48ESATNC;
 				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = (
@@ -696,6 +697,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Songs++.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = FF48ESATNC;
 				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = (
