@@ -114,9 +114,9 @@ class MenuVC: UIViewController {
     
     @IBAction func onReloadAccountClicked(_ sender: Any) {
         
-        let alert = UIAlertController(title: "Reload Account", message: "This action re-fetches and caches your account folder and file tree from the servers.  It can be useful if you think it has gotten out of sync, for example thumnails applied to a file not showing in other folders where that file appears.  This may be more likely with writable folder links.", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Refetch Account", message: "This action re-fetches and caches your account folder and file tree from the servers.  It can be useful if you think it has gotten out of sync, perhaps with thumbnails available for some copies of a file but not others, for example.", preferredStyle: .alert)
         
-        alert.addAction(UIAlertAction(title: "Reload Account", style: .default, handler: { (UIAlertAction) -> () in
+        alert.addAction(UIAlertAction(title: "Refetch Account", style: .default, handler: { (UIAlertAction) -> () in
             
             self.startSpinnerControl(message: "Reloading Account");
             
@@ -127,6 +127,7 @@ class MenuVC: UIViewController {
             catch {
             }
             app().storageModel.alreadyCreatedFolders = [];
+            _ = app().storageModel.accountPath(); // recreate folder
             app().loginState.goOnline(onProgress: { str in }, onFinish: {b in
                 self.busyControl!.dismiss(animated: true);
                 self.busyControl = nil;

@@ -430,7 +430,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     {
         var v : [MEGANode] = [];
         for n in nodeArray {
-            app().storageModel.loadSongsFromNodeRecursive(node: n, &v);
+            app().storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true);
         }
         app().playQueue.queueSongs(nodes: v)
     }
@@ -439,7 +439,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     {
         var v : [MEGANode] = [];
         for n in nodeArray {
-            app().storageModel.loadSongsFromNodeRecursive(node: n, &v);
+            app().storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true);
         }
         app().playQueue.queueSongs(nodes: shuffleArray(&v));
     }
@@ -447,7 +447,8 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     func checkFiltered(_ n : MEGANode) -> Bool
     {
         var select = false;
-        if (n.name.lowercased().contains(filterSearchString.lowercased()))
+        if (n.name == nil) { return false; }
+        if (n.name!.lowercased().contains(filterSearchString.lowercased()))
         {
             select = true;
         }
@@ -497,7 +498,9 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             {
                 nodeArray.append(n!)
 
-                if (isPlaylists() && n!.name.hasSuffix(".playlist")) {
+                if (isPlaylists() &&
+                    n!.name != nil &&
+                    n!.name!.hasSuffix(".playlist")) {
                     _ = app().storageModel.startDownloadIfAbsent(node: n!);
                 }
 
@@ -574,7 +577,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             if (mega().rootNode != nil) {
                 text = "<Your Account>";
                 nodeArray.append(mega().rootNode!);
-                let shares = mega().inSharesList(MEGASortOrderType.alphabeticalAsc)
+                let shares = mega().inSharesList(.defaultAsc)
                 for i in 0..<shares.size.intValue {
                     if let n = mega().node(forHandle: shares.share(at: i).nodeHandle) {
                         nodeArray.append(n);
@@ -686,7 +689,8 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         if (node != nil && (node!.type == MEGANodeType.folder || !showingTrackNames))
         {
             cell = tableView.dequeueReusableCell(withIdentifier: "FolderCell", for: indexPath)
-            cell!.textLabel?.text = node!.name + (node!.type == MEGANodeType.folder ? "/" : "");
+            cell!.textLabel?.text = (node!.name == nil ? "<nil>" : node!.name!) +
+            (node!.type == MEGANodeType.folder ? "/" : "");
         }
         else
         {
@@ -726,7 +730,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             {
                 DispatchQueue.main.async( execute: { self.load(node: node) } );
             }
-            else if (node.type == MEGANodeType.file && node.name.hasSuffix(".playlist"))
+            else if (node.type == MEGANodeType.file && node.name != nil && node.name!.hasSuffix(".playlist"))
             {
                 let vc = self.storyboard?.instantiateViewController(identifier: "Playlist") as! PlaylistTVC
                 vc.playlistToLoad = node;

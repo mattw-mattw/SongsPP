@@ -154,7 +154,7 @@ class PlaylistTVC: UITableViewController {
 
                     startSpinnerControl(message: "Uploading Playlist");
                     
-                    mega().startUploadToFile(withLocalPath: updateFilePath, parent: parentFolder, filename:playlistNode!.name,
+                    mega().startUploadToFile(withLocalPath: updateFilePath, parent: parentFolder, filename:playlistNode!.name!,
                                              delegate: TransferOnFinishDelegate(onFinish: { (e: MEGAError, h: MEGAHandle) -> Void in
 
                         self.spinnerBusyControl!.dismiss(animated: true);
@@ -239,21 +239,8 @@ class PlaylistTVC: UITableViewController {
         
         if (loadedOk)
         {
-            if let array = json as? [Any] {
-                for object in array {
-                    print("array entry");
-                    if let attribs = object as? [String : Any] {
-                        print("as object");
-                        if let handleStr = attribs["h"] {
-                            print(handleStr);
-                            let node = mega().node(forHandle: MEGASdk.handle(forBase64Handle: handleStr as! String));
-                            if (node != nil) {
-                                playlistSongs.append(node!);
-                            }
-                        }
-                    }
-                }
-            }
+            playlistSongs = [];
+            app().storageModel.loadSongsFromPlaylistRecursive(json: json!, &playlistSongs, recurse: true);
         }
         redraw();
         adjustControls();

@@ -51,9 +51,7 @@ class TableViewMusicCell: UITableViewCell {
         durationLabel.text = "";
 
         if (node != nil) {
-            if (node!.isFolder()) {
-                durationLabel.text = String("Folder")
-            } else {
+            if (app().playQueue.isPlayable(node!, orMightContainPlayable: false)) {
                 durationLabel.text = String(format: "%02d:%02d", node!.duration / 60, node!.duration % 60)
             }
         

@@ -86,7 +86,8 @@ class MEGAHandler: NSObject, MEGADelegate {
             if (app().browseMusicTVC != nil) { app().browseMusicTVC!.nodesChanging(node!); }
             if (app().browsePlaylistsTVC != nil) { app().browsePlaylistsTVC!.nodesChanging(node!); }
             
-            if (node!.name.hasSuffix(".playlist")) {
+            if (node!.name != nil &&
+                node!.name!.hasSuffix(".playlist")) {
                 _ = app().storageModel.startDownloadIfAbsent(node: node!);
             }
             
@@ -172,7 +173,7 @@ class StorageModel {
         if downloadedFP.contains(node.fingerprint!) { return true; }
         guard let filename = songFingerprintPath(node: node) else { return false }
         let exists = FileManager.default.fileExists(atPath: filename);
-        if (exists) { downloadedFP.insert(node.fingerprint); }
+        if (exists && node.fingerprint != nil) { downloadedFP.insert(node.fingerprint!); }
         return exists;
     }
 
@@ -187,7 +188,7 @@ class StorageModel {
 
     func fileDownloadedByType(_ node: MEGANode) -> Bool
     {
-        if (node.name.hasSuffix(".playlist")) {
+        if (node.name != nil && node.name!.hasSuffix(".playlist")) {
             return fileDownloadedByNH(node);
         } else {
             return fileDownloadedByFP(node);
@@ -245,28 +246,30 @@ class StorageModel {
     func songFingerprintPath(node: MEGANode) -> String?
     {
         if node.type != .file {
-            print ("attempted fingerprint path for a non-file: " + (node.name == nil ? "<nil>": node.name))
+            print ("attempted fingerprint path for a non-file: " + (node.name ?? "<nil>"))
             return nil;
         }
         if (node.fingerprint == nil) {
-            print ("fingerprint was nil for: " + (node.name == nil ? "<nil>": node.name))
+            print ("fingerprint was nil for: " + (node.name ?? "<nil>"))
             return nil;
         }
         
-        let u = URL(fileURLWithPath: node.name);
+        if (node.name == nil) { return nil }
+        
+        let u = URL(fileURLWithPath: node.name!);
         let pathExtension = u.pathExtension;
 
-        return songsFolderPath() + "/" + node.fingerprint + "." + pathExtension;
+        return songsFolderPath() + "/" + node.fingerprint! + "." + pathExtension;
     }
     
     func thumbnailPath(node: MEGANode) -> String?
     {
         if node.type != .file {
-            print ("attempted fingerprint path for a non-file: " + (node.name == nil ? "<nil>": node.name))
+            print ("attempted fingerprint path for a non-file: " + (node.name ?? "<nil>"))
             return nil;
         }
         if (node.fingerprint == nil) {
-            print ("fingerprint was nil for: " + (node.name == nil ? "<nil>": node.name))
+            print ("fingerprint was nil for: " + (node.name ?? "<nil>"))
             return nil;
         }
         
@@ -295,17 +298,23 @@ class StorageModel {
         return nil;
     }
     
-    func getPlaylistFileAsJSON(_ node: MEGANode, edited : Bool) -> Any?
+    func getPlaylistFileAsJSON(_ filename: String) -> Any?
     {
         do
         {
-            if let filename = playlistPath(node: node, forEditing: edited) {
-                let content = try String(contentsOf: URL(fileURLWithPath: filename), encoding: .utf8);
-                let contentData = content.data(using: .utf8);
-                return try JSONSerialization.jsonObject(with: contentData!, options: []);
-            }
+            let content = try String(contentsOf: URL(fileURLWithPath: filename), encoding: .utf8);
+            let contentData = content.data(using: .utf8);
+            return try JSONSerialization.jsonObject(with: contentData!, options: []);
         }
         catch {
+        }
+        return nil;
+    }
+
+    func getPlaylistFileAsJSON(_ node: MEGANode, edited : Bool) -> Any?
+    {
+        if let filename = playlistPath(node: node, forEditing: edited) {
+            return getPlaylistFileAsJSON(filename);
         }
         return nil;
     }
@@ -320,22 +329,22 @@ class StorageModel {
         return (p, true);
     }
     
-    func loadSongsFromPlaylistRecursive(node: MEGANode, _ v : inout [MEGANode])
+    func loadSongsFromPlaylistRecursive(json: Any, _ v : inout [MEGANode], recurse: Bool)
     {
-        let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(node);
-        if (json != nil)
-        {
-            if let array = json as? [Any] {
-                for object in array {
-                    print("array entry");
-                    if let attribs = object as? [String : Any] {
-                        print("as object");
-                        if let handleStr = attribs["h"] {
-                            print(handleStr);
-                            let node = mega().node(forHandle: MEGASdk.handle(forBase64Handle: handleStr as! String));
-                            if (node != nil) {
-                                loadSongsFromNodeRecursive(node: node!, &v);
+        if let array = json as? [Any] {
+            for object in array {
+                if let attribs = object as? [String : Any] {
+                    if let handleStr = attribs["h"] {
+                        print(handleStr);
+                        var node = mega().node(forHandle: MEGASdk.handle(forBase64Handle: handleStr as! String));
+                        if (node == nil)
+                        {
+                            if let lkpath = attribs["lkpath"] {
+                                node = mega().node(forPath: lkpath as! String);
                             }
+                        }
+                        if (node != nil) {
+                            loadSongsFromNodeRecursive(node: node!, &v, recurse: recurse);
                         }
                     }
                 }
@@ -343,21 +352,27 @@ class StorageModel {
         }
     }
     
-    func loadSongsFromNodeRecursive(node: MEGANode, _ v : inout [MEGANode])
+    func loadSongsFromNodeRecursive(node: MEGANode, _ v : inout [MEGANode], recurse: Bool)
     {
+        if (node.name == nil) { return }
         if (node.type != MEGANodeType.file)
         {
             let nodeList = mega().children(forParent: node, order: 1)
             for i in 0..<nodeList.size.intValue
             {
                 if let n = nodeList.node(at: i) {
-                    loadSongsFromNodeRecursive(node: n, &v);
+                    loadSongsFromNodeRecursive(node: n, &v, recurse: recurse);
                 }
             }
         }
-        else if (node.name.hasSuffix(".playlist") && app().storageModel.fileDownloadedByNH(node))
+        else if (node.name!.hasSuffix(".playlist") && app().storageModel.fileDownloadedByNH(node))
         {
-            loadSongsFromPlaylistRecursive(node: node, &v);
+            if (recurse) {
+                let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(node);
+                if (json != nil) {
+                    loadSongsFromPlaylistRecursive(json: json, &v, recurse: recurse);
+                }
+            }
         }
         else if app().playQueue.isPlayable(node, orMightContainPlayable: false)
         {
@@ -379,7 +394,8 @@ class StorageModel {
     
     func isDownloadingByType(_ node: MEGANode) -> Bool
     {
-        if (node.name.hasSuffix(".playlist")) {
+        if (node.name != nil &&
+            node.name!.hasSuffix(".playlist")) {
             return isDownloadingByNH(node);
         } else {
             return isDownloadingByFP(node);
@@ -390,7 +406,8 @@ class StorageModel {
     {
         if (!app().loginState.online) { return false; }
         
-        if (node.name.hasSuffix(".playlist")) {
+        if (node.name != nil &&
+            node.name!.hasSuffix(".playlist")) {
             return startPlaylistDownloadIfAbsent(node);
         } else {
             return startSongDownloadIfAbsent(node);

@@ -398,15 +398,15 @@ func menuAction_addToPlaylistInFolder_recents(_ node : MEGANode, viewController 
 
 func menuAction_addToPlaylistInFolder(_ node : MEGANode, overrideName : String?, playlistFolder : MEGANode, viewController : UIViewController) -> UIAlertAction
 {
-    return UIAlertAction(title: overrideName != nil ? overrideName : playlistFolder.name + "/ ..."	, style: .default, handler:
+    return UIAlertAction(title: overrideName != nil ? overrideName : playlistFolder.name! + "/ ..."	, style: .default, handler:
         { (UIAlertAction) -> () in
             let alert = UIAlertController(title: nil, message: "Add to Playlist", preferredStyle: .alert)
             
             let list = mega().children(forParent: playlistFolder, order: 1);
             for i in 0..<list.size.intValue {
                 let n = list.node(at: i);
-                if (n != nil) {
-                    if (n!.type == MEGANodeType.file && n!.name.hasSuffix(".playlist"))
+                if (n != nil && n!.name != nil) {
+                    if (n!.type == MEGANodeType.file && n!.name!.hasSuffix(".playlist"))
                     {
                         alert.addAction(menuAction_addToPlaylistExact(playlistNode: n!, nodeToAdd: node, viewController: viewController));
                     }
@@ -426,17 +426,19 @@ func menuAction_addToPlaylistExact(playlistNode : MEGANode, nodeToAdd: MEGANode,
     return UIAlertAction(title: playlistNode.name , style: .default, handler:
         { (UIAlertAction) -> () in
             
-            let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(playlistNode);
-            
             var uploadFolder = mega().parentNode(for: playlistNode);
             while (uploadFolder != nil && uploadFolder!.type == .file)
             {
                 uploadFolder = mega().parentNode(for: uploadFolder!);
             }
             if (uploadFolder == nil) { return; }  // todo: alert user
-            
-            if var nodes = app().playQueue.JSONToNodeHandleArray(json)
+
+            let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(playlistNode);
+
+            if json != nil
             {
+                var nodes : [MEGANode] = [];
+                app().storageModel.loadSongsFromPlaylistRecursive(json: json!, &nodes, recurse: true);
                 nodes.append(nodeToAdd);
                 
                 let s = app().playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: nodes);
