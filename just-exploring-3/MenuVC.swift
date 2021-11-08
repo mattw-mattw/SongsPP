@@ -49,7 +49,7 @@ class MenuVC: UIViewController {
     }
     
     @IBAction func onLoginClicked(_ sender: Any) {
-        let alert = UIAlertController(title: "Log in to MEGA.nz", message: "Log in with your MEGA.nz email and password.  If you have 2FA turned on, enter that also.", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Log in to MEGA", message: "Log in with your MEGA email and password.  If you have 2FA turned on, enter that also.", preferredStyle: .alert)
         
         alert.addTextField( configurationHandler: { newTextField in
             newTextField.placeholder = "email";
@@ -418,16 +418,16 @@ class MenuVC: UIViewController {
     1.0
     	
     A simple and reliable music file player with these great attributes:
-    * Play music files from your MEGA.nz online storage account.
+    * Play music files from your MEGA online storage account.
     * Songs are cached as part of the app's storage.
     * The next two songs to be played are downloaded and cached.
     * Operate without an internet connection, playing already cached songs.
     * Download and cache as many songs as you want ahead of time.
-    * Browse your songs in the folder and file structure of your MEGA.nz account.
+    * Browse your songs in the folder and file structure of your MEGA account.
     * UI design prevents accidentally changing the playing song.
     * Just one simple list of the upcoming queued songs
     * Create or update playlists which are simple files.
-    * Save your new and updated playlists back to your MEGA.nz account.
+    * Save your new and updated playlists back to your MEGA account.
     * View by filename or by Track and Artist names
     * Extract Track and Artist names from music files (functionality from libtag)
     * Make and save short notes on your music tracks, along with BPM
@@ -453,13 +453,13 @@ class MenuVC: UIViewController {
     * Tap-hold for a short time on songs etc to see menu options.
     * To be able to see newly added/updated songs, `Go Online` from the menu.
     * Use the iOS control center for next/previous track and volume.
-    * Use the MEGA.nz website or app for creating folders, moving songs/playlists between folders, deleting files etc.
+    * Use the MEGA app for creating folders, moving songs/playlists between folders, deleting files etc.
     
     Getting Started
-    * If you don't have a MEGA.nz account yet, sign up at https://mega.nz.
-    * Upload your music to your account (from a laptop/PC is easiest).
+    * If you don't have a MEGA account yet, get the MEGA app and sign up there.
+    * Upload your music to your account from the MEGA app.
     * Create a Playlist folder if you don't have one yet. Music and Playlists should be under a common folder.
-    * Log into your MEGA.nz account in this app from the `Log in to MEGA` menu.
+    * Log into your MEGA account in this app from the `Log in to MEGA` menu.
     * Then go to the `Browse Music` tab.
     * Tap on folders to drill into them.
     * Tap on the title row to go back up one folder level.
@@ -489,13 +489,13 @@ class MenuVC: UIViewController {
     * When the app starts up, it will be in offline mode.
     * Offline mode means it won't try to use the internet, saving battery and bandwidth.
     * Go Online from the Menu tab anytime.
-    * In Online mode, updates from your MEGA.nz account will be received.
+    * In Online mode, updates from your MEGA account will be received.
     * To make any adjustments such as saving playlists, you must be in Online mode.
     
     Managing storage
     * Downloaded and cached songs, thumbnails, and playlists are part of the App's storage
     * These cached files won't be backed up in your iCloud phone backup, or PC backup, saving time and space.
-    * You can always download them from MEGA.nz again.
+    * You can always download them from MEGA again.
     * If you need to free up space on the phone, use Menu->Clear File Cache.
     
     Playlists
@@ -506,7 +506,7 @@ class MenuVC: UIViewController {
     * From the Play Queue that option is not available to save menu space, so select `Browse To` first, then add it.
     * Rearrange a playlist or remove songs by `Option->Rearrange mode` from within the playlist.
     * Playlist adds/edits are not automatically saved, you need to browse to it in the Playlists tab, and press `Save` (you must be in Online Mode).
-    * You can organize your playlists in folders too, that should be done in your MEGA.nz account from PC or the official MEGA.nz app.
+    * You can organize your playlists into folders too, that should be done in the MEGA app.
     
     Play Queue / History / No-history mode
     * In Play Queue, by default it's in history moved.

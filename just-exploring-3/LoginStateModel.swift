@@ -52,7 +52,7 @@ class LoginState //: ObservableObject
         printState("login start")
         
         processingTitle = "Logging-in"
-        processingMessage = "to MEGA.nz";
+        processingMessage = "to MEGA";
         processing = true;
 
         online = false;
@@ -84,7 +84,7 @@ class LoginState //: ObservableObject
     {
         printState("fetchnodes starts")
         processingTitle = !online ? "Loading Folders" : "Fetching Folders";
-        processingMessage = !online ? "Loading your last cached folder tree" : "Fetching your folder tree from MEGA.nz";
+        processingMessage = !online ? "Loading your last cached folder tree" : "Fetching your folder tree from MEGA";
         processing = true;
         onProgress(processingTitle);
         mega().fetchNodes(

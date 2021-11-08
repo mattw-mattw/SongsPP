@@ -1390,8 +1390,8 @@
                                         <textInputTraits key="textInputTraits" secureTextEntry="YES" textContentType="password"/>
                                     </textField>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8CX-V2-xVu">
-                                        <rect key="frame" x="143" y="109.33333333333334" width="122" height="30"/>
-                                        <state key="normal" title="Login to MEGA.nz"/>
+                                        <rect key="frame" x="153" y="109.33333333333334" width="102" height="30"/>
+                                        <state key="normal" title="Login to MEGA"/>
                                         <connections>
                                             <action selector="onLoginButtonClicked:" destination="pne-Iy-L3c" eventType="touchUpInside" id="ASW-WN-sMx"/>
                                         </connections>
@@ -1491,7 +1491,7 @@
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="y9Y-cV-pLd">
                                 <rect key="frame" x="8" y="96.000000000000014" width="412" height="142.33333333333337"/>
-                                <string key="text">Many thanks to the C++ libraries that made this project possible.  Below the libraries are named, and the button will show the licence or copyright notice for that library.  Most of them are dependendies of the MEGA.nz SDK of course.  And thanks to vcpkg which makes these libaries easy to build, and gather the licences.</string>
+                                <string key="text">Many thanks to the C++ libraries that made this project possible.  Below the libraries are named, and the button will show the licence or copyright notice for that library.  Most of them are dependendies of the MEGA SDK of course.  And thanks to vcpkg which makes these libaries easy to build, and gather the licences.</string>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
