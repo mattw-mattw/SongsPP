@@ -12,8 +12,6 @@
 		84008B9B23603A4400BD633F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 84008B9923603A4400BD633F /* Main.storyboard */; };
 		84008B9D23603A5100BD633F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 84008B9C23603A5100BD633F /* Assets.xcassets */; };
 		84008BA023603A5100BD633F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 84008B9E23603A5100BD633F /* LaunchScreen.storyboard */; };
-		84008BAB23603A5100BD633F /* just_exploring_3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84008BAA23603A5100BD633F /* just_exploring_3Tests.swift */; };
-		84008BB623603A5100BD633F /* just_exploring_3UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84008BB523603A5100BD633F /* just_exploring_3UITests.swift */; };
 		84008BC523604D7000BD633F /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84008BC423604D7000BD633F /* AVFoundation.framework */; };
 		84008BC723604D8000BD633F /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84008BC623604D8000BD633F /* AVKit.framework */; };
 		84559EE1237A9FB0005B8342 /* TableViewMusicCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84559EE0237A9FB0005B8342 /* TableViewMusicCell.swift */; };
@@ -82,11 +80,7 @@
 		84008B9F23603A5100BD633F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		84008BA123603A5100BD633F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		84008BA623603A5100BD633F /* Songs++Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Songs++Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		84008BAA23603A5100BD633F /* just_exploring_3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = just_exploring_3Tests.swift; sourceTree = "<group>"; };
-		84008BAC23603A5100BD633F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		84008BB123603A5100BD633F /* Songs++UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Songs++UITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		84008BB523603A5100BD633F /* just_exploring_3UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = just_exploring_3UITests.swift; sourceTree = "<group>"; };
-		84008BB723603A5100BD633F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		84008BC423604D7000BD633F /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		84008BC623604D8000BD633F /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 		842092B22363D60000DDE338 /* Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
@@ -156,7 +150,6 @@
 		C9D3023F259834D400D52ADF /* PlaylistTVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistTVC.swift; sourceTree = "<group>"; };
 		C9ED857E2711373F00D47DBB /* ViewTextVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewTextVC.swift; sourceTree = "<group>"; };
 		C9ED8581271189A500D47DBB /* Acknowledgements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Acknowledgements.swift; sourceTree = "<group>"; };
-		C9F1F70424FA5099008A31CB /* Songs++Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Songs++Info.plist"; path = "/Users/matt/Desktop/just-exploring-3/Songs++Info.plist"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -204,12 +197,9 @@
 			children = (
 				8439AD9123A8C6DD00BC550A /* Songs++.entitlements */,
 				842092B22363D60000DDE338 /* Bridging-Header.h */,
-				84008B9423603A4400BD633F /* just-exploring-3 */,
-				84008BA923603A5100BD633F /* just-exploring-3Tests */,
-				84008BB423603A5100BD633F /* just-exploring-3UITests */,
+				84008B9423603A4400BD633F /* src */,
 				84008B9323603A4400BD633F /* Products */,
 				84008BC323604D6F00BD633F /* Frameworks */,
-				C9F1F70424FA5099008A31CB /* Songs++Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -223,7 +213,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		84008B9423603A4400BD633F /* just-exploring-3 */ = {
+		84008B9423603A4400BD633F /* src */ = {
 			isa = PBXGroup;
 			children = (
 				84008B9923603A4400BD633F /* Main.storyboard */,
@@ -254,25 +244,7 @@
 				84008B9E23603A5100BD633F /* LaunchScreen.storyboard */,
 				84008BA123603A5100BD633F /* Info.plist */,
 			);
-			path = "just-exploring-3";
-			sourceTree = "<group>";
-		};
-		84008BA923603A5100BD633F /* just-exploring-3Tests */ = {
-			isa = PBXGroup;
-			children = (
-				84008BAA23603A5100BD633F /* just_exploring_3Tests.swift */,
-				84008BAC23603A5100BD633F /* Info.plist */,
-			);
-			path = "just-exploring-3Tests";
-			sourceTree = "<group>";
-		};
-		84008BB423603A5100BD633F /* just-exploring-3UITests */ = {
-			isa = PBXGroup;
-			children = (
-				84008BB523603A5100BD633F /* just_exploring_3UITests.swift */,
-				84008BB723603A5100BD633F /* Info.plist */,
-			);
-			path = "just-exploring-3UITests";
+			path = src;
 			sourceTree = "<group>";
 		};
 		84008BC323604D6F00BD633F /* Frameworks */ = {
@@ -521,7 +493,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				84008BAB23603A5100BD633F /* just_exploring_3Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -529,7 +500,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				84008BB623603A5100BD633F /* just_exploring_3UITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -700,7 +670,7 @@
 					/Users/matt/repos/sdk/bindings/ios,
 					"/Users/matt/repos/3rdParty_sdk_ios/vcpkg/installed/arm64-ios-mega/include",
 				);
-				INFOPLIST_FILE = "just-exploring-3/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/src/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -736,7 +706,7 @@
 					/Users/matt/repos/sdk/bindings/ios,
 					"/Users/matt/repos/3rdParty_sdk_ios/vcpkg/installed/arm64-ios-mega/include",
 				);
-				INFOPLIST_FILE = "just-exploring-3/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/src/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
