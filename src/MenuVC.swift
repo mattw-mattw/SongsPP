@@ -441,6 +441,9 @@ class MenuVC: UIViewController {
     """
     Version history
     
+    1.0.1
+    * Created a free/Lite version of the app, limited to adding 25 items to the play queue at once.
+    
     1.0
     * Initial version
     """
