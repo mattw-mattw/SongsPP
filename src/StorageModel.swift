@@ -370,7 +370,7 @@ class StorageModel {
             if (recurse) {
                 let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(node);
                 if (json != nil) {
-                    loadSongsFromPlaylistRecursive(json: json, &v, recurse: recurse);
+                    loadSongsFromPlaylistRecursive(json: json!, &v, recurse: recurse);
                 }
             }
         }

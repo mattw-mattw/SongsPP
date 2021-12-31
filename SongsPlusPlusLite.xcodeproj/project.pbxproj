@@ -27,7 +27,6 @@
 		84D137E62363F37F006A2DE0 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E52363F37F006A2DE0 /* CoreMedia.framework */; };
 		C90DCBB325FE0E310097792C /* SongsCpp.mm in Sources */ = {isa = PBXBuildFile; fileRef = C90DCBB225FE0E310097792C /* SongsCpp.mm */; };
 		C94FF3892411021800184998 /* EditSongVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C94FF3882411021800184998 /* EditSongVC.swift */; };
-		C9551C08277E91A9008BC7C8 /* SongsPlusPlusLiteInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = C9551C07277E91A8008BC7C8 /* SongsPlusPlusLiteInfo.plist */; };
 		C96F3AD523BFC799008BF07D /* LoginStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD423BFC799008BF07D /* LoginStateModel.swift */; };
 		C96F3AD723BFC995008BF07D /* PlayQueueModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD623BFC995008BF07D /* PlayQueueModel.swift */; };
 		C96F3AD923BFDB87008BF07D /* MenuVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD823BFDB87008BF07D /* MenuVC.swift */; };
@@ -312,7 +311,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1010;
-				LastUpgradeCheck = 1240;
+				LastUpgradeCheck = 1310;
 				ORGANIZATIONNAME = mattweir;
 				TargetAttributes = {
 					84008B9123603A4400BD633F = {
@@ -369,7 +368,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				84008BA023603A5100BD633F /* LaunchScreen.storyboard in Resources */,
-				C9551C08277E91A9008BC7C8 /* SongsPlusPlusLiteInfo.plist in Resources */,
 				84008B9D23603A5100BD633F /* Assets.xcassets in Resources */,
 				84008B9B23603A4400BD633F /* Main.storyboard in Resources */,
 			);

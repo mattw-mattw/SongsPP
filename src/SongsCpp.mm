@@ -9,9 +9,15 @@
 #import <Foundation/Foundation.h>
 #import "SongsCpp.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdocumentation-deprecated-sync"
+#pragma clang diagnostic ignored "-Wdocumentation"
+
 #include "taglib/tag.h"
 #include "taglib/fileref.h"
 #include "taglib/tpropertymap.h"
+
+#pragma clang diagnostic pop
 
 @implementation SongsCPP
 
