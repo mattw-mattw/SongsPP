@@ -50,12 +50,12 @@ class PlayQueue : NSObject, UITextFieldDelegate {
 
     // permanent items
     var player : AVPlayer = AVPlayer();
-    var timeObservation : Any? = nil;
+    //var timeObservation : Any? = nil;
 
     // things to reset
     var nextSongs : [MEGANode] = [];
     var playedSongs : [MEGANode] = [];
-    var currentTimeString = "0:00"
+    //var currentTimeString = "0:00"
     var nodeInPlayer : MEGANode? = nil;
     var nodeInPlayerStarted : Bool = false;
     var isPlaying : Bool = false;
@@ -71,7 +71,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         nodeInPlayerStarted = false;
         isPlaying = false;
         shouldBePlaying = false;
-        currentTimeString = "0:00"
+        //currentTimeString = "0:00"
         nextSongs = [];
         playedSongs = [];
     }
@@ -97,14 +97,14 @@ class PlayQueue : NSObject, UITextFieldDelegate {
                 }
             }
         }
-        if keyPath == "status" {
-            if let item = object as? AVPlayerItem {
-                if let e = item.error {
-                    // just says "cannot open"
-                    // e.localizedDescription;
-                }
-            }
-        }
+//        if keyPath == "status" {
+//            if let item = object as? AVPlayerItem {
+//                if let e = item.error {
+//                    // just says "cannot open"
+//                    // e.localizedDescription;
+//                }
+//            }
+//        }
     }
     func StringTime(_ nn : Double) -> String
     {
@@ -114,93 +114,115 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         return String(format: "%d:%02d", mins, secs)
     }
 
-    func queueSong(node : MEGANode)
+    func queueSong(front: Bool, node : MEGANode, uic : UIViewController)
     {
-        queueSongs(nodes: [node]);
+        queueSongs(front: front, nodes: [node], uic: uic);
     }
     
-    func queueSongs(nodes : [MEGANode])
+    func queueSongs(front: Bool, nodes : [MEGANode], uic : UIViewController)
     {
-        if (timeObservation == nil)
-        {
-            timeObservation = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.5, preferredTimescale: 600), queue: nil) { [weak self] time in
-                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(1)) {
-                    guard let self = self else { return }
-                    if let ci = self.player.currentItem {
-  //                      self.currentTime = ci.currentTime()
-  //                      self.duration = ci.duration
-  //                      self.sliderPos = self.duration.seconds == 0 ? 0 : self.currentTime.seconds / self.duration.seconds
-                        self.currentTimeString = self.StringTime(ci.currentTime().seconds)
-  //                      self.durationString = self.StringTime(self.duration.seconds)
-                    }
-                }
-            }
-        }
+//        if (timeObservation == nil)
+//        {
+//            timeObservation = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.5, preferredTimescale: 600), queue: nil) { [weak self] time in
+//                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(1)) {
+//                    guard let self = self else { return }
+//                    if let ci = self.player.currentItem {
+//  //                      self.currentTime = ci.currentTime()
+//  //                      self.duration = ci.duration
+//  //                      self.sliderPos = self.duration.seconds == 0 ? 0 : self.currentTime.seconds / self.duration.seconds
+//                        self.currentTimeString = self.StringTime(ci.currentTime().seconds)
+//  //                      self.durationString = self.StringTime(self.duration.seconds)
+//                    }
+//                }
+//            }
+//        }
+
         
         let replaceable = playerSongIsEphemeral();
-        var playableNodes = nodes;
+        var playableNodes : [MEGANode] = [];
         var i: Int = 0;
-        while (i < playableNodes.count) {
-            if isPlayable(playableNodes[i], orMightContainPlayable: true) {
-                i += 1;
-            }
-            else {
-                playableNodes.remove(at: i);
+        while (i < nodes.count) {
+            if isPlayable(nodes[i], orMightContainPlayable: true) {
+                var v : [MEGANode] = [];
+                app().storageModel.loadSongsFromNodeRecursive(node: nodes[i], &v, recurse: true);
+                playableNodes.append(contentsOf: v);
+                i += v.count;
             }
         }
-        nextSongs += playableNodes;
+
+        var truncatedLite = false;
+        #if SONGS_LITE
+        if (i >= 25) {
+            truncatedLite = true;
+            playableNodes.removeLast(playableNodes.count - 25);
+        }
+        #endif
+        
+        if (front)
+        {
+            nextSongs.insert(contentsOf: playableNodes, at: 0);
+        }
+        else
+        {
+            nextSongs += playableNodes;
+        }
         onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
+        
+        if (truncatedLite)
+        {
+            reportMessageWithTitle(uic: uic, messageTitle: "Queued 25", message: "In this Lite version of the app, it is limited to adding up to 25 items to the Play Queue at a time", continuation: nil);
+        }
     }
     
-    func queueSongNext(node : MEGANode)
-    {
-        if isPlayable(node, orMightContainPlayable: true) {
-            let replaceable = playerSongIsEphemeral();
-            nextSongs.insert(node, at: 0);
-            onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
-        }
-    }
+//    func queueSongNext(node : MEGANode)
+//    {
+//        if isPlayable(node, orMightContainPlayable: true) {
+//            let replaceable = playerSongIsEphemeral();
+//            nextSongs.insert(node, at: 0);
+//            onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
+//        }
+//    }
+//
+//    func addSongNext(_ node: MEGANode)
+//    {
+//        let replaceable = playerSongIsEphemeral();
+//
+//        var v : [MEGANode] = [];
+//        app().storageModel.loadSongsFromNodeRecursive(node: node, &v, recurse: true);
+//
+//        nextSongs.insert(contentsOf: v, at: 0);
+//
+//        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
+//    }
 
-    func addSongNext(_ node: MEGANode)
-    {
-        let replaceable = playerSongIsEphemeral();
-
-        var v : [MEGANode] = [];
-        app().storageModel.loadSongsFromNodeRecursive(node: node, &v, recurse: true);
-
-        nextSongs.insert(contentsOf: v, at: 0);
-        
-        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
-    }
-
-    func moveSongNext(_ row: Int)
+    func moveSongNext(_ row: Int, uic : UIViewController)
     {
         if row < nextSongs.count
         {
             let node = nextSongs[row];
             nextSongs.remove(at: row);
-            addSongNext(node);
+            queueSong(front: true, node: node, uic: uic);
         }
     }
     
-    func addSongLast(_ node: MEGANode)
-    {
-        let replaceable = playerSongIsEphemeral();
-        
-        var v : [MEGANode] = [];
-        app().storageModel.loadSongsFromNodeRecursive(node: node, &v, recurse: true);
-        nextSongs.insert(contentsOf: v, at: nextSongs.count);
-        
-        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
-    }
+//    func addSongLast(_ node: MEGANode)
+//    {
+//        let replaceable = playerSongIsEphemeral();
+//
+//        var v : [MEGANode] = [];
+//        app().storageModel.loadSongsFromNodeRecursive(node: node, &v, recurse: true);
+//        nextSongs.insert(contentsOf: v, at: nextSongs.count);
+//
+//        onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
+//    }
     
-    func moveSongLast(_ row: Int)
+    func moveSongLast(_ row: Int, uic : UIViewController)
     {
         if row < nextSongs.count
         {
             let node = nextSongs[row];
             nextSongs.remove(at: row);
-            addSongLast(node);
+            queueSong(front: false, node: node, uic: uic);
         }
     }
     

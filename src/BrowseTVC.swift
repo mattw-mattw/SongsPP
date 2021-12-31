@@ -432,7 +432,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         for n in nodeArray {
             app().storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true);
         }
-        app().playQueue.queueSongs(nodes: v)
+        app().playQueue.queueSongs(front: false, nodes: v, uic: self)
     }
 
     func ShuffleQueueAll()
@@ -441,7 +441,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         for n in nodeArray {
             app().storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true);
         }
-        app().playQueue.queueSongs(nodes: shuffleArray(&v));
+        app().playQueue.queueSongs(front: false, nodes: shuffleArray(&v), uic: self);
     }
 
     func checkFiltered(_ n : MEGANode) -> Bool
@@ -769,8 +769,8 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
             
             if app().playQueue.isPlayable(node, orMightContainPlayable: true) {
-                alert.addAction(menuAction_playNext(node));
-                alert.addAction(menuAction_playLast(node));
+                alert.addAction(menuAction_playNext(node, uic: self));
+                alert.addAction(menuAction_playLast(node, uic: self));
             }
             if app().playQueue.isPlayable(node, orMightContainPlayable: false) {
                 alert.addAction(menuAction_songInfo(node, viewController: self));

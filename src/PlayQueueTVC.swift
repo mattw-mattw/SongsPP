@@ -315,7 +315,11 @@ class PlayQueueTVC: UITableViewController {
         if (playingSongImage.image == nil && playingSongText.text == "")
         {
             playingSongImage.image = GetAppIcon();
+            #if SONGS_LITE
+            playingSongText.text = "Songs++ (Lite)"
+            #else
             playingSongText.text = "Songs++"
+            #endif
         }
     }
     
@@ -402,10 +406,10 @@ class PlayQueueTVC: UITableViewController {
                 let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
                 
                 alert.addAction(UIAlertAction(title: "Play next", style: .default, handler:
-                                                { (UIAlertAction) -> () in self.playQueue.queueSongNext(node: node); tableView.reloadData() }));
+                                                { (UIAlertAction) -> () in self.playQueue.queueSong(front: true, node: node, uic:self); tableView.reloadData() }));
                 
                 alert.addAction(UIAlertAction(title: "Queue song", style: .default, handler:
-                                                { (UIAlertAction) -> () in self.playQueue.queueSong(node: node); tableView.reloadData() }));
+                                                { (UIAlertAction) -> () in self.playQueue.queueSong(front: false, node: node, uic: self); tableView.reloadData() }));
 
                 alert.addAction(UIAlertAction(title: "Time travel", style: .default, handler:
                                                 { (UIAlertAction) -> () in self.playQueue.timeTravel(index: indexPath.row); self.QueueButtonHit(self); tableView.reloadData() }));
@@ -430,10 +434,10 @@ class PlayQueueTVC: UITableViewController {
                 if (!playQueue.noHistoryMode)
                 {
                     alert.addAction(UIAlertAction(title: "Play next", style: .default, handler: {
-                        (UIAlertAction) -> () in self.playQueue.moveSongNext(indexPath.row); tableView.reloadData() }));
+                        (UIAlertAction) -> () in self.playQueue.moveSongNext(indexPath.row, uic: self); tableView.reloadData() }));
                 
                     alert.addAction(UIAlertAction(title: "Play last", style: .default, handler: {
-                        (UIAlertAction) -> () in self.playQueue.moveSongLast(indexPath.row); tableView.reloadData() }));
+                        (UIAlertAction) -> () in self.playQueue.moveSongLast(indexPath.row, uic: self); tableView.reloadData() }));
                 }
                 
                 alert.addAction(UIAlertAction(title: "Unqueue...", style: .default, handler:

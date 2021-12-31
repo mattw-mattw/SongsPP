@@ -314,6 +314,14 @@ func shuffleArray(_ a : inout [MEGANode]) -> [MEGANode]
     return newQueue;
 }
 
+func reportMessageWithTitle(uic : UIViewController, messageTitle : String, message : String, continuation : (() -> Void)? = nil)
+{
+    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300)) {
+        let alert = UIAlertController(title: messageTitle, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Ok", style: .cancel));
+            uic.present(alert, animated: false, completion: continuation)
+    }
+}
 func reportMessage(uic : UIViewController, message : String, continuation : (() -> Void)? = nil)
 {
     DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300)) {
@@ -339,16 +347,16 @@ func menuAction_playRightNow(_ node : MEGANode) -> UIAlertAction
         { (UIAlertAction) -> () in app().playQueue.playRightNow(node); });
 }
 
-func menuAction_playNext(_ node : MEGANode) -> UIAlertAction
+func menuAction_playNext(_ node : MEGANode, uic : UIViewController) -> UIAlertAction
 {
     return UIAlertAction(title: "Play next", style: .default, handler:
-        { (UIAlertAction) -> () in app().playQueue.addSongNext(node); });
+        { (UIAlertAction) -> () in app().playQueue.queueSong(front: true, node: node, uic: uic); });
 }
 
-func menuAction_playLast(_ node : MEGANode) -> UIAlertAction
+func menuAction_playLast(_ node : MEGANode, uic : UIViewController) -> UIAlertAction
 {
     UIAlertAction(title: "Play last", style: .default, handler:
-        { (UIAlertAction) -> () in app().playQueue.addSongLast(node); });
+        { (UIAlertAction) -> () in app().playQueue.queueSong(front: false, node: node, uic: uic); });
 }
 
 func menuAction_songInfo(_ node : MEGANode, viewController : UIViewController) -> UIAlertAction

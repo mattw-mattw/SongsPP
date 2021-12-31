@@ -295,7 +295,7 @@ class PlaylistTVC: UITableViewController {
             let node = playlistSongs[indexPath.row];
 
             let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
-            alert.addAction(menuAction_playNext(node));
+            alert.addAction(menuAction_playNext(node, uic: self));
             alert.addAction(menuAction_songBrowseTo(node, viewController: self));
             alert.addAction(menuAction_neverMind());
             self.present(alert, animated: false, completion: nil)
