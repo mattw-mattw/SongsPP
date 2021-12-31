@@ -219,8 +219,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func nodePathBetween(_ a: MEGANode?, _ b: MEGANode) -> String
     {
-        let textb = Songs__.mega().nodePath(for: b) ?? "";
-        let texta = a == nil ? "": (Songs__.mega().nodePath(for: a!) ?? "");
+        let textb = SongsPlusPlus.mega().nodePath(for: b) ?? "";
+        let texta = a == nil ? "": (SongsPlusPlus.mega().nodePath(for: a!) ?? "");
         if (texta == textb)
         {
             return "/";
@@ -235,7 +235,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func nodePath(_ node: MEGANode) -> String
     {
-        return nodePathBetween(Songs__.mega().rootNode, node);
+        return nodePathBetween(SongsPlusPlus.mega().rootNode, node);
     }
 
 

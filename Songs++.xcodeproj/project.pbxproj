@@ -59,7 +59,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		84008B9223603A4400BD633F /* Songs⁺̟.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Songs⁺̟.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		84008B9223603A4400BD633F /* Songs⁺̟.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "Songs⁺̟.app"; path = SongsPlusPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		84008B9523603A4400BD633F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		84008B9723603A4400BD633F /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		84008B9A23603A4400BD633F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -563,7 +563,7 @@
 					"/Users/matt/repos/sdk/build-arm64-ios-mega-Release",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
-				PRODUCT_NAME = "Songs⁺̟";
+				PRODUCT_NAME = SongsPlusPlus;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -599,7 +599,7 @@
 					"/Users/matt/repos/sdk/build-arm64-ios-mega-Release",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
-				PRODUCT_NAME = "Songs⁺̟";
+				PRODUCT_NAME = SongsPlusPlus;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

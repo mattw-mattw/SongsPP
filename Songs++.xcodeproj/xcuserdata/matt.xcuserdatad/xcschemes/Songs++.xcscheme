@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "84008B9123603A4400BD633F"
-               BuildableName = "Songs&#x207a;&#x31f;.app"
+               BuildableName = "SongsPlusPlus.app"
                BlueprintName = "Songs++"
                ReferencedContainer = "container:Songs++.xcodeproj">
             </BuildableReference>
@@ -73,7 +73,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "84008B9123603A4400BD633F"
-            BuildableName = "Songs&#x207a;&#x31f;.app"
+            BuildableName = "SongsPlusPlus.app"
             BlueprintName = "Songs++"
             ReferencedContainer = "container:Songs++.xcodeproj">
          </BuildableReference>
@@ -89,7 +89,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "84008B9123603A4400BD633F"
-            BuildableName = "Songs&#x207a;&#x31f;.app"
+            BuildableName = "SongsPlusPlus.app"
             BlueprintName = "Songs++"
             ReferencedContainer = "container:Songs++.xcodeproj">
          </BuildableReference>

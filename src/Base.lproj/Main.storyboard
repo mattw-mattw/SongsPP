@@ -13,7 +13,7 @@
         <!--Edit SongVC-->
         <scene sceneID="jRy-Bs-blk">
             <objects>
-                <viewController storyboardIdentifier="EditSongVC" id="f67-hv-rJT" customClass="EditSongVC" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="EditSongVC" id="f67-hv-rJT" customClass="EditSongVC" customModule="SongsPlusPlus" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="iLh-zI-cE5">
                         <rect key="frame" x="0.0" y="0.0" width="428" height="926"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -164,7 +164,7 @@
         <!--Play Queue-->
         <scene sceneID="HzY-ZR-QLQ">
             <objects>
-                <tableViewController id="xvt-li-1LR" customClass="PlayQueueTVC" customModule="Songs__" sceneMemberID="viewController">
+                <tableViewController id="xvt-li-1LR" customClass="PlayQueueTVC" customModule="SongsPlusPlus" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="ht1-OZ-Vhp">
                         <rect key="frame" x="0.0" y="0.0" width="428" height="926"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -289,7 +289,7 @@
                             </constraints>
                         </view>
                         <prototypes>
-                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCellWithNotes" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCellWithNotes" rowHeight="70" id="yrR-eY-Hvh" customClass="TableViewMusicCellWithNotes" customModule="Songs__" customModuleProvider="target">
+                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCellWithNotes" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCellWithNotes" rowHeight="70" id="yrR-eY-Hvh" customClass="TableViewMusicCellWithNotes" customModule="SongsPlusPlus" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="257.66666603088379" width="428" height="70"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="yrR-eY-Hvh" id="0ee-fP-lNM">
@@ -393,7 +393,7 @@
                                     <outlet property="titleLabel" destination="IJG-94-mOA" id="gno-TB-LMj"/>
                                 </connections>
                             </tableViewCell>
-                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCell" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCell" id="D2c-Tk-1e2" customClass="TableViewMusicCell" customModule="Songs__">
+                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCell" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCell" id="D2c-Tk-1e2" customClass="TableViewMusicCell" customModule="SongsPlusPlus" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="327.66666603088379" width="428" height="43.666667938232422"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="D2c-Tk-1e2" id="0RE-xK-swf">
@@ -508,7 +508,7 @@
         <!--Playlists-->
         <scene sceneID="cWz-hO-9gy">
             <objects>
-                <tableViewController title="Playlists" id="e9C-Td-deu" customClass="BrowseTVC" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController title="Playlists" id="e9C-Td-deu" customClass="BrowseTVC" customModule="SongsPlusPlus" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="WW2-aC-hP5">
                         <rect key="frame" x="0.0" y="0.0" width="428" height="926"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -599,7 +599,7 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                 </tableViewCellContentView>
                             </tableViewCell>
-                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCellWithNotes" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCellWithNotes" rowHeight="70" id="AK3-lG-onP" customClass="TableViewMusicCellWithNotes" customModule="Songs__" customModuleProvider="target">
+                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCellWithNotes" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCellWithNotes" rowHeight="70" id="AK3-lG-onP" customClass="TableViewMusicCellWithNotes" customModule="SongsPlusPlus" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="132.33333396911621" width="428" height="70"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="AK3-lG-onP" id="GYZ-12-7qP">
@@ -697,7 +697,7 @@
         <!--Playlist-->
         <scene sceneID="0tb-NF-odE">
             <objects>
-                <tableViewController storyboardIdentifier="Playlist" title="Playlist" id="02i-OG-kQt" customClass="PlaylistTVC" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="Playlist" title="Playlist" id="02i-OG-kQt" customClass="PlaylistTVC" customModule="SongsPlusPlus" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="ep8-cr-BIy">
                         <rect key="frame" x="0.0" y="0.0" width="428" height="926"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -758,7 +758,7 @@
                             </constraints>
                         </stackView>
                         <prototypes>
-                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCellWithNotes" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCellWithNotes" rowHeight="70" id="Sj5-In-iI8" customClass="TableViewMusicCellWithNotes" customModule="Songs__" customModuleProvider="target">
+                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCellWithNotes" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCellWithNotes" rowHeight="70" id="Sj5-In-iI8" customClass="TableViewMusicCellWithNotes" customModule="SongsPlusPlus" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="134.66666603088379" width="428" height="70"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Sj5-In-iI8" id="aFd-pD-t0p">
@@ -824,7 +824,7 @@
                                     <outlet property="titleLabel" destination="u5Q-hy-hO7" id="mAJ-Du-WJI"/>
                                 </connections>
                             </tableViewCell>
-                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCell" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCell" id="yk1-0s-KYD" customClass="TableViewMusicCell" customModule="Songs__">
+                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCell" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCell" id="yk1-0s-KYD" customClass="TableViewMusicCell" customModule="SongsPlusPlus" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="204.66666603088379" width="428" height="43.666667938232422"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="yk1-0s-KYD" id="969-Ak-kR6">
@@ -903,7 +903,7 @@
         <!--Browse Music-->
         <scene sceneID="VS3-gt-ape">
             <objects>
-                <tableViewController title="Browse Music" id="jow-OS-RDo" customClass="BrowseTVC" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController title="Browse Music" id="jow-OS-RDo" customClass="BrowseTVC" customModule="SongsPlusPlus" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="c0h-QY-bEs">
                         <rect key="frame" x="0.0" y="0.0" width="428" height="926"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -997,7 +997,7 @@
                                     <segue destination="jow-OS-RDo" kind="showDetail" trigger="accessoryAction" id="IVc-1Z-qx5"/>
                                 </connections>
                             </tableViewCell>
-                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCellWithNotes" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCellWithNotes" rowHeight="70" id="ueU-86-r4Y" customClass="TableViewMusicCellWithNotes" customModule="Songs__" customModuleProvider="target">
+                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCellWithNotes" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCellWithNotes" rowHeight="70" id="ueU-86-r4Y" customClass="TableViewMusicCellWithNotes" customModule="SongsPlusPlus" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="132.33333396911621" width="428" height="70"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="ueU-86-r4Y" id="CLE-Ya-wN6">
@@ -1086,7 +1086,7 @@
                                     <outlet property="titleLabel" destination="8c4-DJ-4m8" id="r7g-Gj-FUw"/>
                                 </connections>
                             </tableViewCell>
-                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCell" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCell" id="0p9-mN-Sdy" customClass="TableViewMusicCell" customModule="Songs__">
+                            <tableViewCell opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" restorationIdentifier="MusicCell" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="MusicCell" id="0p9-mN-Sdy" customClass="TableViewMusicCell" customModule="SongsPlusPlus" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="202.33333396911621" width="428" height="43.666667938232422"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="0p9-mN-Sdy" id="o1S-pZ-ads">
@@ -1191,7 +1191,7 @@
         <!--Songs++-->
         <scene sceneID="fcw-T5-005">
             <objects>
-                <tabBarController id="xjS-cL-gcQ" customClass="MainTabBarController" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
+                <tabBarController id="xjS-cL-gcQ" customClass="MainTabBarController" customModule="SongsPlusPlus" customModuleProvider="target" sceneMemberID="viewController">
                     <navigationItem key="navigationItem" title="Songs++" id="s27-Fa-8J9"/>
                     <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="nsD-GH-nq4">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="49"/>
@@ -1212,7 +1212,7 @@
         <!--Menu-->
         <scene sceneID="fQB-O1-3cI">
             <objects>
-                <viewController id="m7B-uG-kn7" customClass="MenuVC" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="m7B-uG-kn7" customClass="MenuVC" customModule="SongsPlusPlus" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="KP3-SC-udx">
                         <rect key="frame" x="0.0" y="0.0" width="428" height="926"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1356,75 +1356,10 @@
             </objects>
             <point key="canvasLocation" x="1900.9345794392523" y="198.92008639308855"/>
         </scene>
-        <!--Login to MEGA-->
-        <scene sceneID="dr3-eR-gHb">
-            <objects>
-                <viewController title="Login to MEGA" id="pne-Iy-L3c" customClass="LoginVC" customModule="Songs__" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="pXG-Nn-4u3">
-                        <rect key="frame" x="0.0" y="0.0" width="428" height="926"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="7" translatesAutoresizingMaskIntoConstraints="NO" id="VjH-Pv-P3R">
-                                <rect key="frame" x="10" y="64.000000000000014" width="408" height="139.33333333333337"/>
-                                <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="MEGA Email and Password" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SiH-gF-iMF">
-                                        <rect key="frame" x="102.66666666666667" y="0.0" width="202.66666666666663" height="20.333333333333332"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                        <nil key="textColor"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="4KR-ur-POm">
-                                        <rect key="frame" x="10" y="27.333333333333329" width="388" height="34"/>
-                                        <constraints>
-                                            <constraint firstAttribute="height" constant="34" id="HRp-8C-7tv"/>
-                                        </constraints>
-                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                        <textInputTraits key="textInputTraits" textContentType="username"/>
-                                    </textField>
-                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="kbn-uX-aze">
-                                        <rect key="frame" x="10" y="68.333333333333343" width="388" height="34"/>
-                                        <constraints>
-                                            <constraint firstAttribute="height" constant="34" id="8P1-gZ-GBl"/>
-                                        </constraints>
-                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                        <textInputTraits key="textInputTraits" secureTextEntry="YES" textContentType="password"/>
-                                    </textField>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8CX-V2-xVu">
-                                        <rect key="frame" x="153" y="109.33333333333334" width="102" height="30"/>
-                                        <state key="normal" title="Login to MEGA"/>
-                                        <connections>
-                                            <action selector="onLoginButtonClicked:" destination="pne-Iy-L3c" eventType="touchUpInside" id="ASW-WN-sMx"/>
-                                        </connections>
-                                    </button>
-                                </subviews>
-                                <constraints>
-                                    <constraint firstItem="4KR-ur-POm" firstAttribute="leading" secondItem="VjH-Pv-P3R" secondAttribute="leading" constant="10" id="BKs-uz-hlh"/>
-                                    <constraint firstItem="kbn-uX-aze" firstAttribute="leading" secondItem="VjH-Pv-P3R" secondAttribute="leading" constant="10" id="PmQ-ji-i4Y"/>
-                                </constraints>
-                            </stackView>
-                        </subviews>
-                        <viewLayoutGuide key="safeArea" id="Ab0-NB-rXw"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                        <constraints>
-                            <constraint firstItem="VjH-Pv-P3R" firstAttribute="leading" secondItem="Ab0-NB-rXw" secondAttribute="leading" constant="10" id="B2g-zQ-IZa"/>
-                            <constraint firstItem="VjH-Pv-P3R" firstAttribute="top" secondItem="Ab0-NB-rXw" secondAttribute="top" constant="20" id="Nee-5s-Y3J"/>
-                            <constraint firstItem="Ab0-NB-rXw" firstAttribute="trailing" secondItem="VjH-Pv-P3R" secondAttribute="trailing" constant="10" id="vxp-8G-I0e"/>
-                        </constraints>
-                    </view>
-                    <navigationItem key="navigationItem" title="Login to MEGA" id="fic-W6-wxY"/>
-                    <connections>
-                        <outlet property="emailText" destination="4KR-ur-POm" id="jKH-24-ieC"/>
-                        <outlet property="passwordText" destination="kbn-uX-aze" id="GDN-WT-N3e"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="5nh-Wv-3Dx" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="2814" y="198"/>
-        </scene>
         <!--View TextVC-->
         <scene sceneID="kvl-At-K6f">
             <objects>
-                <viewController id="woN-P9-xVM" customClass="ViewTextVC" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="woN-P9-xVM" customClass="ViewTextVC" customModule="SongsPlusPlus" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Xrq-Zu-dbH">
                         <rect key="frame" x="0.0" y="0.0" width="428" height="926"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -1484,7 +1419,7 @@
         <!--AcknowledgementsVC-->
         <scene sceneID="SRS-sO-v6o">
             <objects>
-                <viewController id="Tcc-1w-9D5" customClass="AcknowledgementsVC" customModule="Songs__" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="Tcc-1w-9D5" customClass="AcknowledgementsVC" customModule="SongsPlusPlus" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="soq-2j-XcH">
                         <rect key="frame" x="0.0" y="0.0" width="428" height="926"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
