@@ -140,19 +140,17 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         
         let replaceable = playerSongIsEphemeral();
         var playableNodes : [MEGANode] = [];
-        var i: Int = 0;
-        while (i < nodes.count) {
-            if isPlayable(nodes[i], orMightContainPlayable: true) {
+        for n in nodes {
+            if isPlayable(n, orMightContainPlayable: true) {
                 var v : [MEGANode] = [];
-                app().storageModel.loadSongsFromNodeRecursive(node: nodes[i], &v, recurse: true);
+                app().storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true);
                 playableNodes.append(contentsOf: v);
-                i += v.count;
             }
         }
 
         var truncatedLite = false;
         #if SONGS_LITE
-        if (i >= 25) {
+        if (playableNodes.count >= 25) {
             truncatedLite = true;
             playableNodes.removeLast(playableNodes.count - 25);
         }
@@ -723,12 +721,16 @@ class PlayQueue : NSObject, UITextFieldDelegate {
     
     func saveAsPlaylist(uic : UIViewController)
     {
-        if (!app().loginState.online)
-        {
-            reportMessage(uic: app().playQueueTVC!, message: "Please go online to upload the playlist")
+        if app().playlistBrowseFolder == nil {
+            reportMessage(uic: uic, message: "Please choose the playlist folder first. (Navigate to it and use the Option menu)");
             return;
         }
-        
+        if (!app().loginState.online)
+        {
+            reportMessage(uic: uic, message: "Please go online to upload the playlist.");
+            return;
+        }
+
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyyMMdd-HHmmss"
         var inputName = formatter.string(from: Date());
