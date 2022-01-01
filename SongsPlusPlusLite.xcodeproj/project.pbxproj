@@ -41,6 +41,7 @@
 		C9D74CA1277EC48400317072 /* libtag.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D74C98277EC47400317072 /* libtag.a */; };
 		C9D74CA2277EC48400317072 /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D74C97277EC47200317072 /* libz.a */; };
 		C9D74CA5277EC51800317072 /* libMEGASDK.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C962CA4F25DF6F1B00A77721 /* libMEGASDK.a */; };
+		C9D74CC12781153F00317072 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E12363F272006A2DE0 /* libresolv.tbd */; };
 		C9ED857F2711373F00D47DBB /* ViewTextVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9ED857E2711373F00D47DBB /* ViewTextVC.swift */; };
 		C9ED8582271189A500D47DBB /* Acknowledgements.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9ED8581271189A500D47DBB /* Acknowledgements.swift */; };
 /* End PBXBuildFile section */
@@ -148,6 +149,7 @@
 				C9D74C9F277EC48400317072 /* libsqlite3.a in Frameworks */,
 				84D137E62363F37F006A2DE0 /* CoreMedia.framework in Frameworks */,
 				C9D74C9D277EC48400317072 /* libcurl.a in Frameworks */,
+				C9D74CC12781153F00317072 /* libresolv.tbd in Frameworks */,
 				C9D74C9E277EC48400317072 /* libsodium.a in Frameworks */,
 				84D137E42363F344006A2DE0 /* CoreServices.framework in Frameworks */,
 				84D137D82363F0C0006A2DE0 /* libc++.tbd in Frameworks */,
