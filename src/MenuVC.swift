@@ -421,12 +421,13 @@ class MenuVC: UIViewController {
     * Play music files from your MEGA online storage account.
     * Songs are cached as part of the app's storage.
     * The next two songs to be played are downloaded and cached.
-    * Operate without an internet connection, playing already cached songs.
+    * Works offline (without an internet connection) to play already cached songs.
+    * Near-Zero Energy Impact in offline mode, Low Impact in online mode.
     * Download and cache as many songs as you want ahead of time.
-    * Browse your songs in the folder and file structure of your MEGA account.
-    * UI design prevents accidentally changing the playing song.
+    * Browse your songs in the folder and file structure of your MEGA account, online or offline.
+    * UI design avoids accidentally changing the playing song.
     * Just one simple list of the upcoming queued songs
-    * Create or update playlists which are simple files.
+    * Create or update playlists which are simple JSON files.
     * Save your new and updated playlists back to your MEGA account.
     * View by filename or by Track and Artist names
     * Extract Track and Artist names from music files (functionality from libtag)
@@ -434,7 +435,7 @@ class MenuVC: UIViewController {
     * File types considered playable (can be queued, iOS actually plays them): mp3, flac, m4a, aac, wav, aiff, au, pcm, ac3, aa, aax
     * Starts offline to minimise network use, go online easily anytime.
     * Choose your music and playlist folders, and browsing outside those folders won't be possible
-    * Convert your login to a Writable Folder Link so that the rest of your account is not even downloaded, for even better privacy and resource use.
+    * An option to log into one folder of your MEGA account, for privacy and minimal RAM use.
     """;
     
     let versionText =

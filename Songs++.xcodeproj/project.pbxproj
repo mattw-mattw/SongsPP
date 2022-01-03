@@ -59,7 +59,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		84008B9223603A4400BD633F /* Songs⁺̟.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "Songs⁺̟.app"; path = SongsPlusPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		84008B9223603A4400BD633F /* SongsPlusPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SongsPlusPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		84008B9523603A4400BD633F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		84008B9723603A4400BD633F /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		84008B9A23603A4400BD633F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -168,6 +168,7 @@
 				8439AD9123A8C6DD00BC550A /* Songs++.entitlements */,
 				842092B22363D60000DDE338 /* Bridging-Header.h */,
 				C9551C0D277E9419008BC7C8 /* Songs++Info.plist */,
+				84008B9C23603A5100BD633F /* Assets.xcassets */,
 				84008B9423603A4400BD633F /* src */,
 				84008B9323603A4400BD633F /* Products */,
 				84008BC323604D6F00BD633F /* Frameworks */,
@@ -177,7 +178,7 @@
 		84008B9323603A4400BD633F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				84008B9223603A4400BD633F /* Songs⁺̟.app */,
+				84008B9223603A4400BD633F /* SongsPlusPlus.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -208,7 +209,6 @@
 				C9ED857E2711373F00D47DBB /* ViewTextVC.swift */,
 				8498DB88236524F90036B1F6 /* LoginVC.swift */,
 				C96F3AD423BFC799008BF07D /* LoginStateModel.swift */,
-				84008B9C23603A5100BD633F /* Assets.xcassets */,
 				84008B9E23603A5100BD633F /* LaunchScreen.storyboard */,
 			);
 			path = src;
@@ -292,7 +292,7 @@
 			);
 			name = "Songs++";
 			productName = "just-exploring-3";
-			productReference = 84008B9223603A4400BD633F /* Songs⁺̟.app */;
+			productReference = 84008B9223603A4400BD633F /* SongsPlusPlus.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -547,7 +547,7 @@
 				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = (
 					/Users/matt/repos/sdk/bindings/ios,
-					"/Users/matt/repos/3rdParty_sdk_ios/vcpkg/installed/arm64-ios-mega/include",
+					"/Users/matt/repos/3rdParty_sdk_ios_arm64/vcpkg/installed/arm64-ios-mega/include",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Songs++Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
@@ -559,7 +559,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"/Users/matt/repos/3rdParty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/",
+					"/Users/matt/repos/3rdParty_sdk_ios_arm64/vcpkg/installed/arm64-ios-mega/lib/",
 					"/Users/matt/repos/sdk/build-arm64-ios-mega-Release",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
@@ -583,7 +583,7 @@
 				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = (
 					/Users/matt/repos/sdk/bindings/ios,
-					"/Users/matt/repos/3rdParty_sdk_ios/vcpkg/installed/arm64-ios-mega/include",
+					"/Users/matt/repos/3rdParty_sdk_ios_arm64/vcpkg/installed/arm64-ios-mega/include",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Songs++Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
@@ -595,7 +595,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"/Users/matt/repos/3rdParty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/",
+					"/Users/matt/repos/3rdParty_sdk_ios_arm64/vcpkg/installed/arm64-ios-mega/lib/",
 					"/Users/matt/repos/sdk/build-arm64-ios-mega-Release",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
