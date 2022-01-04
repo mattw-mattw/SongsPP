@@ -11,8 +11,6 @@ import UIKit
 
 class MenuVC: UIViewController {
 
-    var busyControl : UIAlertController? = nil;
-
     @IBOutlet weak var loginButton : UIButton?
     @IBOutlet weak var logoutButton : UIButton?
     @IBOutlet weak var forgetFolderLinkButton : UIButton?
@@ -35,17 +33,6 @@ class MenuVC: UIViewController {
         goOfflineButton?.isEnabled = app().loginState.online;
         goOnlineButton?.isEnabled = !app().loginState.online && (app().loginState.accountBySession || app().loginState.accountByFolderLink);
         reloadAccountButton.isEnabled = app().loginState.online && (app().loginState.accountBySession || app().loginState.accountByFolderLink);
-    }
-    
-    func startSpinnerControl(message : String)
-    {
-        busyControl = UIAlertController(title: nil, message: message + "\n\n", preferredStyle: .alert)
-        let spinnerIndicator = UIActivityIndicatorView(style: .large)
-        spinnerIndicator.center = CGPoint(x: 135.0, y: 65.5)
-        spinnerIndicator.color = UIColor.black
-        spinnerIndicator.startAnimating()
-        busyControl!.view.addSubview(spinnerIndicator)
-        self.present(busyControl!, animated: false, completion: nil)
     }
     
     @IBAction func onLoginClicked(_ sender: Any) {
@@ -72,13 +59,12 @@ class MenuVC: UIViewController {
                 let email = alert.textFields![0].text ?? "";
                 let pw = alert.textFields![1].text ?? "";
                 let twoFA = alert.textFields![2].text ?? "";
-                self.startSpinnerControl(message: "Logging in");
-                app().loginState.login(user: email, pw: pw, twoFactor: twoFA,
-                                    onProgress: {(message) in self.busyControl!.message = message + "\n\n";},
+                
+                let spinner = ProgressSpinner(uic: self, title: "Logging in", message: "");
+                
+                app().loginState.login(spinner: spinner, user: email, pw: pw, twoFactor: twoFA,
                                     onFinish: { (success) in
-                                        self.busyControl!.dismiss(animated: true);
-                                        self.busyControl = nil;
-                                        if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage); }
+                                        spinner.dismissOrReportError(success: success);
                                         if (success) { self.navigationController?.popViewController(animated: true); }
                                         self.setEnabled()
                                     })
@@ -89,27 +75,21 @@ class MenuVC: UIViewController {
     }
     
     @IBAction func onGoOfflineButtonClicked(_ sender: UIButton) {
-        startSpinnerControl(message: "Going Offline");
-        app().loginState.goOffline(
-            onProgress: {(message) in self.busyControl!.message = message + "\n\n";},
+        let spinner = ProgressSpinner(uic: self, title: "Going Offline", message: "");
+        app().loginState.goOffline(spinner: spinner,
             onFinish: { (success) in
-                self.busyControl!.dismiss(animated: true);
-                self.busyControl = nil;
-                if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage) }
+                spinner.dismissOrReportError(success: success);
                 self.setEnabled();
             })
     }
     
     @IBAction func onGoOnlineButtonClicked(_ sender: UIButton) {
-        startSpinnerControl(message: "Going Online");
-        app().loginState.goOnline(
-            onProgress: {(message) in self.busyControl!.message = message + "\n\n";},
+        let spinner = ProgressSpinner(uic: self, title: "Going Online", message: "");
+        app().loginState.goOnline(spinner: spinner,
             onFinish: { (success) in
-                self.busyControl!.dismiss(animated: true);
-                self.busyControl = nil;
-                if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage); }
+                spinner.dismissOrReportError(success: success);
                 self.setEnabled();
-        })
+            })
     }
     
     @IBAction func onReloadAccountClicked(_ sender: Any) {
@@ -118,7 +98,7 @@ class MenuVC: UIViewController {
         
         alert.addAction(UIAlertAction(title: "Refetch Account", style: .default, handler: { (UIAlertAction) -> () in
             
-            self.startSpinnerControl(message: "Reloading Account");
+            let spinner = ProgressSpinner(uic: self, title: "Reloading Account", message: "");
             
             mega().localLogout();
             do {
@@ -128,17 +108,13 @@ class MenuVC: UIViewController {
             }
             app().storageModel.alreadyCreatedFolders = [];
             _ = app().storageModel.accountPath(); // recreate folder
-            app().loginState.goOnline(onProgress: { str in }, onFinish: {b in
-                self.busyControl!.dismiss(animated: true);
-                self.busyControl = nil;
-                if (!b) { reportMessage(uic: self, message: app().loginState.errorMessage); }
+            app().loginState.goOnline(spinner: spinner, onFinish: {b in
+                spinner.dismissOrReportError(success: b);
             });
         }));
 
         alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
         self.present(alert, animated: false, completion: nil)
-                                      
-        
     }
     
     @IBAction func onLogoutButtonClicked(_ sender: UIButton) {
@@ -162,8 +138,8 @@ class MenuVC: UIViewController {
     
     func logoutAndDealWithCache(deleteCache : Bool)
     {
-        startSpinnerControl(message: "Logging out");
-        app().loginState.logout(onFinish: { success_in in
+        let spinner = ProgressSpinner(uic: self, title: "Logging out", message: "");
+        app().loginState.logout(spinner: spinner, onFinish: { success_in in
             
             var success = success_in;
             
@@ -175,18 +151,12 @@ class MenuVC: UIViewController {
                     success = app().storageModel.deleteCachedFiles(includingAccountAndSettings: true);
                     if (!success)
                     {
-                        app().loginState.errorMessage = "Failed to erase cache after logout";
+                        spinner.setErrorMessage("Failed to erase cache after logout");
                     }
                 }
             }
             
-            self.busyControl!.dismiss(animated: true);
-            self.busyControl = nil;
-
-            if (!success)
-            {
-                reportMessage(uic: self, message: app().loginState.errorMessage);
-            }
+            spinner.dismissOrReportError(success: success);
             self.setEnabled();
         })
     }
@@ -212,23 +182,22 @@ class MenuVC: UIViewController {
     
     func forgetFolderLinkAndDealWithCache(deleteCache: Bool)
     {
-        startSpinnerControl(message: "Forgetting Folder Link");
-        app().loginState.forgetFolderLink(onFinish: { success in
-            self.busyControl!.dismiss(animated: true);
-            self.busyControl = nil;
-            if (success) {
+        let spinner = ProgressSpinner(uic: self, title: "Forgetting Folder Link", message: "");
+        app().loginState.forgetFolderLink(spinner: spinner, onFinish: { success in
+            var b = success;
+            if (b) {
                 if (deleteCache)
                 {
+                    spinner.updateTitleMessage("Deleting cache", "Folder link already forgotten.")
                     if (!app().storageModel.deleteCachedFiles(includingAccountAndSettings: true))
                     {
-                        reportMessage(uic: self, message: "Failed to erase cache after forget folder link");
+                        b = false;
+                        spinner.setErrorMessage("Failed to erase cache after wiping folder link");
                     }
                 }
                 app().clear();
             }
-            else {
-                reportMessage(uic: self, message: app().loginState.errorMessage);
-            }
+            spinner.dismissOrReportError(success: b);
             self.setEnabled();
         })
     }
@@ -239,13 +208,18 @@ class MenuVC: UIViewController {
         
         let startA1 = UIAlertAction(title: "Wipe all cached files", style: .default, handler:
             { (UIAlertAction) -> () in
-            if (app().storageModel.deleteCachedFiles(includingAccountAndSettings: false))
+            
+                let spinner = ProgressSpinner(uic: self, title: "Clearing Cache", message: "");
+            
+                if (app().storageModel.deleteCachedFiles(includingAccountAndSettings: false))
                 {
+                    spinner.dismiss();
                     reportMessage(uic: self, message: "Cached files cleared");
                 }
                 else
                 {
-                    reportMessage(uic: self, message: "Could not clear all cached files");
+                    spinner.setErrorMessage("Some cached data failed to delete");
+                    spinner.dismissOrReportError(success: false);
                 }
             });
         

@@ -35,29 +35,15 @@ class LoginVC: UIViewController {
         // Pass the selected object to the new view controller.
     }
     */
-    
-    var loginBusyControl : UIAlertController? = nil;
 
-    func startSpinnerControl(message : String)
-    {
-        loginBusyControl = UIAlertController(title: nil, message: message + "\n\n", preferredStyle: .alert)
-        let spinnerIndicator = UIActivityIndicatorView(style: .large)
-        spinnerIndicator.center = CGPoint(x: 135.0, y: 65.5)
-        spinnerIndicator.color = UIColor.black
-        spinnerIndicator.startAnimating()
-        loginBusyControl!.view.addSubview(spinnerIndicator)
-        self.present(loginBusyControl!, animated: false, completion: nil)
-    }
-    
     @IBAction func onLoginButtonClicked(_ sender: UIButton) {
-        startSpinnerControl(message: "Logging in");
-        app().loginState.login(user: emailText.text!, pw: passwordText.text!, twoFactor: "",
-                            onProgress: {(message) in self.loginBusyControl!.message = message + "\n\n";},
+        let spinner = ProgressSpinner(uic: self, title: "Logging in", message: "Requesting");
+        app().loginState.login(spinner: spinner, user: emailText.text!, pw: passwordText.text!, twoFactor: "",
                             onFinish: { (success) in
-                                self.loginBusyControl!.dismiss(animated: true);
-                                self.loginBusyControl = nil;
-                                if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage); }
-                                if (success) { self.navigationController?.popViewController(animated: true); }
+                                spinner.dismissOrReportError(success: success)
+                                if (success) {
+                                    self.navigationController?.popViewController(animated: true);
+                                }
                             })
 
     }

@@ -1535,14 +1535,14 @@
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2X6-ym-ho0">
                                                 <rect key="frame" x="0.0" y="240" width="428" height="30"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                                <state key="normal" title="Clear File Cache.."/>
+                                                <state key="normal" title="Clear File Cache..."/>
                                                 <connections>
                                                     <action selector="OnClearFileCacheClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="luf-ux-S8j"/>
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1xl-ZA-dFH">
                                                 <rect key="frame" x="0.0" y="270" width="428" height="30"/>
-                                                <state key="normal" title="Troubleshoot with log files"/>
+                                                <state key="normal" title="Troubleshoot with log files..."/>
                                                 <connections>
                                                     <action selector="onTroubleshootWithLogFilesClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="wEO-1K-57m"/>
                                                 </connections>
@@ -1550,7 +1550,7 @@
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="g4N-XQ-NqX">
                                                 <rect key="frame" x="0.0" y="300" width="428" height="30"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                                <state key="normal" title="Refetch Account.."/>
+                                                <state key="normal" title="Refetch Account..."/>
                                                 <connections>
                                                     <action selector="onReloadAccountClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="wii-xh-UCK"/>
                                                 </connections>

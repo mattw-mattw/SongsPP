@@ -137,6 +137,18 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             tableView.selectRow(at: IndexPath(row: selectRowOnAppear, section: 0), animated: true, scrollPosition: .middle)
         }
         selectRowOnAppear = -1;
+        
+        // in case cache was wiped
+        if (isPlaylists())
+        {
+            for n in nodeArray {
+                if n.name != nil &&
+                   n.name!.hasSuffix(".playlist")
+                {
+                    _ = app().storageModel.startDownloadIfAbsent(node: n);
+                }
+            }
+        }
     }
     
     @objc func onParentTap(sender : UITapGestureRecognizer) {
@@ -155,7 +167,9 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         if (currentFolder != nil)
         {
 
-            if app().loginState.accountBySession && !isPlaylists() && app().musicBrowseFolder == nil {
+            if app().loginState.accountBySession && !isPlaylists() && app().musicBrowseFolder == nil
+                && mega().rootNode != nil && currentFolder!.handle != mega().rootNode!.handle
+            {
                 alert.addAction(UIAlertAction(title: "Set as the top available folder...", style: .default, handler:
                     { (UIAlertAction) -> () in self.CheckSetAsWritableFolderLink() }));
             }
@@ -282,20 +296,6 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         self.present(alert, animated: false, completion: nil)
     }
     
-    
-    var busyControl : UIAlertController? = nil;
-    
-    func startSpinnerControl(message : String)
-    {
-        busyControl = UIAlertController(title: nil, message: message + "\n\n", preferredStyle: .alert)
-        let spinnerIndicator = UIActivityIndicatorView(style: .large)
-        spinnerIndicator.center = CGPoint(x: 135.0, y: 65.5)
-        spinnerIndicator.color = UIColor.black
-        spinnerIndicator.startAnimating()
-        busyControl!.view.addSubview(spinnerIndicator)
-        self.present(busyControl!, animated: false, completion: nil)
-    }
-    
     func SetAsWritableFolderLink()
     {
         if (!app().loginState.online)
@@ -306,13 +306,11 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             return;
         }
         
-        startSpinnerControl(message: "Writable Folder Link");
-        app().loginState.convertToWritableFolderLink(currentFolder!, 
-            onProgress: {(message) in self.busyControl!.message = message + "\n\n";},
+        let spinner = ProgressSpinner(uic: self, title: "Writable Folder Link", message: "");
+
+        app().loginState.convertToWritableFolderLink(spinner: spinner, currentFolder!,
             onFinish: { (success) in
-                self.busyControl!.dismiss(animated: true);
-                self.busyControl = nil;
-                if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage) }
+                spinner.dismissOrReportError(success: success)
             });
     }
     

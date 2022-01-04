@@ -27,9 +27,6 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
         bpmText.delegate = self;
     }
     
-    var busyControl : UIAlertController? = nil;
-
-    
     func textFieldShouldReturn(_ textField: UITextField) ->Bool {
         titleText.resignFirstResponder();
         artistText.resignFirstResponder();
@@ -38,28 +35,17 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
         return false; // don't do control default, we've processed it
     }
     
-    func startSpinnerControl(message : String)
-    {
-        busyControl = UIAlertController(title: nil, message: message + "\n\n", preferredStyle: .alert)
-        let spinnerIndicator = UIActivityIndicatorView(style: .large)
-        spinnerIndicator.center = CGPoint(x: 135.0, y: 65.5)
-        spinnerIndicator.color = UIColor.black
-        spinnerIndicator.startAnimating()
-        busyControl!.view.addSubview(spinnerIndicator)
-        self.present(busyControl!, animated: false, completion: nil)
-    }
-    
     func goOnline()
     {
-        startSpinnerControl(message: "Going Online");
-        app().loginState.goOnline(
-            onProgress: {(message) in self.busyControl!.message = message + "\n\n";},
+        let spinner = ProgressSpinner(uic: self, title: "Going Online", message: "");
+
+        app().loginState.goOnline(spinner: spinner,
             onFinish: { (success) in
-                self.busyControl!.dismiss(animated: true);
-                self.busyControl = nil;
-                if (!success) { reportMessage(uic: self, message: app().loginState.errorMessage); }
+                spinner.dismissOrReportError(success: success)
         })
     }
+    
+    var saveAllSpinner : ProgressSpinner? = nil;
 
     var pending : Int = 0;
     var setAttrError : MEGAError? = nil;
@@ -67,9 +53,9 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
     {
         pending -= 1;
         if (e.type != .apiOk) { setAttrError = e; }
-        if (pending <= 0) {
-            self.busyControl!.dismiss(animated: true);
-            self.busyControl = nil;
+        if (pending <= 0 && saveAllSpinner != nil) {
+            self.saveAllSpinner!.dismiss();
+            self.saveAllSpinner = nil;
             if (setAttrError != nil && setAttrError!.type != .apiOk) {
                 reportMessage(uic: self, message: "Attribute set failed: " + e.nameWithErrorCode(setAttrError!.type.rawValue));
             }
@@ -100,7 +86,7 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
         if !app().loginState.online { goOnline(); }
         if !app().loginState.online { return; }
         
-        startSpinnerControl(message: "Saving song data");
+        saveAllSpinner = ProgressSpinner(uic: self, title: "Saving song data", message: "");
 
         setAttrError = nil;
         pending += 4;

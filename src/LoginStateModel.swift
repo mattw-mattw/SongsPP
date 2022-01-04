@@ -25,73 +25,66 @@ class MEGARequestOneShot : NSObject, MEGARequestDelegate
     }
 
     func onRequestFinish(_ api: MEGASdk, request: MEGARequest, error: MEGAError) {
-        if (finishFunc != nil ) { finishFunc!(error) }
-        if (finishRequestFunc != nil ) { finishRequestFunc!(error, request) }
+        
+        let requestCopy = request.clone();
+        let errorCopy = error.clone();
+        
+        DispatchQueue.main.async {
+            if (self.finishFunc != nil ) { self.finishFunc!(errorCopy!) }
+            if (self.finishRequestFunc != nil ) { self.finishRequestFunc!(errorCopy!, requestCopy!) }
+        }
     }
 }
 
 class LoginState //: ObservableObject
 {
     
-    var processing : Bool = false;
-    var processingTitle : String = "";
-    var processingMessage : String = "";
-    var errorMessage : String = "";
+//    var processing : Bool = false;
+//    var processingTitle : String = "";
+//    var processingMessage : String = "";
+//    var errorMessage : String = "";
     
     var accountBySession : Bool = false;
     var accountByFolderLink : Bool = false;
     var online : Bool = false;
 
-    func printState(_ codePoint : String)
+    func login(spinner : ProgressSpinner, user : String, pw: String, twoFactor: String, onFinish : @escaping (Bool) -> ())
     {
-        print( "\(codePoint) \(online) \(accountBySession) \(accountByFolderLink) \(processing) \(processingTitle) \(errorMessage)" )
-    }
-
-    func login(user : String, pw: String, twoFactor: String, onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ())
-    {
-        printState("login start")
-        
-        processingTitle = "Logging-in"
-        processingMessage = "to MEGA";
-        processing = true;
-
         online = false;
         accountBySession = false;
         accountByFolderLink = false;
 
         mega().multiFactorAuthLogin(withEmail: user, password: pw, pin:twoFactor,
-                     delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
-                        if (e.type == .apiOk) {
-                            if (self.saveSession(isWriteableLink: false))
-                            {
-                                self.accountBySession = true;
-                                self.online = true;
-                                self.printState("logged in, fetching")
-                                self.fetchnodes(onProgress: onProgress, onFinish: onFinish)
-                                return;
-                            }
-                        } else {
-                            self.errorMessage = "Login failed: " + e.nameWithErrorCode(e.type.rawValue);
-                        }
-                        self.processing = false;
-                        self.printState("login failed")
-                        onFinish(false)
-                    }))
-        printState("login ends")
+             delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
+                if (e.type == .apiOk) {
+                    if (self.saveSession(isWriteableLink: false))
+                    {
+                        self.accountBySession = true;
+                        self.online = true;
+                        self.fetchnodes(spinner: spinner, onFinish: onFinish)
+                        return;
+                    } else {
+                        spinner.setErrorMessage("Could not store login details");
+                        self.clear();
+                        onFinish(false);
+                    }
+                } else {
+                    spinner.setErrorMessage("Login failed: " + e.nameWithErrorCode(e.type.rawValue));
+                    onFinish(false);
+                }
+            }))
     }
 
-    func fetchnodes(onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ())
+    func fetchnodes(spinner : ProgressSpinner, onFinish : @escaping (Bool) -> ())
     {
-        printState("fetchnodes starts")
-        processingTitle = !online ? "Loading Folders" : "Fetching Folders";
-        processingMessage = !online ? "Loading your last cached folder tree" : "Fetching your folder tree from MEGA";
-        processing = true;
-        onProgress(processingTitle);
+        if (online) {
+            spinner.updateTitleMessage("Fetching Folders", "Fetching your folder tree from MEGA");
+        } else {
+            spinner.updateTitleMessage("Loading Folders", "Loading your last cached folder tree");
+        }
         mega().fetchNodes(
                      with: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
                         if (e.type == .apiOk) {
-                            self.processing = false;
-                            self.printState("fetchnodes success")	
                             self.loadRoots(onFinish: onFinish)
                             let replaceable = app().playQueue.playerSongIsEphemeral();
                             if (app().needsRestoreOnStartup) {
@@ -100,13 +93,10 @@ class LoginState //: ObservableObject
                             }
                             app().playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable)
                         } else {
-                            self.errorMessage = "Login succeeded but FetchNodes failed: " + e.nameWithErrorCode(e.type.rawValue);
-                            self.processing = false;
-                            self.printState("fetchnodes fail")
+                            spinner.setErrorMessage("Login succeeded but FetchNodes failed: " + e.nameWithErrorCode(e.type.rawValue) + ". Please exit the app and restart it to recover.");
                             onFinish(false)
                         }
                      }))
-        printState("fetchnodes ends")
     }
     
     func loadRoots(onFinish : @escaping (Bool) -> ())
@@ -129,32 +119,25 @@ class LoginState //: ObservableObject
     }
     
     
-    func convertToWritableFolderLink(_ currentFolder : MEGANode, onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ())
+    func convertToWritableFolderLink(spinner : ProgressSpinner, _ currentFolder : MEGANode, onFinish : @escaping (Bool) -> ())
     {
+        spinner.updateTitleMessage("Writable Folder Link", "Creating a writable folder link for subsequent logins.");
+
         mega().exportNodeWritable(currentFolder, writable: 1 == 1, delegate: MEGARequestOneShot(onRequestFinish: { (e: MEGAError, req: MEGARequest) -> Void in
             if (e.type == .apiOk && req.link != nil && req.privateKey != nil) {
-                onProgress("Logging out");
-                self.logout(onFinish: {b in
-                
-                    onProgress("Loading Folder Link");
-                    _ = self.loginWritableFolderLink(writableLink: req.link, writableAuth: req.privateKey, onProgress: onProgress, onFinish: onFinish);
+                self.logout(spinner : spinner, onFinish: {b in
+                    self.loginWritableFolderLink(spinner: spinner, writableLink: req.link, writableAuth: req.privateKey, onFinish: onFinish);
                 })
-                return;
+            } else {
+                spinner.setErrorMessage("Create writable link failed: " + e.nameWithErrorCode(e.type.rawValue));
+                onFinish(false);
             }
-            self.errorMessage = "Create writable link failed: " + e.nameWithErrorCode(e.type.rawValue);
-            self.processing = false;
-            self.printState("create writable link failed")
-            onFinish(false)
         }))
     }
 
-    func loginWritableFolderLink(writableLink: String, writableAuth: String, onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ()) -> Bool
+    func loginWritableFolderLink(spinner : ProgressSpinner, writableLink: String, writableAuth: String, onFinish : @escaping (Bool) -> ())
     {
-        printState("Writable folder link start")
-
-        processingTitle = "Resuming Link"
-        processingMessage = "Logging in with saved writable folder link";
-        processing = true;
+        spinner.updateTitleMessage("Resuming Link", "Logging in with saved writable folder link");
         
         accountBySession = false;
         accountByFolderLink = false;
@@ -162,92 +145,78 @@ class LoginState //: ObservableObject
 
         mega().login(toFolderLinkAuthed: writableLink, folderAuth: writableAuth, offline: false, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
             if (e.type == .apiOk) {
-                
                 // save the new online and offline session strings.
                 self.accountByFolderLink = true;
                 self.online = true;
-                self.printState("Writable folder link success, fetching")
-                self.fetchnodes(onProgress: onProgress, onFinish: { (success: Bool) -> Void in
-                    let b = success && self.saveSession(isWriteableLink: true);
-                    onFinish(b);
+                self.fetchnodes(spinner: spinner, onFinish: { (success: Bool) -> Void in
+                    if (!success) {
+                        onFinish(false);
+                    } else {
+                        if (self.saveSession(isWriteableLink: true)) {
+                            onFinish(true);
+                        } else {
+                            spinner.setErrorMessage("Could not store login details");
+                            self.clear();
+                            onFinish(false);
+                        }
+                    }
                 })
-                return;
             } else {
-                self.errorMessage = "Writable folder link failed: " + e.nameWithErrorCode(e.type.rawValue);
-                self.processing = false;
-                self.printState("Writable folder link fail")
+                spinner.setErrorMessage("Writable folder link request failed: " + e.nameWithErrorCode(e.type.rawValue));
+                onFinish(false)
             }
-            onFinish(false)
-        }))
-        printState("Writable folder link ends")
-        return true;
+        }));
     }
     
-    func goOnline(onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ())
+    func goOnline(spinner : ProgressSpinner, onFinish : @escaping (Bool) -> ())
     {
-        printState("go online start")
-        
         let onlineSidAcct = app().storageModel.loadSettingFile(leafname: "onlineSidAcct")
         let onlineSidLink = app().storageModel.loadSettingFile(leafname: "onlineSidLink")
         if ((onlineSidAcct ?? onlineSidLink) == nil) {
             clear();
-            errorMessage = "No online session info found";
+            spinner.setErrorMessage("No online session info found");
             onFinish(false)
             return
         }
         
-        processingTitle = "Resuming session"
-        processingMessage = "Logging in with saved session";
-        processing = true;
+        spinner.updateTitleMessage("Resuming session", "Logging in with saved session")
         
         mega().fastLogin(withSession: (onlineSidAcct ?? onlineSidLink)!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
             if (e.type == .apiOk) {
                 self.accountBySession = onlineSidAcct != nil;
                 self.accountByFolderLink = onlineSidLink != nil;
                 self.online = true;
-                self.printState("go online success, fetching")
-                self.fetchnodes(onProgress: onProgress, onFinish: onFinish)
+                self.fetchnodes(spinner: spinner, onFinish: onFinish)
             } else {
-                self.errorMessage = "Session resume failed: " + e.nameWithErrorCode(e.type.rawValue);
-                self.processing = false;
-                self.printState("go online fail")
+                spinner.setErrorMessage("Session resume failed: " + e.nameWithErrorCode(e.type.rawValue));
                 onFinish(false)
             }
-        }))
-        printState("go online ends")
+        }));
     }
     
-    func goOffline(onProgress : @escaping (String) -> (), onFinish : @escaping (Bool) -> ())
+    func goOffline(spinner : ProgressSpinner, onFinish : @escaping (Bool) -> ())
     {
-        printState("go offline start")
-
         let offlineSidAcct = app().storageModel.loadSettingFile(leafname: "offlineSidAcct")
         let offlineSidLink = app().storageModel.loadSettingFile(leafname: "offlineSidLink")
         if ((offlineSidAcct ?? offlineSidLink) == nil) {
-            errorMessage = "No offline session info found";
-            onFinish(false)
+            spinner.setErrorMessage("No offline session info found");
+            onFinish(false);
             return
         }
 
-        processingTitle = "Resuming Offline"
-        processingMessage = "Loading saved session";
-        processing = true;
+        spinner.updateTitleMessage("Resuming Offline", "Loading saved session");
         
         mega().fastLogin(withSessionOffline: (offlineSidAcct ?? offlineSidLink)!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
             if (e.type == .apiOk) {
                 self.accountBySession = offlineSidAcct != nil;
                 self.accountByFolderLink = offlineSidLink != nil;
                 self.online = false;
-                self.printState("go offline success, fetching")
-                self.fetchnodes(onProgress: onProgress, onFinish: onFinish)
+                self.fetchnodes(spinner: spinner, onFinish: onFinish)
             } else {
-                self.errorMessage = "Session resume failed: " + e.nameWithErrorCode(e.type.rawValue);
-                self.processing = false;
-                self.printState("go offline fail")
+                spinner.setErrorMessage("Session resume failed: " + e.nameWithErrorCode(e.type.rawValue));
                 onFinish(false)
             }
         }))
-        printState("go offline ends")
     }
 
     func saveSession(isWriteableLink : Bool) ->Bool
@@ -262,9 +231,6 @@ class LoginState //: ObservableObject
             app().storageModel.deleteSettingFile(leafname: "offlineSid" + (!isWriteableLink ? "Link": "Acct"))
             return true;
         }
-        self.errorMessage = "Could not store login details";
-        self.processing = false;
-        clear();
         return false;
     }
 
@@ -281,58 +247,40 @@ class LoginState //: ObservableObject
         self.online = false;
     }
     
-    func logout(onFinish : @escaping (Bool) -> ())
+    func logout(spinner : ProgressSpinner, onFinish : @escaping (Bool) -> ())
     {
-        printState("logout start")
-
-        processingTitle = "Logging out"
-        processingMessage = "Closing and invalidating session";
-        processing = true;
-
+        spinner.updateTitleMessage("Logging out", "Closing and invalidating the old logged in session.");
+        
         mega().logout(with: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
-            self.processing = false;
             if (e.type == .apiOk)
             {
                 self.clear();
-                self.printState("logout success")
                 onFinish(true);
             }
             else
             {
-                self.errorMessage = "Logout failed: " + e.nameWithErrorCode(e.type.rawValue);
-                self.printState("logout fail")
+                spinner.setErrorMessage("Logout failed: " + e.nameWithErrorCode(e.type.rawValue));
                 onFinish(false);
             }
-            }))
-
-        printState("logout ends")
+        }))
     }
 
-    func forgetFolderLink(onFinish : @escaping (Bool) -> ())
+    func forgetFolderLink(spinner : ProgressSpinner, onFinish : @escaping (Bool) -> ())
     {
-        printState("forgetFolderLink start")
-
-        processingTitle = "Closing Folder Link"
-        processingMessage = "Forgetting Writable Folder Link";
-        processing = true;
+        spinner.updateTitleMessage("Closing Folder Link", "Forgetting Writable Folder Link");
 
         mega().localLogout(with: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
-            self.processing = false;
             if (e.type == .apiOk)
             {
                 self.clear();
-                self.printState("Link forgotten")
                 onFinish(true);
             }
             else
             {
-                self.errorMessage = "Link forget failed: " + e.nameWithErrorCode(e.type.rawValue);
-                self.printState("link forget fail")
+                spinner.setErrorMessage("Link forget failed: " + e.nameWithErrorCode(e.type.rawValue));
                 onFinish(false);
             }
-            }))
-
-        printState("forgetFolderLink ends")
+        }))
     }
 
 

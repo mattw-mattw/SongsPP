@@ -26,7 +26,15 @@ class TransferOnFinishDelegate: NSObject, MEGATransferDelegate {
     }
     
     func onTransferFinish(_ api: MEGASdk, transfer request: MEGATransfer, error: MEGAError) {
-        if (finishFunc != nil ) { finishFunc!(error, request.nodeHandle) }
+        if (finishFunc != nil ) {
+            
+            let requestClone = request.clone();
+            let errorClone = error.clone();
+            
+            DispatchQueue.main.async {
+                self.finishFunc!(errorClone!, requestClone!.nodeHandle)
+            }
+        }
     }
     
     func onTransferTemporaryError(_ api: MEGASdk, transfer request: MEGATransfer, error: MEGAError) {
@@ -60,7 +68,15 @@ class PlaylistTVC: UITableViewController {
         
         if (!loadedOk)
         {
-            let alert = UIAlertController(title: "Playlist absent", message: "The playlist has not been downloaded yet.  Please go online so it can download, and it will be available shortly afterward", preferredStyle: .alert)
+            let message = app().loginState.online ?
+            "The playlist has not been downloaded yet, please give it a moment and then retry.":
+            "The playlist has not been downloaded yet.  Please go online so it can download, and it will be available shortly afterward";
+            
+            if playlistNode != nil {
+                _ = app().storageModel.startPlaylistDownloadIfAbsent(playlistNode!);
+            }
+            
+            let alert = UIAlertController(title: "Playlist absent", message: message, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "Ok", style: .cancel));
             self.present(alert, animated: false, completion: { () -> Void in
                 self.navigationController?.popViewController(animated: true);
@@ -104,20 +120,6 @@ class PlaylistTVC: UITableViewController {
         self.present(alert, animated: false, completion: nil)
     }
     
-    
-    var spinnerBusyControl : UIAlertController? = nil;
-
-    func startSpinnerControl(message : String)
-    {
-        spinnerBusyControl = UIAlertController(title: nil, message: message + "\n\n", preferredStyle: .alert)
-        let spinnerIndicator = UIActivityIndicatorView(style: .large)
-        spinnerIndicator.center = CGPoint(x: 135.0, y: 65.5)
-        spinnerIndicator.color = UIColor.black
-        spinnerIndicator.startAnimating()
-        spinnerBusyControl!.view.addSubview(spinnerIndicator)
-        self.present(spinnerBusyControl!, animated: false, completion: nil)
-    }
-    
     @IBAction func onSaveButton() {
         
         if (CheckOnlineOrWarn("Please go online before uploading the changed playlist", uic: self))
@@ -152,15 +154,13 @@ class PlaylistTVC: UITableViewController {
                         }
                     }
 
-                    startSpinnerControl(message: "Uploading Playlist");
+                    let spinner = ProgressSpinner(uic: self, title: "Uploading Playlist", message: "");
                     
                     mega().startUploadToFile(withLocalPath: updateFilePath, parent: parentFolder, filename:playlistNode!.name!,
                                              delegate: TransferOnFinishDelegate(onFinish: { (e: MEGAError, h: MEGAHandle) -> Void in
 
-                        self.spinnerBusyControl!.dismiss(animated: true);
-                        self.spinnerBusyControl = nil;
-
-                        if (e.type == .apiOk) {
+                        var success = e.type == .apiOk;
+                        if (success) {
                             do {
                                 try FileManager.default.removeItem(atPath: updateFilePath);
                                 
@@ -177,11 +177,15 @@ class PlaylistTVC: UITableViewController {
                                 self.navigationController?.popViewController(animated: true);
                                 
                             } catch {
-                                reportMessage(uic: self, message: "Could not remove the upload file afterward");
+                                success = false;
+                                spinner.setErrorMessage("Could not remove the upload file afterward");
                             }
                         } else {
-                            reportMessage(uic: self, message: "Error uploading: " + e.nameWithErrorCode(e.type.rawValue));
+                            success = false;
+                            spinner.setErrorMessage("Error uploading: " + e.nameWithErrorCode(e.type.rawValue));
                         }
+
+                        spinner.dismissOrReportError(success: success)
 
                     }));
                 }

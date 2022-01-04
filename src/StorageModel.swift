@@ -164,6 +164,13 @@ class StorageModel {
         catch {
             result = false;
         }
+        
+        // recreate those folders again (now empty) so we don't have issues with the next login etc.
+        app().storageModel.alreadyCreatedFolders = [];
+        _ = accountPath();
+        _ =  cacheFilesPath();
+        _ = tempFilesPath();
+        
         return result;
     }
 
@@ -477,6 +484,7 @@ class StorageModel {
     {
         do {
             try content.write(toFile: settingsPath() + "/" + leafname, atomically: true, encoding: String.Encoding.utf8);
+            print("Wrote file: " + settingsPath() + "/" + leafname)
             return true;
         }
         catch {
@@ -486,11 +494,14 @@ class StorageModel {
     
     func deleteSettingFile(leafname : String)
     {
-        do {
-            try FileManager.default.removeItem(atPath: settingsPath() + "/" + leafname)
-        }
-        catch {
-            print("Failed to remove file " + settingsPath() + "/" + leafname)
+        if FileManager.default.fileExists(atPath: settingsPath() + "/" + leafname) {
+            do {
+                try FileManager.default.removeItem(atPath: settingsPath() + "/" + leafname)
+                print("Removed file: " + settingsPath() + "/" + leafname)
+            }
+            catch {
+                print("Failed to remove file " + settingsPath() + "/" + leafname)
+            }
         }
     }
     

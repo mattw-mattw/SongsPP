@@ -11,6 +11,76 @@ import UIKit
 import AVKit
 import MediaPlayer
 
+
+class ProgressSpinner {
+
+    var busyControl : UIAlertController? = nil;
+    var parentView : UIViewController? = nil;
+    let spinnerIndicator = UIActivityIndicatorView(style: .large)
+    
+    var errorMessage : String = "";
+    
+    init(uic : UIViewController?, title : String, message : String)
+    {
+        parentView = uic;
+        busyControl = UIAlertController(title: title, message: "\n\n\n" + message, preferredStyle: .alert)
+        spinnerIndicator.center = CGPoint(x: 135.0, y: 65.5)
+        spinnerIndicator.color = UIColor.blue
+        spinnerIndicator.startAnimating()
+        busyControl!.view.addSubview(spinnerIndicator)
+        if (parentView != nil)
+        {
+            parentView!.present(busyControl!, animated: false, completion: nil)
+        }
+        print( "spinner starts: " + title + " " + message);
+    }
+
+    func updateMessage(_ message : String)
+    {
+        busyControl!.message = "\n\n\n" + message;
+        print( "spinner update: " + message);
+    }
+    
+    func updateTitleMessage(_ title : String, _ message : String)
+    {
+        busyControl!.title = title;
+        busyControl!.message = "\n\n\n" + message;
+        print( "spinner update: " + title + " " + message);
+    }
+    
+    func setErrorMessage(_ err : String)
+    {
+        errorMessage = err;
+        print( "spinner error message set: " + errorMessage);
+    }
+    
+    func dismiss()
+    {
+        if (parentView != nil)
+        {
+            self.busyControl!.dismiss(animated: true);
+        }
+        print( "spinner dismissed");
+    }
+    
+    func dismissOrReportError(success : Bool)
+    {
+        if (success)
+        {
+            dismiss();
+        }
+        else
+        {
+            spinnerIndicator.removeFromSuperview();
+            busyControl!.title = "An Error Occurred";
+            busyControl!.message = errorMessage;
+            busyControl!.addAction(UIAlertAction(title: "Ok", style: .cancel));
+            print ("spinner reports error for user to ack: " + errorMessage);
+        }
+    }
+}
+
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
@@ -124,10 +194,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         NotificationCenter.default.addObserver(self, selector: #selector(mediaDidEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil);
 
-        //if !loginState.loginWritableFolderLink(offline: true, onProgress: { str in }, onFinish: {b in })
-        //{
-            loginState.goOffline(onProgress: { str in }, onFinish: {b in })
-        //}
+        let dummySpinner = ProgressSpinner(uic: nil, title: "Resuming offline", message: "");
+        loginState.goOffline(spinner: dummySpinner, onFinish: {b in });
 
         return true
     }
