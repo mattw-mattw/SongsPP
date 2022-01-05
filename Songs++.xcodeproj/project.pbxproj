@@ -35,7 +35,6 @@
 		C90A1CB327376513009DEB53 /* libMEGASDK.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C962CA4F25DF6F1B00A77721 /* libMEGASDK.a */; };
 		C90DCBB325FE0E310097792C /* SongsCpp.mm in Sources */ = {isa = PBXBuildFile; fileRef = C90DCBB225FE0E310097792C /* SongsCpp.mm */; };
 		C94FF3892411021800184998 /* EditSongVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C94FF3882411021800184998 /* EditSongVC.swift */; };
-		C9551C0E277E941B008BC7C8 /* Songs++Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C9551C0D277E9419008BC7C8 /* Songs++Info.plist */; };
 		C96F3AD523BFC799008BF07D /* LoginStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD423BFC799008BF07D /* LoginStateModel.swift */; };
 		C96F3AD723BFC995008BF07D /* PlayQueueModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD623BFC995008BF07D /* PlayQueueModel.swift */; };
 		C96F3AD923BFDB87008BF07D /* MenuVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD823BFDB87008BF07D /* MenuVC.swift */; };
@@ -302,7 +301,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1010;
-				LastUpgradeCheck = 1240;
+				LastUpgradeCheck = 1310;
 				ORGANIZATIONNAME = mattweir;
 				TargetAttributes = {
 					84008B9123603A4400BD633F = {
@@ -361,7 +360,6 @@
 				84008BA023603A5100BD633F /* LaunchScreen.storyboard in Resources */,
 				84008B9D23603A5100BD633F /* Assets.xcassets in Resources */,
 				84008B9B23603A4400BD633F /* Main.storyboard in Resources */,
-				C9551C0E277E941B008BC7C8 /* Songs++Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -562,6 +560,7 @@
 					"/Users/matt/repos/3rdParty_sdk_ios_arm64/vcpkg/installed/arm64-ios-mega/lib/",
 					"/Users/matt/repos/sdk/build-arm64-ios-mega-Release",
 				);
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
 				PRODUCT_NAME = SongsPlusPlus;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -598,6 +597,7 @@
 					"/Users/matt/repos/3rdParty_sdk_ios_arm64/vcpkg/installed/arm64-ios-mega/lib/",
 					"/Users/matt/repos/sdk/build-arm64-ios-mega-Release",
 				);
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
 				PRODUCT_NAME = SongsPlusPlus;
 				PROVISIONING_PROFILE_SPECIFIER = "";

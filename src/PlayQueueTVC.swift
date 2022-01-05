@@ -493,6 +493,13 @@ class PlayQueueTVC: UITableViewController {
 
     // Override to support editing the table view.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if (showHistory) {
+            if (indexPath.row < playQueue.playedSongs.count) {
+                playQueue.playedSongs.remove(at: indexPath.row)
+                redraw()
+            }
+        }
+        else
         if editingStyle == .delete && indexPath.row < playQueue.nextSongs.count {
             let replaceable = playQueue.playerSongIsEphemeral();
             playQueue.nextSongs.remove(at: indexPath.row)
