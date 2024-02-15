@@ -86,12 +86,12 @@ class LoginState //: ObservableObject
                      with: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
                         if (e.type == .apiOk) {
                             self.loadRoots(onFinish: onFinish)
-                            let replaceable = app().playQueue.playerSongIsEphemeral();
+                            let replaceable = globals.playQueue.playerSongIsEphemeral();
                             if (app().needsRestoreOnStartup) {
-                                app().playQueue.restoreOnStartup();
+                                globals.playQueue.restoreOnStartup();
                                 app().needsRestoreOnStartup = false;
                             }
-                            app().playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable)
+                            globals.playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable)
                         } else {
                             spinner.setErrorMessage("Login succeeded but FetchNodes failed: " + e.nameWithErrorCode(e.type.rawValue) + ". Please exit the app and restart it to recover.");
                             onFinish(false)
@@ -101,19 +101,19 @@ class LoginState //: ObservableObject
     
     func loadRoots(onFinish : @escaping (Bool) -> ())
     {
-        app().musicBrowseFolder = nil;
-        app().playlistBrowseFolder = nil;
+        globals.musicBrowseFolder = nil;
+        globals.playlistBrowseFolder = nil;
 
-        if let musicPath = app().storageModel.loadSettingFile(leafname: "musicPath") {
-            app().musicBrowseFolder = mega().node(forPath: musicPath)
+        if let musicPath = globals.storageModel.loadSettingFile(leafname: "musicPath") {
+            globals.musicBrowseFolder = mega().node(forPath: musicPath)
         }
-        if let playlistPath = app().storageModel.loadSettingFile(leafname: "playlistPath") {
-            app().playlistBrowseFolder = mega().node(forPath: playlistPath)
+        if let playlistPath = globals.storageModel.loadSettingFile(leafname: "playlistPath") {
+            globals.playlistBrowseFolder = mega().node(forPath: playlistPath)
         }
         
-        app().nodeForBrowseFirstLoad = app().musicBrowseFolder;
-        app().browseMusicTVC?.load(node: app().musicBrowseFolder);
-        app().browsePlaylistsTVC?.load(node: app().playlistBrowseFolder);
+        app().nodeForBrowseFirstLoad = globals.musicBrowseFolder;
+        app().browseMusicTVC?.load(node: globals.musicBrowseFolder);
+        app().browsePlaylistsTVC?.load(node: globals.playlistBrowseFolder);
 
         onFinish(true)
     }
@@ -170,8 +170,8 @@ class LoginState //: ObservableObject
     
     func goOnline(spinner : ProgressSpinner, onFinish : @escaping (Bool) -> ())
     {
-        let onlineSidAcct = app().storageModel.loadSettingFile(leafname: "onlineSidAcct")
-        let onlineSidLink = app().storageModel.loadSettingFile(leafname: "onlineSidLink")
+        let onlineSidAcct = globals.storageModel.loadSettingFile(leafname: "onlineSidAcct")
+        let onlineSidLink = globals.storageModel.loadSettingFile(leafname: "onlineSidLink")
         if ((onlineSidAcct ?? onlineSidLink) == nil) {
             clear();
             spinner.setErrorMessage("No online session info found");
@@ -196,8 +196,8 @@ class LoginState //: ObservableObject
     
     func goOffline(spinner : ProgressSpinner, onFinish : @escaping (Bool) -> ())
     {
-        let offlineSidAcct = app().storageModel.loadSettingFile(leafname: "offlineSidAcct")
-        let offlineSidLink = app().storageModel.loadSettingFile(leafname: "offlineSidLink")
+        let offlineSidAcct = globals.storageModel.loadSettingFile(leafname: "offlineSidAcct")
+        let offlineSidLink = globals.storageModel.loadSettingFile(leafname: "offlineSidLink")
         if ((offlineSidAcct ?? offlineSidLink) == nil) {
             spinner.setErrorMessage("No offline session info found");
             onFinish(false);
@@ -224,11 +224,11 @@ class LoginState //: ObservableObject
         let onlineSid = mega().dumpSession(false);
         let offlineSid = mega().dumpSession(true);
         if (onlineSid != nil && offlineSid != nil &&
-            app().storageModel.storeSettingFile(leafname: "onlineSid" + (isWriteableLink ? "Link": "Acct"), content: onlineSid!) &&
-            app().storageModel.storeSettingFile(leafname: "offlineSid" + (isWriteableLink ? "Link": "Acct"), content: offlineSid!))
+            globals.storageModel.storeSettingFile(leafname: "onlineSid" + (isWriteableLink ? "Link": "Acct"), content: onlineSid!) &&
+            globals.storageModel.storeSettingFile(leafname: "offlineSid" + (isWriteableLink ? "Link": "Acct"), content: offlineSid!))
         {
-            app().storageModel.deleteSettingFile(leafname: "onlineSid" + (!isWriteableLink ? "Link": "Acct"))
-            app().storageModel.deleteSettingFile(leafname: "offlineSid" + (!isWriteableLink ? "Link": "Acct"))
+            globals.storageModel.deleteSettingFile(leafname: "onlineSid" + (!isWriteableLink ? "Link": "Acct"))
+            globals.storageModel.deleteSettingFile(leafname: "offlineSid" + (!isWriteableLink ? "Link": "Acct"))
             return true;
         }
         return false;
@@ -236,12 +236,12 @@ class LoginState //: ObservableObject
 
     func clear()
     {
-        app().storageModel.deleteSettingFile(leafname: "onlineSidAcct")
-        app().storageModel.deleteSettingFile(leafname: "offlineSidAcct")
-        app().storageModel.deleteSettingFile(leafname: "onlineSidLink")
-        app().storageModel.deleteSettingFile(leafname: "offlineSidLink")
-        app().storageModel.deleteSettingFile(leafname: "musicPath")
-        app().storageModel.deleteSettingFile(leafname: "playlistPath")
+        globals.storageModel.deleteSettingFile(leafname: "onlineSidAcct")
+        globals.storageModel.deleteSettingFile(leafname: "offlineSidAcct")
+        globals.storageModel.deleteSettingFile(leafname: "onlineSidLink")
+        globals.storageModel.deleteSettingFile(leafname: "offlineSidLink")
+        globals.storageModel.deleteSettingFile(leafname: "musicPath")
+        globals.storageModel.deleteSettingFile(leafname: "playlistPath")
         self.accountBySession = false;
         self.accountByFolderLink = false;
         self.online = false;

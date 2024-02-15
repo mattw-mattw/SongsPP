@@ -116,10 +116,10 @@ class PlayQueue : NSObject, UITextFieldDelegate {
 
     func queueSong(front: Bool, node : MEGANode, uic : UIViewController)
     {
-        queueSongs(front: front, nodes: [node], uic: uic);
+        queueSongs(front: front, nodes: [node], uic: uic, reportQueueLimit: false);
     }
     
-    func queueSongs(front: Bool, nodes : [MEGANode], uic : UIViewController)
+    func queueSongs(front: Bool, nodes : [MEGANode], uic : UIViewController, reportQueueLimit : Bool)
     {
 //        if (timeObservation == nil)
 //        {
@@ -143,7 +143,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         for n in nodes {
             if isPlayable(n, orMightContainPlayable: true) {
                 var v : [MEGANode] = [];
-                app().storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true);
+                globals.storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true, filterIntent: nil);
                 playableNodes.append(contentsOf: v);
             }
         }
@@ -166,7 +166,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         }
         onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
         
-        if (truncatedLite)
+        if (truncatedLite && reportQueueLimit)
         {
             reportMessageWithTitle(uic: uic, messageTitle: "Queued 25", message: "In this Lite version of the app, it is limited to adding up to 25 items to the Play Queue at a time", continuation: nil);
         }
@@ -398,11 +398,11 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         var newQueue : [MEGANode] = [];
         var started : Int = 0;
         for i in 0..<nextSongs.count {
-            if (removeAlreadyDownloaded && !app().storageModel.fileDownloadedByFP(nextSongs[i]))
+            if (removeAlreadyDownloaded && !globals.storageModel.fileDownloadedByFP(nextSongs[i]))
             {
                 newQueue.append(nextSongs[i]);
             }
-            if (app().storageModel.startSongDownloadIfAbsent(nextSongs[i]))  // todo: separate out playlists
+            if (globals.storageModel.startSongDownloadIfAbsent(nextSongs[i]))  // todo: separate out playlists
             {
                 started += 1;
             }
@@ -446,8 +446,8 @@ class PlayQueue : NSObject, UITextFieldDelegate {
 //                reloadTableView = true;
 //            }
             if (index < nextSongs.count &&
-                (app().storageModel.isDownloadingByType(nextSongs[index]) ||
-                 app().storageModel.startDownloadIfAbsent(node: nextSongs[index])))
+                (globals.storageModel.isDownloadingByType(nextSongs[index]) ||
+                 globals.storageModel.startDownloadIfAbsent(node: nextSongs[index])))
             {
                 numDownloading += 1;
             }
@@ -496,7 +496,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         
         if (nextSongs.count > songIndex)
         {
-            if let fileURL = app().storageModel.getDownloadedSongURL(nextSongs[songIndex]) {
+            if let fileURL = globals.storageModel.getDownloadedSongURL(nextSongs[songIndex]) {
                 let play = startIt || isPlaying;
                 nodeInPlayer = nextSongs[songIndex];
                 nodeInPlayerStarted = false;
@@ -516,7 +516,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
                 app().playQueueTVC!.playingSongUpdated()
                 return ;
             }
-            else if (!app().loginState.online)
+            else if (!globals.loginState.online)
             {
                 reportMessage(uic: app().playQueueTVC!, message: "Please go online to get the next song")
             }
@@ -721,11 +721,11 @@ class PlayQueue : NSObject, UITextFieldDelegate {
     
     func saveAsPlaylist(uic : UIViewController)
     {
-        if app().playlistBrowseFolder == nil {
+        if globals.playlistBrowseFolder == nil {
             reportMessage(uic: uic, message: "Please choose the playlist folder first. (Navigate to it and use the Option menu)");
             return;
         }
-        if (!app().loginState.online)
+        if (!globals.loginState.online)
         {
             reportMessage(uic: uic, message: "Please go online to upload the playlist.");
             return;
@@ -753,10 +753,10 @@ class PlayQueue : NSObject, UITextFieldDelegate {
                     }
                 }
                 let s = self.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: self.nextSongs);
-                let uploadpath = app().storageModel.uploadFilesPath() + "/" + inputName + ".playlist";
+                let uploadpath = globals.storageModel.uploadFilesPath() + "/" + inputName + ".playlist";
                 let url = URL(fileURLWithPath: uploadpath);
                 try! s.write(to: url, atomically: true, encoding: .ascii)
-                mega().startUpload(withLocalPath:uploadpath, parent: app().playlistBrowseFolder!)
+                mega().startUpload(withLocalPath:uploadpath, parent: globals.playlistBrowseFolder!)
             }));
         
         textInput.addAction(menuAction_neverMind());
@@ -775,8 +775,8 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         let s1 = nodeHandleArrayToJSON(optionalExtraFirstNode: noHistoryMode || playerSongIsEphemeral() ? nil : nodeInPlayer, array: nextSongs);
         let s2 = nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: playedSongs);
         do {
-            try s1.write(toFile: app().storageModel.settingsPath() + "/nextSongs", atomically: true, encoding: String.Encoding.utf8);
-            try s2.write(toFile: app().storageModel.settingsPath() + "/playedSongs", atomically: true, encoding: String.Encoding.utf8);
+            try s1.write(toFile: globals.storageModel.settingsPath() + "/nextSongs", atomically: true, encoding: String.Encoding.utf8);
+            try s2.write(toFile: globals.storageModel.settingsPath() + "/playedSongs", atomically: true, encoding: String.Encoding.utf8);
         }
         catch {
         }
@@ -784,13 +784,13 @@ class PlayQueue : NSObject, UITextFieldDelegate {
 
     func restoreOnStartup()
     {
-        if let json1 = app().storageModel.loadFileAsJSON(filename: app().storageModel.settingsPath() + "/nextSongs") {
+        if let json1 = globals.storageModel.loadFileAsJSON(filename: globals.storageModel.settingsPath() + "/nextSongs") {
             nextSongs = [];
-            app().storageModel.loadSongsFromPlaylistRecursive(json: json1, &nextSongs, recurse: true);
+            globals.storageModel.loadSongsFromPlaylistRecursive(json: json1, &nextSongs, recurse: true, filterIntent: nil);
         }
-        if let json2 = app().storageModel.loadFileAsJSON(filename: app().storageModel.settingsPath() + "/playedSongs") {
+        if let json2 = globals.storageModel.loadFileAsJSON(filename: globals.storageModel.settingsPath() + "/playedSongs") {
             playedSongs = [];
-            app().storageModel.loadSongsFromPlaylistRecursive(json: json2, &playedSongs, recurse: true);
+            globals.storageModel.loadSongsFromPlaylistRecursive(json: json2, &playedSongs, recurse: true, filterIntent: nil);
         }
     }
 

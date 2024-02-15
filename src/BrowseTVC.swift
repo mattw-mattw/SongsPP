@@ -145,7 +145,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                 if n.name != nil &&
                    n.name!.hasSuffix(".playlist")
                 {
-                    _ = app().storageModel.startDownloadIfAbsent(node: n);
+                    _ = globals.storageModel.startDownloadIfAbsent(node: n);
                 }
             }
         }
@@ -167,18 +167,18 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         if (currentFolder != nil)
         {
 
-            if app().loginState.accountBySession && !isPlaylists() && app().musicBrowseFolder == nil
+            if globals.loginState.accountBySession && !isPlaylists() && globals.musicBrowseFolder == nil
                 && mega().rootNode != nil && currentFolder!.handle != mega().rootNode!.handle
             {
                 alert.addAction(UIAlertAction(title: "Set as the top available folder...", style: .default, handler:
                     { (UIAlertAction) -> () in self.CheckSetAsWritableFolderLink() }));
             }
 
-            if !isPlaylists() && app().musicBrowseFolder == nil {
+            if !isPlaylists() && globals.musicBrowseFolder == nil {
                 alert.addAction(UIAlertAction(title: "Set as the Music Folder...", style: .default, handler:
                     { (UIAlertAction) -> () in self.CheckSetAsMusicFolder() }));
             }
-            if isPlaylists() && app().playlistBrowseFolder == nil {
+            if isPlaylists() && globals.playlistBrowseFolder == nil {
                 alert.addAction(UIAlertAction(title: "Set as the Playlist Folder...", style: .default, handler:
                     { (UIAlertAction) -> () in self.CheckSetAsPlaylistFolder() }));
             }
@@ -298,7 +298,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     func SetAsWritableFolderLink()
     {
-        if (!app().loginState.online)
+        if (!globals.loginState.online)
         {
             let alert = UIAlertController(title: "Please go online first", message: "Creating a writable folder link requires being online", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .cancel));
@@ -308,7 +308,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         
         let spinner = ProgressSpinner(uic: self, title: "Writable Folder Link", message: "");
 
-        app().loginState.convertToWritableFolderLink(spinner: spinner, currentFolder!,
+        globals.loginState.convertToWritableFolderLink(spinner: spinner, currentFolder!,
             onFinish: { (success) in
                 spinner.dismissOrReportError(success: success)
             });
@@ -329,11 +329,11 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     func SetAsMusicFolder()
     {
-        app().musicBrowseFolder = nil;
+        globals.musicBrowseFolder = nil;
         let path = app().nodePath(currentFolder!)
-        let _ = app().storageModel.storeSettingFile(leafname : "musicPath", content: path);
-        if let musicPath = app().storageModel.loadSettingFile(leafname: "musicPath") {
-            app().musicBrowseFolder = mega().node(forPath: musicPath)
+        let _ = globals.storageModel.storeSettingFile(leafname : "musicPath", content: path);
+        if let musicPath = globals.storageModel.loadSettingFile(leafname: "musicPath") {
+            globals.musicBrowseFolder = mega().node(forPath: musicPath)
         }
         load(node: rootFolder());
     }
@@ -353,12 +353,12 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     func SetAsPlaylistFolder()
     {
-        app().playlistBrowseFolder = nil;
+        globals.playlistBrowseFolder = nil;
         let path = app().nodePath(currentFolder!)
-        let _ = app().storageModel.storeSettingFile(leafname : "playlistPath", content: path);
+        let _ = globals.storageModel.storeSettingFile(leafname : "playlistPath", content: path);
         // TODO: for writable folder links, this, for sessions, mega().nodePath()
-        if let playlistPath = app().storageModel.loadSettingFile(leafname: "playlistPath") {
-            app().playlistBrowseFolder = mega().node(forPath: playlistPath)
+        if let playlistPath = globals.storageModel.loadSettingFile(leafname: "playlistPath") {
+            globals.playlistBrowseFolder = mega().node(forPath: playlistPath)
         }
         load(node: rootFolder());
     }
@@ -428,18 +428,18 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     {
         var v : [MEGANode] = [];
         for n in nodeArray {
-            app().storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true);
+            globals.storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true, filterIntent: nil);
         }
-        app().playQueue.queueSongs(front: false, nodes: v, uic: self)
+        globals.playQueue.queueSongs(front: false, nodes: v, uic: self, reportQueueLimit: true)
     }
 
     func ShuffleQueueAll()
     {
         var v : [MEGANode] = [];
         for n in nodeArray {
-            app().storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true);
+            globals.storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true, filterIntent: nil);
         }
-        app().playQueue.queueSongs(front: false, nodes: shuffleArray(&v), uic: self);
+        globals.playQueue.queueSongs(front: false, nodes: shuffleArray(&v), uic: self, reportQueueLimit: true);
     }
 
     func checkFiltered(_ n : MEGANode) -> Bool
@@ -468,14 +468,14 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         }
         if (!filterIncludeDownloaded.flag && select)
         {
-            if (app().storageModel.fileDownloadedByType(n))
+            if (globals.storageModel.fileDownloadedByType(n))
             {
                 select = false;
             }
         }
         else if (!filterIncludeNonDownloaded.flag && select)
         {
-            if (!app().storageModel.fileDownloadedByType(n))
+            if (!globals.storageModel.fileDownloadedByType(n))
             {
                 select = false;
             }
@@ -499,7 +499,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                 if (isPlaylists() &&
                     n!.name != nil &&
                     n!.name!.hasSuffix(".playlist")) {
-                    _ = app().storageModel.startDownloadIfAbsent(node: n!);
+                    _ = globals.storageModel.startDownloadIfAbsent(node: n!);
                 }
 
             }
@@ -551,17 +551,17 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
 
         var text : String? = nil;
 
-        if (currentFolder == nil && !isPlaylists() && app().musicBrowseFolder != nil) {
-            currentFolder = app().musicBrowseFolder;
+        if (currentFolder == nil && !isPlaylists() && globals.musicBrowseFolder != nil) {
+            currentFolder = globals.musicBrowseFolder;
             text = "/";
         }
 
-        if (currentFolder == nil && isPlaylists() && app().playlistBrowseFolder != nil) {
-            currentFolder = app().playlistBrowseFolder;
+        if (currentFolder == nil && isPlaylists() && globals.playlistBrowseFolder != nil) {
+            currentFolder = globals.playlistBrowseFolder;
             text = "/";
         }
 
-        if (currentFolder == nil && app().loginState.accountByFolderLink) {
+        if (currentFolder == nil && globals.loginState.accountByFolderLink) {
             currentFolder = mega().rootNode;
             text = "/";
         }
@@ -571,7 +571,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             text = app().nodePath(currentFolder!);
         }
         
-        if (currentFolder == nil && app().loginState.accountBySession) {
+        if (currentFolder == nil && globals.loginState.accountBySession) {
             if (mega().rootNode != nil) {
                 text = "<Your Account>";
                 nodeArray.append(mega().rootNode!);
@@ -648,9 +648,9 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     func rootFolder() -> MEGANode?
     {
         if isPlaylists() {
-            return app().playlistBrowseFolder;
+            return globals.playlistBrowseFolder;
         } else {
-            return app().musicBrowseFolder;
+            return globals.musicBrowseFolder;
         }
     }
     
@@ -766,21 +766,21 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             
             let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
             
-            if app().playQueue.isPlayable(node, orMightContainPlayable: true) {
+            if globals.playQueue.isPlayable(node, orMightContainPlayable: true) {
                 alert.addAction(menuAction_playNext(node, uic: self));
                 alert.addAction(menuAction_playLast(node, uic: self));
             }
-            if app().playQueue.isPlayable(node, orMightContainPlayable: false) {
+            if globals.playQueue.isPlayable(node, orMightContainPlayable: false) {
                 alert.addAction(menuAction_songInfo(node, viewController: self));
             }
-            if app().playQueue.isArtwork(node) && app().storageModel.thumbnailDownloaded(node) {
+            if globals.playQueue.isArtwork(node) && globals.storageModel.thumbnailDownloaded(node) {
                 alert.addAction(UIAlertAction(title: "Set as artwork for songs in this folder", style: .default, handler:
                       { (UIAlertAction) -> () in self.setArtworkForSongsInFolder(node); }));
             }
             if (filtering) {
                 alert.addAction(menuAction_songBrowseTo(node, viewController: self));
             }
-            if (app().playlistBrowseFolder != nil && app().playQueue.isPlayable(node, orMightContainPlayable: false)) {
+            if (globals.playlistBrowseFolder != nil && globals.playQueue.isPlayable(node, orMightContainPlayable: false)) {
                 alert.addAction(menuAction_addToPlaylistInFolder_recents(node, viewController: self));
             }
             alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
@@ -798,7 +798,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     func setArtworkForSongsInFolder(_ node : MEGANode)
     {
-        if (!app().loginState.online)
+        if (!globals.loginState.online)
         {
             let alert = UIAlertController(title: "Please go online first", message: "Setting artwork for files requires being online", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .cancel));
@@ -808,14 +808,14 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         
         if let parent = mega().parentNode(for: node) {
         
-            if let thumbnailFile = app().storageModel.thumbnailPath(node: node) {
+            if let thumbnailFile = globals.storageModel.thumbnailPath(node: node) {
                 let list = mega().children(forParent: parent, order: 1);
                 for i in 0..<list.size.intValue {
                     if let n = list.node(at: i) {
-                        if (app().playQueue.isPlayable(n, orMightContainPlayable: false))
+                        if (globals.playQueue.isPlayable(n, orMightContainPlayable: false))
                         {
                             mega().setThumbnailNode(n, sourceFilePath: thumbnailFile, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
-                                app().storageModel.megaDelegate.onThumbnailUpdate(node: node)
+                                globals.storageModel.megaDelegate.onThumbnailUpdate(node: node)
                             } ));
                         }
                     }

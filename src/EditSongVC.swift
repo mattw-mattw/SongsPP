@@ -39,7 +39,7 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
     {
         let spinner = ProgressSpinner(uic: self, title: "Going Online", message: "");
 
-        app().loginState.goOnline(spinner: spinner,
+        globals.loginState.goOnline(spinner: spinner,
             onFinish: { (success) in
                 spinner.dismissOrReportError(success: success)
         })
@@ -70,7 +70,7 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
         var artist : NSString? = nil;
         var bpm : NSString? = nil;
 
-        let songPath = app().storageModel.songFingerprintPath(node: node!);
+        let songPath = globals.storageModel.songFingerprintPath(node: node!);
         if (songPath == nil) { return; }
 
         if (SongsCPP.getSongProperties(songPath!, title: &title, artist: &artist, bpm: &bpm)) {
@@ -83,8 +83,8 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
     
     @IBAction func SaveAllHit(_ sender: Any) {
         if node == nil { return; }
-        if !app().loginState.online { goOnline(); }
-        if !app().loginState.online { return; }
+        if !globals.loginState.online { goOnline(); }
+        if !globals.loginState.online { return; }
         
         saveAllSpinner = ProgressSpinner(uic: self, title: "Saving song data", message: "");
 
@@ -117,8 +117,8 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
             image.image = nil;
             if (node!.hasThumbnail())
             {
-                if (app().storageModel.thumbnailDownloaded(node!)) {
-                    if let path = app().storageModel.thumbnailPath(node: node!) {
+                if (globals.storageModel.thumbnailDownloaded(node!)) {
+                    if let path = globals.storageModel.thumbnailPath(node: node!) {
                         if let imagefile = UIImage(contentsOfFile: path) {
                             image.image = imagefile;
                         }

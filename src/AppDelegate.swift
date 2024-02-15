@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 import AVKit
 import MediaPlayer
-
+import Intents
 
 class ProgressSpinner {
 
@@ -80,6 +80,170 @@ class ProgressSpinner {
     }
 }
 
+class IntentHandler: NSObject, INPlayMediaIntentHandling {
+    
+    
+    func resolvePlayShuffled(for intent: INPlayMediaIntent, with completion: @escaping (INBooleanResolutionResult) -> Void) {
+        // determines whether to shuffle the results
+        completion(INBooleanResolutionResult.success(with: intent.playShuffled != nil &&  intent.playShuffled!));
+    }
+    
+    func getNodesForPlayIntent(intent: INPlayMediaIntent, resolutionResult : inout INPlayMediaMediaItemResolutionResult?) -> [MEGANode]
+    {
+        if (intent.mediaSearch == nil)
+        {
+            print("No search criteria provided in Intent.")
+            resolutionResult = INPlayMediaMediaItemResolutionResult(mediaItemResolutionResult: INMediaItemResolutionResult.unsupported())
+            return [];
+        }
+        
+        if let searchStr = intent.mediaSearch!.mediaName {
+            print("Searching songs/playlists to match media intent string: " + searchStr)
+            print("For media type: ")
+            print(intent.mediaSearch!.mediaType)
+        }
+        
+        print("Full intent media search object:");
+        print(intent.mediaSearch!);
+
+        let searchLocation = intent.mediaSearch!.mediaType == .playlist ?
+            globals.playlistBrowseFolder :
+            globals.musicBrowseFolder;
+        
+        if (searchLocation == nil)
+        {
+            resolutionResult = INPlayMediaMediaItemResolutionResult.unsupported(forReason: .restrictedContent)
+            return [];
+        }
+        
+        var v : [MEGANode] = [];
+        v.reserveCapacity(10000);
+        
+        switch (intent.mediaSearch!.mediaType) {
+        case .album, .playlist, .song, .music, .unknown:
+            if (globals.musicBrowseFolder != nil) {
+                globals.storageModel.loadSongsFromNodeRecursive(node: searchLocation!, &v, recurse: true, filterIntent: intent);
+            }
+        default:
+            if resolutionResult != nil {
+                resolutionResult = INPlayMediaMediaItemResolutionResult.unsupported(forReason: .unsupportedMediaType)
+            }
+        }
+
+        if v.isEmpty && resolutionResult != nil {
+            resolutionResult = INPlayMediaMediaItemResolutionResult(mediaItemResolutionResult: INMediaItemResolutionResult.unsupported())
+        }
+	
+        return v;
+    }
+
+    
+// Well, it seems to be more responsive with this function missing anyway.
+// No need to announce the song we are about to play
+//
+//    // because we seem to have lifetime issues, crashing a few seconds
+//    // after the function exits, with 6k+ stack frames, same number as elements in the arrays
+//    var resolveMediaItemsTesult : [INMediaItem] = [];
+//    var resolveMediaItemsFoundNodes : [MEGANode] = [];
+//
+//    func resolveMediaItems(for intent: INPlayMediaIntent) async -> [INPlayMediaMediaItemResolutionResult] {
+//        print("handler-resolveMediaItems")
+//
+//        if (!globals.loginState.accountByFolderLink) {
+//            if (!globals.loginState.accountBySession) {
+//                return [INPlayMediaMediaItemResolutionResult.unsupported(forReason: .loginRequired)];
+//            }
+//        }
+//
+//        var ret : INPlayMediaMediaItemResolutionResult? = INPlayMediaMediaItemResolutionResult.unsupported();
+//
+//        resolveMediaItemsFoundNodes = getNodesForPlayIntent(intent: intent, resolutionResult: &ret);
+//
+//        resolveMediaItemsTesult = [];
+//        resolveMediaItemsTesult.reserveCapacity(10000);
+//
+//        for n in resolveMediaItemsFoundNodes {
+//
+//            let vname = n.customTitle ?? n.name;
+//            if (vname == nil) { continue; }
+//
+//            resolveMediaItemsTesult.append(INMediaItem(identifier: n.base64Handle, title: vname!, type: .song, artwork: nil, artist: n.customArtist))
+//        }
+//
+//        return INPlayMediaMediaItemResolutionResult.successes(with: resolveMediaItemsTesult);
+//    }
+
+    func handle(intent: INPlayMediaIntent) async -> INPlayMediaIntentResponse
+    {
+        print("handler-INPlayMediaIntent. intent is");
+        print(intent);
+
+        var dummy : INPlayMediaMediaItemResolutionResult? = INPlayMediaMediaItemResolutionResult.unsupported();
+
+        let foundNodes = getNodesForPlayIntent(intent: intent, resolutionResult: &dummy);
+
+        // load the content of playlists, albums, etc
+        var expanded : [MEGANode] = [];
+
+        for n in foundNodes {
+            globals.storageModel.loadSongsFromNodeRecursive(node: n, &expanded, recurse: true, filterIntent: nil);
+        }
+
+        if (intent.playShuffled != nil && intent.playShuffled!)
+        {
+            expanded = shuffleArray(&expanded);
+        }
+
+        if (expanded.count >= 1)
+        {
+            let rightNowNode = expanded[0];
+            expanded.remove(at: 0)
+
+            DispatchQueue.main.asyncAfter(deadline: .now()) {
+                globals.playQueue.playRightNow(rightNowNode);
+            }
+        }
+
+        if (expanded.count >= 1)
+        {
+            let aaa = expanded;
+            DispatchQueue.main.asyncAfter(deadline: .now()) {
+                globals.playQueue.queueSongs(front: true, nodes: aaa, uic: app().playQueueTVC!, reportQueueLimit: false);
+            }
+        }
+
+        return INPlayMediaIntentResponse(code: .success, userActivity: nil);
+    }
+
+    
+}
+
+class Globals
+{
+    // things that may be accessed by the App UI or from independent threads with no UI.
+    
+    var mega : MEGASdk? = nil;
+    var loginState = LoginState();
+    var playQueue = PlayQueue();
+    var storageModel = StorageModel();
+
+    var musicBrowseFolder : MEGANode? = nil;
+    var playlistBrowseFolder : MEGANode? = nil;
+    
+    func clear()
+    {
+        // get back to on-start state
+        loginState.clear();
+        playQueue.clear();
+        storageModel.clear();
+
+        musicBrowseFolder = nil;
+        playlistBrowseFolder = nil;
+    }
+
+}
+
+var globals = Globals();
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -87,6 +251,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     var player : AVPlayer? = nil;
+    
+    var intentHandler : IntentHandler = IntentHandler();
     
     func setupRemoteTransportControls() {
         // Get the shared MPRemoteCommandCenter
@@ -111,11 +277,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         commandCenter.nextTrackCommand.addTarget { event in
-            return app().playQueue.goNextTrack() ? .success : .commandFailed;
+            return globals.playQueue.goNextTrack() ? .success : .commandFailed;
         }
 
         commandCenter.previousTrackCommand.addTarget { event in
-            return app().playQueue.goSongStartOrPrevTrack() ? .success : .commandFailed;
+            return globals.playQueue.goSongStartOrPrevTrack() ? .success : .commandFailed;
         }
 
     }
@@ -132,8 +298,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             var image : UIImage? = nil;
             if (node.hasThumbnail())
             {
-                if (app().storageModel.thumbnailDownloaded(node)) {
-                    if let path = app().storageModel.thumbnailPath(node: node) {
+                if (globals.storageModel.thumbnailDownloaded(node)) {
+                    if let path = globals.storageModel.thumbnailPath(node: node) {
                         image = UIImage(contentsOfFile: path);
                     }
                 }
@@ -161,7 +327,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         
-        player = playQueue.player
+        player = globals.playQueue.player
         
         do {
 //            try AVAudioSessionPatch.setSession(AVAudioSession.sharedInstance(), category: .playback, with: [.defaultToSpeaker, .mixWithOthers])
@@ -187,7 +353,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     @objc func mediaDidEnd(notification: NSNotification)
     {
-        playQueue.onSongFinishedPlaying();
+        globals.playQueue.onSongFinishedPlaying();
     }
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
@@ -195,9 +361,38 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(mediaDidEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil);
 
         let dummySpinner = ProgressSpinner(uic: nil, title: "Resuming offline", message: "");
-        loginState.goOffline(spinner: dummySpinner, onFinish: {b in });
+        globals.loginState.goOffline(spinner: dummySpinner, onFinish: {b in });
 
         return true
+    }
+    
+    func application(_ application : UIApplication, handlerFor intent : INIntent) -> Any?
+    {
+        print("application-handlerFor intent")
+        return intentHandler;
+    }
+    
+    func application(_ application: UIApplication, handle intent: INIntent, completionHandler: @escaping (INIntentResponse) -> Void) {
+        print("application-intent")
+        //let ir = INIntentResponse();
+        //completionHandler(ir);
+//        if let playIntent = intent as? INPlayMediaIntent {
+//            let mi = playIntent.mediaItems;
+//            let mi2 = playIntent.mediaSearch;
+//        }
+        let v = INIntentResponse();
+        v.userActivity = NSUserActivity(activityType: "play me");
+        completionHandler(v);
+    }
+    
+    func application(_ application: UIApplication, willContinueUserActivityWithType userActivityType: String) -> Bool {
+        print("application-willContinueUserActivityWithType")
+        return true;
+    }
+    
+    func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+        print("application-useractivity")
+        return true;
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -209,7 +404,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
         
-        playQueue.saveQueueAndHistory(shuttingDown: false);
+        globals.playQueue.saveQueueAndHistory(shuttingDown: false);
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
@@ -222,19 +417,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-        playQueue.saveQueueAndHistory(shuttingDown: true);
+        globals.playQueue.saveQueueAndHistory(shuttingDown: true);
     }
     
-    var mega : MEGASdk? = nil;
-//    var currentLoginVC : LoginVC? = nil;
-    var loginState = LoginState();
-    var playQueue = PlayQueue();
-    var storageModel = StorageModel();
-    
+   
     var needsRestoreOnStartup = true;
-    
-    var musicBrowseFolder : MEGANode? = nil;
-    var playlistBrowseFolder : MEGANode? = nil;
     
     var nodeForBrowseFirstLoad : MEGANode? = nil;
     
@@ -251,13 +438,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func clear()
     {
         // get back to on-start state
-        loginState.clear();
-        playQueue.clear();
-        storageModel.clear();
+        globals.clear()
 
         needsRestoreOnStartup = true;
-        musicBrowseFolder = nil;
-        playlistBrowseFolder = nil;
         nodeForBrowseFirstLoad = nil;
         if playQueueTVC != nil { playQueueTVC!.clear(); }
         if browseMusicTVC != nil { browseMusicTVC!.clear(); }
@@ -270,7 +453,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     {
         if (playQueueTVC != nil)
         {
-            let n = mega!.node(forHandle: nodeHandle)
+            let n = globals.mega!.node(forHandle: nodeHandle)
             if (n != nil && n!.fingerprint != nil) {
                 playQueueTVC!.downloadProgress(fingerprint: n!.fingerprint!, percent: percent);
             }
@@ -333,16 +516,15 @@ var accountFolderDoneAlready = false;
 
 func mega(using fileManager : FileManager = .default) -> MEGASdk {
     
-    let a = app();
-    if (a.mega == nil)
+    if (globals.mega == nil)
     {
-        let path = app().storageModel.accountPath() + "/";
-        a.mega = MEGASdk.init(appKey: "dWRWmTiJ", userAgent: "Songs++ " + deviceName(), basePath: path)!;
-        a.mega!.add(a.storageModel.transferDelegate);
-        a.mega!.add(a.storageModel.megaDelegate);
-        a.mega!.platformSetRLimitNumFile(50000);
+        let path = globals.storageModel.accountPath() + "/";
+        globals.mega = MEGASdk.init(appKey: "dWRWmTiJ", userAgent: "Songs++ " + deviceName(), basePath: path)!;
+        globals.mega!.add(globals.storageModel.transferDelegate);
+        globals.mega!.add(globals.storageModel.megaDelegate);
+        globals.mega!.platformSetRLimitNumFile(50000);
     }
-    return a.mega!;
+    return globals.mega!;
 }
 
 func megaGetLatestFileRevision(_ node : MEGANode?) -> MEGANode?
@@ -401,7 +583,7 @@ func reportMessage(uic : UIViewController, message : String, continuation : (() 
 
 func CheckOnlineOrWarn(_ warnMessage: String, uic : UIViewController) -> Bool
 {
-    if app().loginState.online { return true; }
+    if globals.loginState.online { return true; }
     let alert = UIAlertController(title: "Not Online", message: warnMessage, preferredStyle: .alert)
     alert.addAction(UIAlertAction(title: "OK", style: .cancel));
     uic.present(alert, animated: false, completion: nil)
@@ -412,19 +594,19 @@ func CheckOnlineOrWarn(_ warnMessage: String, uic : UIViewController) -> Bool
 func menuAction_playRightNow(_ node : MEGANode) -> UIAlertAction
 {
     return UIAlertAction(title: "Play right now", style: .default, handler:
-        { (UIAlertAction) -> () in app().playQueue.playRightNow(node); });
+        { (UIAlertAction) -> () in globals.playQueue.playRightNow(node); });
 }
 
 func menuAction_playNext(_ node : MEGANode, uic : UIViewController) -> UIAlertAction
 {
     return UIAlertAction(title: "Play next", style: .default, handler:
-        { (UIAlertAction) -> () in app().playQueue.queueSong(front: true, node: node, uic: uic); });
+        { (UIAlertAction) -> () in globals.playQueue.queueSong(front: true, node: node, uic: uic); });
 }
 
 func menuAction_playLast(_ node : MEGANode, uic : UIViewController) -> UIAlertAction
 {
     UIAlertAction(title: "Play last", style: .default, handler:
-        { (UIAlertAction) -> () in app().playQueue.queueSong(front: false, node: node, uic: uic); });
+        { (UIAlertAction) -> () in globals.playQueue.queueSong(front: false, node: node, uic: uic); });
 }
 
 func menuAction_songInfo(_ node : MEGANode, viewController : UIViewController) -> UIAlertAction
@@ -466,7 +648,7 @@ func menuAction_addToPlaylistInFolder_recents(_ node : MEGANode, viewController 
                 
                 alert.addAction(menuAction_addToPlaylistExact(playlistNode:n!, nodeToAdd: node, viewController: viewController));
             }
-            alert.addAction(menuAction_addToPlaylistInFolder(node, overrideName: "Select from all Playlists...", playlistFolder: app().playlistBrowseFolder!, viewController: viewController));
+            alert.addAction(menuAction_addToPlaylistInFolder(node, overrideName: "Select from all Playlists...", playlistFolder: globals.playlistBrowseFolder!, viewController: viewController));
             alert.addAction(menuAction_neverMind());
             viewController.present(alert, animated: false, completion: nil)
         });
@@ -509,17 +691,17 @@ func menuAction_addToPlaylistExact(playlistNode : MEGANode, nodeToAdd: MEGANode,
             }
             if (uploadFolder == nil) { return; }  // todo: alert user
 
-            let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(playlistNode);
+            let (json, _) = globals.storageModel.getPlaylistFileEditedOrNotAsJSON(playlistNode);
 
             if json != nil
             {
                 var nodes : [MEGANode] = [];
-                app().storageModel.loadSongsFromPlaylistRecursive(json: json!, &nodes, recurse: true);
+                globals.storageModel.loadSongsFromPlaylistRecursive(json: json!, &nodes, recurse: true, filterIntent: nil);
                 nodes.append(nodeToAdd);
                 
-                let s = app().playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: nodes);
+                let s = globals.playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: nodes);
                 
-                if let updateFilePath = app().storageModel.playlistPath(node: playlistNode, forEditing: true) {
+                if let updateFilePath = globals.storageModel.playlistPath(node: playlistNode, forEditing: true) {
                     let url = URL(fileURLWithPath: updateFilePath);
                     try! s.write(to: url, atomically: true, encoding: .ascii)
                     
@@ -541,10 +723,10 @@ func menuAction_addToPlaylistExact(playlistNode : MEGANode, nodeToAdd: MEGANode,
 
 func ExtractAndApplyTags(_ node : MEGANode, overwriteExistingTags : Bool, countProcessed : inout Int, countNotDownloaded : inout Int, countNoTags : inout Int, countUpdated : inout Int) -> Bool
 {
-    if (!app().playQueue.isPlayable(node, orMightContainPlayable: false))
+    if (!globals.playQueue.isPlayable(node, orMightContainPlayable: false))
     { return true; }
     
-    let songPath = app().storageModel.songFingerprintPath(node: node);
+    let songPath = globals.storageModel.songFingerprintPath(node: node);
     if (songPath == nil) { return false; }
 
     if !FileManager.default.fileExists(atPath: songPath!)

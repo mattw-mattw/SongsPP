@@ -12,10 +12,11 @@ import AVKit
 
 class PlayQueueTVC: UITableViewController {
 
-    var pvc : AVPlayerViewController? = nil;
+    //var pvc : AVPlayerViewController? = nil;
+    
     var showHistory : Bool = false;
     
-    var playQueue = app().playQueue;
+    var playQueue = globals.playQueue;
 
     func clear()
     {
@@ -32,17 +33,21 @@ class PlayQueueTVC: UITableViewController {
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
         
-        pvc = AVPlayerViewController();
-        pvc?.updatesNowPlayingInfoCenter = false;
-        
-        //playerPlaceholder.addSubview(pvc!.view);
-        //pvc!.view.frame = playerPlaceholder.bounds;
-        //topHStack.addArrangedSubview(payingSongImage)
-        pvc!.view.frame = CGRect(x: 0, y: 0, width: playerLocationView.frame.width, height: playerLocationView.frame.height);
-        
-        playerLocationView.addSubview(pvc!.view);
-        pvc!.didMove(toParent: self);
-        pvc!.player = playQueue.player;
+//        pvc = AVPlayerViewController();
+//        pvc!.updatesNowPlayingInfoCenter = false;
+//        pvc!.showsPlaybackControls = true;
+//        //pvc!.contentOverlayView = nil;
+//        
+//        //playerPlaceholder.addSubview(pvc!.view);
+//        //pvc!.view.frame = playerPlaceholder.bounds;
+//        //topHStack.addArrangedSubview(payingSongImage)
+//        //pvc!.view.frame = CGRect(x: 0, y: 0, width: playerLocationView.frame.width, height: playerLocationView.frame.height);
+//        
+//        playerLocationView.addSubview(pvc!.view);
+//        pvc!.didMove(toParent: self);
+//        pvc!.player = playQueue.player;
+//        pvc!.beginAppearanceTransition(true, animated: false)
+//        //pvc!.set
 
         app().playQueueTVC = self;
         tableView.estimatedRowHeight = 43.5;
@@ -67,8 +72,47 @@ class PlayQueueTVC: UITableViewController {
         
 //        tabBarContoller!.viewControllers?.forEach { let _ = $0.view }
 //        let _ = app().tabBarContoller!.viewControllers![1].view;
-
-
+        
+        Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateSlider), userInfo: nil, repeats: true)
+    }
+    
+    @objc func updateSlider()
+    {
+        if (sliderEditing) 
+        {
+            return;
+        }
+        
+        let num : Double? = playQueue.player.currentTime().seconds;
+        let den : Double?  = playQueue.player.currentItem?.duration.seconds;
+        if (num != nil && den != nil && num! > 0 && den! > 0)
+        {
+            //playSlider.value = Float(num! / den!);
+            playSlider.maximumValue = Float(den!);
+            playSlider.minimumValue = 0;
+            playSlider.value = Float(num!);
+            playSlider.isEnabled = true;
+            //curSongSecondsLabel.text = String(Int(num!));
+            //totalSongSecondsLabel.text = String(Int(den!));
+            
+            curSongSecondsLabel.text = String(format: "%02d:%02d", Int(num!) / 60, Int(num!) % 60)
+            totalSongSecondsLabel.text = String(format: "%02d:%02d", Int(den!) / 60, Int(den!) % 60)
+        }
+        else
+        {
+            playSlider.maximumValue = 100;
+            playSlider.minimumValue = 0;
+            playSlider.value = 0;
+            playSlider.isEnabled = false;
+            curSongSecondsLabel.text = "0:00";
+            totalSongSecondsLabel.text = "0:00";
+        }
+        
+        let playing = playQueue.player.rate > 0;
+        playButton.isEnabled = !playing;
+        pauseButton.isEnabled = playing;
+        playButton.titleLabel?.text = "";
+        pauseButton.titleLabel?.text = "";
     }
 
     @IBOutlet weak var songLabel : UILabel!;
@@ -76,6 +120,13 @@ class PlayQueueTVC: UITableViewController {
     @IBOutlet weak var historyButton: UIButton!
     @IBOutlet weak var queueButton: UIButton!
 
+    @IBOutlet var playButton: UIButton!
+    @IBOutlet var pauseButton: UIButton!
+    @IBOutlet var playSlider: UISlider!
+    
+    @IBOutlet var curSongSecondsLabel: UILabel!
+    @IBOutlet var totalSongSecondsLabel: UILabel!
+    
     @IBAction func HistoryButtonHit(_ sender: Any) {
         queueButton.setTitleShadowColor(UIColor.clear, for: .normal);
         historyButton.setTitleShadowColor(UIColor.white, for: .normal);
@@ -135,7 +186,7 @@ class PlayQueueTVC: UITableViewController {
             let numStarted = playQueue.downloadAllSongsInQueue(removeAlreadyDownloaded);
             playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable)
 
-            let alert = UIAlertController(title: "Downloading", message: "Initiated " + String(numStarted) + " downloads (and " + String(app().storageModel.downloadingThumbnail.count) + " thumbnails).", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Downloading", message: "Initiated " + String(numStarted) + " downloads (and " + String(globals.storageModel.downloadingThumbnail.count) + " thumbnails).", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .cancel));
             self.present(alert, animated: false, completion: nil)
         }
@@ -219,7 +270,7 @@ class PlayQueueTVC: UITableViewController {
 
     // MARK: - Table view data source
 
-    @IBOutlet weak var playerPlaceholder: UIView!
+    //@IBOutlet weak var playerPlaceholder: UIView!
     @IBOutlet weak var songCountLabel : UILabel!;
 //    @IBOutlet weak var segmentedControl : UISegmentedControl!;
     @IBOutlet weak var topHStack: UIStackView!
@@ -244,6 +295,43 @@ class PlayQueueTVC: UITableViewController {
         playingSongUpdated();
         redraw();
     }
+    
+    @IBAction func playButtonPressed(_ sender: Any) {
+        playQueue.player.play();
+    }
+    @IBAction func pauseButtonPressed(_ sender: Any) {
+        playQueue.player.pause();
+    }
+    
+    var sliderEditing : Bool = false;
+    
+
+    @IBAction func sliderValueChanged(_ sender: Any) {
+    }
+    
+    func sliderEditEnds(_ sender: Any) {
+        let startAt : CMTime = CMTime(seconds: Double(playSlider.value), preferredTimescale: 600);
+        let wasPlaying = playQueue.player.rate > 0;
+        if (wasPlaying) { playQueue.player.pause(); }
+        playQueue.player.seek(to: startAt);
+        if (wasPlaying) { playQueue.player.play(); }
+        sliderEditing = false;
+        print("edit done");
+    }
+    @IBAction func sliderTouchDown(_ sender: Any) {
+        sliderEditing = true;
+        print("edit begun");
+    }
+    @IBAction func sliderTouchCancel(_ sender: Any) {
+        sliderEditing = false;
+    }
+    @IBAction func sliderTouchUpInside(_ sender: Any) {
+        sliderEditEnds(sender)
+    }
+    @IBAction func sliderTouchUpOutside(_ sender: Any) {
+        sliderEditEnds(sender)
+    }
+    
     
     func redraw()
     {
@@ -292,12 +380,12 @@ class PlayQueueTVC: UITableViewController {
     {
         playingSongImage.image = nil;
         playingSongText.text = "";
-        if let node = playQueue.nodeInPlayer
+        if let node = globals.playQueue.nodeInPlayer
         {
             if (node.hasThumbnail())
             {
-                if (app().storageModel.thumbnailDownloaded(node)) {
-                    if let path = app().storageModel.thumbnailPath(node: node) {
+                if (globals.storageModel.thumbnailDownloaded(node)) {
+                    if let path = globals.storageModel.thumbnailPath(node: node) {
                         if let image = UIImage(contentsOfFile: path) {
                             playingSongImage.image = image;
                         }
@@ -383,7 +471,7 @@ class PlayQueueTVC: UITableViewController {
                 let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
                 alert.addAction(menuAction_songInfo(node!, viewController: self));
                 alert.addAction(menuAction_songBrowseTo(node!, viewController: self));
-                if (app().playlistBrowseFolder != nil && playQueue.isPlayable(node!, orMightContainPlayable: false)) {
+                if (globals.playlistBrowseFolder != nil && playQueue.isPlayable(node!, orMightContainPlayable: false)) {
                     alert.addAction(menuAction_addToPlaylistInFolder_recents(node!, viewController: self));
                 }
                 alert.addAction(menuAction_neverMind());

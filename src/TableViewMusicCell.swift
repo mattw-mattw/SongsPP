@@ -51,14 +51,14 @@ class TableViewMusicCell: UITableViewCell {
         durationLabel.text = "";
 
         if (node != nil) {
-            if (app().playQueue.isPlayable(node!, orMightContainPlayable: false)) {
+            if (globals.playQueue.isPlayable(node!, orMightContainPlayable: false)) {
                 durationLabel.text = String(format: "%02d:%02d", node!.duration / 60, node!.duration % 60)
             }
         
             if (node!.hasThumbnail())
             {
-                if (app().storageModel.thumbnailDownloaded(node!)) {
-                    if let path = app().storageModel.thumbnailPath(node: node!) {
+                if (globals.storageModel.thumbnailDownloaded(node!)) {
+                    if let path = globals.storageModel.thumbnailPath(node: node!) {
                         if let image = UIImage(contentsOfFile: path) {
                             
                             //cell.imageView!.frame = CGRect(x: cell.imageView!.frame.origin.x
@@ -77,7 +77,7 @@ class TableViewMusicCell: UITableViewCell {
         {
             contentView.bringSubviewToFront(progressBar);
         
-            let exists = node != nil ? app().storageModel.fileDownloadedByType(node!) : false;
+            let exists = node != nil ? globals.storageModel.fileDownloadedByType(node!) : false;
 
             progressBar.isHidden = !exists;
             progressBar.progress = exists ? 100 : 0;

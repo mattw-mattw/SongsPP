@@ -31,6 +31,9 @@
 		C96F3AD923BFDB87008BF07D /* MenuVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD823BFDB87008BF07D /* MenuVC.swift */; };
 		C96F3ADD23C01A07008BF07D /* StorageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3ADC23C01A07008BF07D /* StorageModel.swift */; };
 		C972610023C72FAC0029871E /* MainTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97260FF23C72FAC0029871E /* MainTabBarController.swift */; };
+		C9877B6B283760F200357F49 /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C90787EE28375805007E4F02 /* Intents.framework */; };
+		C9877B6E283760F200357F49 /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9877B6D283760F200357F49 /* IntentHandler.swift */; };
+		C9877B72283760F200357F49 /* IntentsExt.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = C9877B6A283760F200357F49 /* IntentsExt.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C9D30240259834D400D52ADF /* PlaylistTVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D3023F259834D400D52ADF /* PlaylistTVC.swift */; };
 		C9D74C9C277EC48400317072 /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D74C95277EC47000317072 /* libcryptopp.a */; };
 		C9D74C9D277EC48400317072 /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D74C96277EC47100317072 /* libcurl.a */; };
@@ -47,6 +50,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		C907881C28375987007E4F02 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C962CA4A25DF6F1B00A77721 /* MEGASDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C90788112837586E007E4F02;
+			remoteInfo = SiriExtension_SongsPlusPlusLite;
+		};
 		C962CA4E25DF6F1B00A77721 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C962CA4A25DF6F1B00A77721 /* MEGASDK.xcodeproj */;
@@ -54,7 +64,28 @@
 			remoteGlobalIDString = 9472044319ED916F00F6805F;
 			remoteInfo = MEGASDK;
 		};
+		C9877B70283760F200357F49 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 84008B8A23603A4400BD633F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C9877B69283760F200357F49;
+			remoteInfo = IntentsExt;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C90787E828375721007E4F02 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C9877B72283760F200357F49 /* IntentsExt.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		84008B9223603A4400BD633F /* SongsPlusPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SongsPlusPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -80,6 +111,8 @@
 		84D137E12363F272006A2DE0 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		84D137E32363F343006A2DE0 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		84D137E52363F37F006A2DE0 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		C90787D92837571F007E4F02 /* IntentsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IntentsUI.framework; path = System/Library/Frameworks/IntentsUI.framework; sourceTree = SDKROOT; };
+		C90787EE28375805007E4F02 /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
 		C90A1CA227375C22009DEB53 /* libsqlite3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsqlite3.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/libsqlite3.a"; sourceTree = "<group>"; };
 		C90A1CA327375C23009DEB53 /* libtag_c.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag_c.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/libtag_c.a"; sourceTree = "<group>"; };
 		C90A1CA427375C24009DEB53 /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/libtag.a"; sourceTree = "<group>"; };
@@ -126,6 +159,9 @@
 		C96F3AD823BFDB87008BF07D /* MenuVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuVC.swift; sourceTree = "<group>"; };
 		C96F3ADC23C01A07008BF07D /* StorageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageModel.swift; sourceTree = "<group>"; };
 		C97260FF23C72FAC0029871E /* MainTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabBarController.swift; sourceTree = "<group>"; };
+		C9877B6A283760F200357F49 /* IntentsExt.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = IntentsExt.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9877B6D283760F200357F49 /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
+		C9877B6F283760F200357F49 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C9A5A1512733E78500180871 /* libMega.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMega.a; path = "../../repos/sdk/build-x64-ios-mega-Debug/libMega.a"; sourceTree = "<group>"; };
 		C9A5A1532733EAF900180871 /* libMEGASDK.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libMEGASDK.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9D3023F259834D400D52ADF /* PlaylistTVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistTVC.swift; sourceTree = "<group>"; };
@@ -163,6 +199,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C9877B67283760F200357F49 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9877B6B283760F200357F49 /* Intents.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -174,6 +218,7 @@
 				C9551C07277E91A8008BC7C8 /* SongsPlusPlusLiteInfo.plist */,
 				C9D74CC6278268C900317072 /* AssetsLite.xcassets */,
 				84008B9423603A4400BD633F /* src */,
+				C9877B6C283760F200357F49 /* IntentsExt */,
 				84008B9323603A4400BD633F /* Products */,
 				84008BC323604D6F00BD633F /* Frameworks */,
 			);
@@ -183,6 +228,7 @@
 			isa = PBXGroup;
 			children = (
 				84008B9223603A4400BD633F /* SongsPlusPlus.app */,
+				C9877B6A283760F200357F49 /* IntentsExt.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -274,6 +320,8 @@
 				84D137D72363F0BF006A2DE0 /* libc++.tbd */,
 				84008BC623604D8000BD633F /* AVKit.framework */,
 				84008BC423604D7000BD633F /* AVFoundation.framework */,
+				C90787D92837571F007E4F02 /* IntentsUI.framework */,
+				C90787EE28375805007E4F02 /* Intents.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -282,8 +330,18 @@
 			isa = PBXGroup;
 			children = (
 				C962CA4F25DF6F1B00A77721 /* libMEGASDK.a */,
+				C907881D28375987007E4F02 /* SiriExtension_SongsPlusPlusLite.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C9877B6C283760F200357F49 /* IntentsExt */ = {
+			isa = PBXGroup;
+			children = (
+				C9877B6D283760F200357F49 /* IntentHandler.swift */,
+				C9877B6F283760F200357F49 /* Info.plist */,
+			);
+			path = IntentsExt;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -296,15 +354,34 @@
 				84008B8E23603A4400BD633F /* Sources */,
 				84008B8F23603A4400BD633F /* Frameworks */,
 				84008B9023603A4400BD633F /* Resources */,
+				C90787E828375721007E4F02 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C9877B71283760F200357F49 /* PBXTargetDependency */,
 			);
 			name = SongsPlusPlusLite;
 			productName = "just-exploring-3";
 			productReference = 84008B9223603A4400BD633F /* SongsPlusPlus.app */;
 			productType = "com.apple.product-type.application";
+		};
+		C9877B69283760F200357F49 /* IntentsExt */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C9877B77283760F200357F49 /* Build configuration list for PBXNativeTarget "IntentsExt" */;
+			buildPhases = (
+				C9877B66283760F200357F49 /* Sources */,
+				C9877B67283760F200357F49 /* Frameworks */,
+				C9877B68283760F200357F49 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IntentsExt;
+			productName = IntentsExt;
+			productReference = C9877B6A283760F200357F49 /* IntentsExt.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -312,7 +389,7 @@
 		84008B8A23603A4400BD633F /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1010;
+				LastSwiftUpdateCheck = 1340;
 				LastUpgradeCheck = 1310;
 				ORGANIZATIONNAME = mattweir;
 				TargetAttributes = {
@@ -327,6 +404,9 @@
 								enabled = 1;
 							};
 						};
+					};
+					C9877B69283760F200357F49 = {
+						CreatedOnToolsVersion = 13.4;
 					};
 				};
 			};
@@ -350,11 +430,19 @@
 			projectRoot = "";
 			targets = (
 				84008B9123603A4400BD633F /* SongsPlusPlusLite */,
+				C9877B69283760F200357F49 /* IntentsExt */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		C907881D28375987007E4F02 /* SiriExtension_SongsPlusPlusLite.appex */ = {
+			isa = PBXReferenceProxy;
+			fileType = "wrapper.app-extension";
+			path = SiriExtension_SongsPlusPlusLite.appex;
+			remoteRef = C907881C28375987007E4F02 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		C962CA4F25DF6F1B00A77721 /* libMEGASDK.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -372,6 +460,13 @@
 				C9D74CC8278268CA00317072 /* AssetsLite.xcassets in Resources */,
 				84008BA023603A5100BD633F /* LaunchScreen.storyboard in Resources */,
 				84008B9B23603A4400BD633F /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C9877B68283760F200357F49 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -405,7 +500,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C9877B66283760F200357F49 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9877B6E283760F200357F49 /* IntentHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C9877B71283760F200357F49 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C9877B69283760F200357F49 /* IntentsExt */;
+			targetProxy = C9877B70283760F200357F49 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		84008B9923603A4400BD633F /* Main.storyboard */ = {
@@ -548,6 +659,7 @@
 		84008BBB23603A5100BD633F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "Songs++.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -585,6 +697,7 @@
 		84008BBC23603A5100BD633F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "Songs++.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -619,6 +732,62 @@
 			};
 			name = Release;
 		};
+		C9877B73283760F200357F49 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FF48ESATNC;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = IntentsExt/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = IntentsExt;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2022 mattweir. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus-lite.IntentsExt";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C9877B74283760F200357F49 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FF48ESATNC;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = IntentsExt/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = IntentsExt;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2022 mattweir. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus-lite.IntentsExt";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -636,6 +805,15 @@
 			buildConfigurations = (
 				84008BBB23603A5100BD633F /* Debug */,
 				84008BBC23603A5100BD633F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C9877B77283760F200357F49 /* Build configuration list for PBXNativeTarget "IntentsExt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C9877B73283760F200357F49 /* Debug */,
+				C9877B74283760F200357F49 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

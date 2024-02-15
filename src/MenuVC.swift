@@ -25,14 +25,14 @@ class MenuVC: UIViewController {
     
     func setEnabled()
     {
-        loginButton?.isEnabled = !app().loginState.accountBySession && !app().loginState.accountByFolderLink;
-        logoutButton?.isEnabled = app().loginState.accountBySession && app().loginState.online;
-        logoutButton?.isHidden = app().loginState.accountByFolderLink;
-        forgetFolderLinkButton?.isEnabled = app().loginState.accountByFolderLink;
-        forgetFolderLinkButton?.isHidden = !app().loginState.accountByFolderLink;
-        goOfflineButton?.isEnabled = app().loginState.online;
-        goOnlineButton?.isEnabled = !app().loginState.online && (app().loginState.accountBySession || app().loginState.accountByFolderLink);
-        reloadAccountButton.isEnabled = app().loginState.online && (app().loginState.accountBySession || app().loginState.accountByFolderLink);
+        loginButton?.isEnabled = !globals.loginState.accountBySession && !globals.loginState.accountByFolderLink;
+        logoutButton?.isEnabled = globals.loginState.accountBySession && globals.loginState.online;
+        logoutButton?.isHidden = globals.loginState.accountByFolderLink;
+        forgetFolderLinkButton?.isEnabled = globals.loginState.accountByFolderLink;
+        forgetFolderLinkButton?.isHidden = !globals.loginState.accountByFolderLink;
+        goOfflineButton?.isEnabled = globals.loginState.online;
+        goOnlineButton?.isEnabled = !globals.loginState.online && (globals.loginState.accountBySession || globals.loginState.accountByFolderLink);
+        reloadAccountButton.isEnabled = globals.loginState.online && (globals.loginState.accountBySession || globals.loginState.accountByFolderLink);
     }
     
     @IBAction func onLoginClicked(_ sender: Any) {
@@ -62,7 +62,7 @@ class MenuVC: UIViewController {
                 
                 let spinner = ProgressSpinner(uic: self, title: "Logging in", message: "");
                 
-                app().loginState.login(spinner: spinner, user: email, pw: pw, twoFactor: twoFA,
+                globals.loginState.login(spinner: spinner, user: email, pw: pw, twoFactor: twoFA,
                                     onFinish: { (success) in
                                         spinner.dismissOrReportError(success: success);
                                         if (success) { self.navigationController?.popViewController(animated: true); }
@@ -76,7 +76,7 @@ class MenuVC: UIViewController {
     
     @IBAction func onGoOfflineButtonClicked(_ sender: UIButton) {
         let spinner = ProgressSpinner(uic: self, title: "Going Offline", message: "");
-        app().loginState.goOffline(spinner: spinner,
+        globals.loginState.goOffline(spinner: spinner,
             onFinish: { (success) in
                 spinner.dismissOrReportError(success: success);
                 self.setEnabled();
@@ -85,7 +85,7 @@ class MenuVC: UIViewController {
     
     @IBAction func onGoOnlineButtonClicked(_ sender: UIButton) {
         let spinner = ProgressSpinner(uic: self, title: "Going Online", message: "");
-        app().loginState.goOnline(spinner: spinner,
+        globals.loginState.goOnline(spinner: spinner,
             onFinish: { (success) in
                 spinner.dismissOrReportError(success: success);
                 self.setEnabled();
@@ -102,13 +102,13 @@ class MenuVC: UIViewController {
             
             mega().localLogout();
             do {
-                try FileManager.default.removeItem(atPath: app().storageModel.accountPath());
+                try FileManager.default.removeItem(atPath: globals.storageModel.accountPath());
             }
             catch {
             }
-            app().storageModel.alreadyCreatedFolders = [];
-            _ = app().storageModel.accountPath(); // recreate folder
-            app().loginState.goOnline(spinner: spinner, onFinish: {b in
+            globals.storageModel.alreadyCreatedFolders = [];
+            _ = globals.storageModel.accountPath(); // recreate folder
+            globals.loginState.goOnline(spinner: spinner, onFinish: {b in
                 spinner.dismissOrReportError(success: b);
             });
         }));
@@ -139,7 +139,7 @@ class MenuVC: UIViewController {
     func logoutAndDealWithCache(deleteCache : Bool)
     {
         let spinner = ProgressSpinner(uic: self, title: "Logging out", message: "");
-        app().loginState.logout(spinner: spinner, onFinish: { success_in in
+        globals.loginState.logout(spinner: spinner, onFinish: { success_in in
             
             var success = success_in;
             
@@ -148,7 +148,7 @@ class MenuVC: UIViewController {
                 app().clear();
                 if (deleteCache)
                 {
-                    success = app().storageModel.deleteCachedFiles(includingAccountAndSettings: true);
+                    success = globals.storageModel.deleteCachedFiles(includingAccountAndSettings: true);
                     if (!success)
                     {
                         spinner.setErrorMessage("Failed to erase cache after logout");
@@ -183,13 +183,13 @@ class MenuVC: UIViewController {
     func forgetFolderLinkAndDealWithCache(deleteCache: Bool)
     {
         let spinner = ProgressSpinner(uic: self, title: "Forgetting Folder Link", message: "");
-        app().loginState.forgetFolderLink(spinner: spinner, onFinish: { success in
+        globals.loginState.forgetFolderLink(spinner: spinner, onFinish: { success in
             var b = success;
             if (b) {
                 if (deleteCache)
                 {
                     spinner.updateTitleMessage("Deleting cache", "Folder link already forgotten.")
-                    if (!app().storageModel.deleteCachedFiles(includingAccountAndSettings: true))
+                    if (!globals.storageModel.deleteCachedFiles(includingAccountAndSettings: true))
                     {
                         b = false;
                         spinner.setErrorMessage("Failed to erase cache after wiping folder link");
@@ -211,7 +211,7 @@ class MenuVC: UIViewController {
             
                 let spinner = ProgressSpinner(uic: self, title: "Clearing Cache", message: "");
             
-                if (app().storageModel.deleteCachedFiles(includingAccountAndSettings: false))
+                if (globals.storageModel.deleteCachedFiles(includingAccountAndSettings: false))
                 {
                     spinner.dismiss();
                     reportMessage(uic: self, message: "Cached files cleared");
@@ -322,7 +322,7 @@ class MenuVC: UIViewController {
     
     func logFilePath() -> String
     {
-        return app().storageModel.tempFilesPath() + "/iOS_logfile.log";
+        return globals.storageModel.tempFilesPath() + "/iOS_logfile.log";
     }
     
     @IBAction func onTroubleshootWithLogFilesClicked(_ sender: UIButton) {

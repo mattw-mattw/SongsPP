@@ -68,12 +68,12 @@ class PlaylistTVC: UITableViewController {
         
         if (!loadedOk)
         {
-            let message = app().loginState.online ?
+            let message = globals.loginState.online ?
             "The playlist has not been downloaded yet, please give it a moment and then retry.":
             "The playlist has not been downloaded yet.  Please go online so it can download, and it will be available shortly afterward";
             
             if playlistNode != nil {
-                _ = app().storageModel.startPlaylistDownloadIfAbsent(playlistNode!);
+                _ = globals.storageModel.startPlaylistDownloadIfAbsent(playlistNode!);
             }
             
             let alert = UIAlertController(title: "Playlist absent", message: message, preferredStyle: .alert)
@@ -130,11 +130,11 @@ class PlaylistTVC: UITableViewController {
             
                 saveAsEditing();
             
-                if let updateFilePath = app().storageModel.playlistPath(node: playlistNode!, forEditing: true) {
+                if let updateFilePath = globals.storageModel.playlistPath(node: playlistNode!, forEditing: true) {
                     
-                    if (app().loginState.accountByFolderLink && app().playlistBrowseFolder != nil)
+                    if (globals.loginState.accountByFolderLink && globals.playlistBrowseFolder != nil)
                     {
-                        if let oldPlaylistsFolder = app().storageModel.getOldPlaylistsFolder() {
+                        if let oldPlaylistsFolder = globals.storageModel.getOldPlaylistsFolder() {
                         // folder links don't link versions yet
                             let formatter = DateFormatter()
                             formatter.dateFormat = "yyyyMMdd-HHmmss"
@@ -197,7 +197,7 @@ class PlaylistTVC: UITableViewController {
     
     @IBAction func onRevertButton() {
         if (playlistNode == nil) { return; }
-        if let updateFilePath = app().storageModel.playlistPath(node: playlistNode!, forEditing: true) {
+        if let updateFilePath = globals.storageModel.playlistPath(node: playlistNode!, forEditing: true) {
             do {
                 try FileManager.default.removeItem(atPath: updateFilePath);
             } catch {
@@ -212,7 +212,7 @@ class PlaylistTVC: UITableViewController {
         folderPathLabelCtrl.text = playlistNode == nil ? "<playlist>" : playlistNode!.name;
         
         var edited = false;
-        if let editingPath = app().storageModel.playlistPath(node: playlistNode!, forEditing: true) {
+        if let editingPath = globals.storageModel.playlistPath(node: playlistNode!, forEditing: true) {
             edited = FileManager.default.fileExists(atPath: editingPath);
         }
         saveButton.isEnabled = edited;
@@ -221,9 +221,9 @@ class PlaylistTVC: UITableViewController {
     
     func saveAsEditing() {
         if (playlistNode == nil) { return; }
-        let s = app().playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: playlistSongs);
+        let s = globals.playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: playlistSongs);
         
-        if let editingPath = app().storageModel.playlistPath(node: playlistNode!, forEditing: true) {
+        if let editingPath = globals.storageModel.playlistPath(node: playlistNode!, forEditing: true) {
             let url = URL(fileURLWithPath: editingPath);
             try! s.write(to: url, atomically: true, encoding: .ascii)
         }
@@ -237,14 +237,14 @@ class PlaylistTVC: UITableViewController {
     {
         playlistNode = node;
         playlistSongs = [];
-        let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(node);
+        let (json, _) = globals.storageModel.getPlaylistFileEditedOrNotAsJSON(node);
         
         loadedOk = json != nil;
         
         if (loadedOk)
         {
             playlistSongs = [];
-            app().storageModel.loadSongsFromPlaylistRecursive(json: json!, &playlistSongs, recurse: true);
+            globals.storageModel.loadSongsFromPlaylistRecursive(json: json!, &playlistSongs, recurse: true, filterIntent: nil);
         }
         redraw();
         adjustControls();
@@ -323,7 +323,7 @@ class PlaylistTVC: UITableViewController {
 
     // Override to support editing the table view.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete && indexPath.row < app().playQueue.nextSongs.count {
+        if editingStyle == .delete && indexPath.row < globals.playQueue.nextSongs.count {
             playlistSongs.remove(at: indexPath.row)
             saveAsEditing();
             redraw()

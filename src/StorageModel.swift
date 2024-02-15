@@ -7,7 +7,7 @@
 //
 
 import Foundation
-
+import Intents
 
 class TransferHandler: NSObject, MEGATransferDelegate {
     
@@ -24,11 +24,11 @@ class TransferHandler: NSObject, MEGATransferDelegate {
         if (n != nil && n!.fingerprint != nil) {
             if (error.type.rawValue == 0)
             {
-                app().storageModel.fileArrived(fingerprint: n!.fingerprint!, node: n!);
+                globals.storageModel.fileArrived(fingerprint: n!.fingerprint!, node: n!);
             }
             else
             {
-                app().storageModel.fileFailed(fingerprint: n!.fingerprint!, node: n!);
+                globals.storageModel.fileFailed(fingerprint: n!.fingerprint!, node: n!);
             }
         }
     }
@@ -37,7 +37,7 @@ class TransferHandler: NSObject, MEGATransferDelegate {
 //        api.cancelTransfer(request);
   //      let n = mega().node(forHandle: request.nodeHandle)
     //    if (n != nil && n!.fingerprint != nil) {
-      //      app().storageModel.fileFailed(fingerprint: n!.fingerprint!);
+      //      globals.storageModel.fileFailed(fingerprint: n!.fingerprint!);
         //}
     }
 }
@@ -81,21 +81,21 @@ class MEGAHandler: NSObject, MEGADelegate {
             
             if (node == nil) { continue; }
             
-            app().playQueue.nodesChanging(node!);
+            globals.playQueue.nodesChanging(node!);
             if (app().playQueueTVC != nil) { app().playQueueTVC!.nodesChanging(node!); }
             if (app().browseMusicTVC != nil) { app().browseMusicTVC!.nodesChanging(node!); }
             if (app().browsePlaylistsTVC != nil) { app().browsePlaylistsTVC!.nodesChanging(node!); }
             
             if (node!.name != nil &&
                 node!.name!.hasSuffix(".playlist")) {
-                _ = app().storageModel.startDownloadIfAbsent(node: node!);
+                _ = globals.storageModel.startDownloadIfAbsent(node: node!);
             }
             
             // in case it now has a thumbnail, start it downloading
-            _ = app().storageModel.thumbnailDownloaded(node!);
+            _ = globals.storageModel.thumbnailDownloaded(node!);
         }
 
-        app().playQueue.nodesFinishedChanging();
+        globals.playQueue.nodesFinishedChanging();
         if (app().playQueueTVC != nil) { app().playQueueTVC!.nodesFinishedChanging();}
         if (app().browseMusicTVC != nil) { app().browseMusicTVC!.nodesFinishedChanging();}
         if (app().browsePlaylistsTVC != nil) { app().browsePlaylistsTVC!.nodesFinishedChanging();}
@@ -103,11 +103,11 @@ class MEGAHandler: NSObject, MEGADelegate {
     
     func onThumbnailUpdate(node : MEGANode)
     {
-        app().playQueue.nodesChanging(node);
+        globals.playQueue.nodesChanging(node);
         if (app().playQueueTVC != nil) { app().playQueueTVC!.nodesChanging(node); }
         if (app().browseMusicTVC != nil) { app().browseMusicTVC!.nodesChanging(node); }
         if (app().browsePlaylistsTVC != nil) { app().browsePlaylistsTVC!.nodesChanging(node); }
-        app().playQueue.nodesFinishedChanging();
+        globals.playQueue.nodesFinishedChanging();
         if (app().playQueueTVC != nil) { app().playQueueTVC!.nodesFinishedChanging();}
         if (app().browseMusicTVC != nil) { app().browseMusicTVC!.nodesFinishedChanging();}
         if (app().browsePlaylistsTVC != nil) { app().browsePlaylistsTVC!.nodesFinishedChanging();}
@@ -166,7 +166,7 @@ class StorageModel {
         }
         
         // recreate those folders again (now empty) so we don't have issues with the next login etc.
-        app().storageModel.alreadyCreatedFolders = [];
+        globals.storageModel.alreadyCreatedFolders = [];
         _ = accountPath();
         _ =  cacheFilesPath();
         _ = tempFilesPath();
@@ -239,12 +239,12 @@ class StorageModel {
     func getOldPlaylistsFolder() -> MEGANode?
     {
         var node : MEGANode? = nil;
-        if (app().playlistBrowseFolder != nil)
+        if (globals.playlistBrowseFolder != nil)
         {
-            node = mega().node(forPath: "old-playlist-versions", node: app().playlistBrowseFolder!);
-            if (node == nil && app().loginState.online)
+            node = mega().node(forPath: "old-playlist-versions", node: globals.playlistBrowseFolder!);
+            if (node == nil && globals.loginState.online)
             {
-                mega().createFolder(withName: "old-playlist-versions", parent: app().playlistBrowseFolder!)
+                mega().createFolder(withName: "old-playlist-versions", parent: globals.playlistBrowseFolder!)
             }
         }
         return node;
@@ -336,22 +336,22 @@ class StorageModel {
         return (p, true);
     }
     
-    func loadSongsFromPlaylistRecursive(json: Any, _ v : inout [MEGANode], recurse: Bool)
+    func loadSongsFromPlaylistRecursive(json: Any, _ v : inout [MEGANode], recurse: Bool, filterIntent: INPlayMediaIntent?)
     {
         if let array = json as? [Any] {
             for object in array {
                 if let attribs = object as? [String : Any] {
                     if let handleStr = attribs["h"] {
-                        print(handleStr);
                         var node = mega().node(forHandle: MEGASdk.handle(forBase64Handle: handleStr as! String));
                         if (node == nil)
                         {
+                            // Maybe the node was replaced with a new version, see if there's something at the old path
                             if let lkpath = attribs["lkpath"] {
                                 node = mega().node(forPath: lkpath as! String);
                             }
                         }
                         if (node != nil) {
-                            loadSongsFromNodeRecursive(node: node!, &v, recurse: recurse);
+                            loadSongsFromNodeRecursive(node: node!, &v, recurse: recurse, filterIntent: filterIntent);
                         }
                     }
                 }
@@ -359,32 +359,89 @@ class StorageModel {
         }
     }
     
-    func loadSongsFromNodeRecursive(node: MEGANode, _ v : inout [MEGANode], recurse: Bool)
+    func loadSongsFromNodeRecursive(node: MEGANode, _ v : inout [MEGANode], recurse: Bool, filterIntent: INPlayMediaIntent?)
     {
         if (node.name == nil) { return }
+        
+        if (filterIntent != nil)
+        {
+            if (node.type == .folder && node.name == "old-playlist-versions") {
+                return;
+            }
+            if (matchNodeOnIntent(node, filterIntent: filterIntent!))
+            {
+                v.append(node);
+                return;
+            }
+        }
+
         if (node.type != MEGANodeType.file)
         {
             let nodeList = mega().children(forParent: node, order: 1)
             for i in 0..<nodeList.size.intValue
             {
                 if let n = nodeList.node(at: i) {
-                    loadSongsFromNodeRecursive(node: n, &v, recurse: recurse);
+                    loadSongsFromNodeRecursive(node: n, &v, recurse: recurse, filterIntent: filterIntent);
                 }
             }
         }
-        else if (node.name!.hasSuffix(".playlist") && app().storageModel.fileDownloadedByNH(node))
+        else if (node.name!.hasSuffix(".playlist") && globals.storageModel.fileDownloadedByNH(node))
         {
             if (recurse) {
-                let (json, _) = app().storageModel.getPlaylistFileEditedOrNotAsJSON(node);
+                let (json, _) = globals.storageModel.getPlaylistFileEditedOrNotAsJSON(node);
                 if (json != nil) {
-                    loadSongsFromPlaylistRecursive(json: json!, &v, recurse: recurse);
+                    loadSongsFromPlaylistRecursive(json: json!, &v, recurse: recurse, filterIntent: filterIntent);
                 }
             }
         }
-        else if app().playQueue.isPlayable(node, orMightContainPlayable: false)
+        else if globals.playQueue.isPlayable(node, orMightContainPlayable: false)
         {
-            v.append(node)
+            if (filterIntent == nil) { v.append(node) }
         }
+    }
+    
+    func matchNodeOnIntent(_ node : MEGANode, filterIntent: INPlayMediaIntent) -> Bool
+    {
+        switch (filterIntent.mediaSearch?.mediaType) {
+        case .playlist:
+            if (node.type != MEGANodeType.file || !node.name!.hasSuffix(".playlist")) {
+                return false;
+            }
+        case .song:
+            if (node.type != MEGANodeType.file || !globals.playQueue.isPlayable(node, orMightContainPlayable: false)) {
+                return false;
+            }
+        case .album:
+            if (node.type != MEGANodeType.folder) {
+                return false;
+            }
+        case .music:
+            // this case seems to be used for "all songs"
+            return node.type == MEGANodeType.file &&
+                   globals.playQueue.isPlayable(node, orMightContainPlayable: false);
+        case .unknown:
+            break;
+            
+        default:
+            return false;
+        }
+        
+        if (!globals.playQueue.isPlayable(node, orMightContainPlayable: true))
+        {
+            return false;
+        }
+        
+        if let searchStr = filterIntent.mediaSearch?.mediaName?.lowercased() {
+            
+            if let name = node.name {
+                if (name.lowercased().contains(searchStr)) { return true };
+            }
+            if let ct = node.customTitle {
+                if ct.lowercased().contains(searchStr) { return true };
+            }
+            return false;
+        }
+        return true;
     }
     
 
@@ -411,7 +468,7 @@ class StorageModel {
 
     func startDownloadIfAbsent( node: MEGANode) -> Bool
     {
-        if (!app().loginState.online) { return false; }
+        if (!globals.loginState.online) { return false; }
         
         if (node.name != nil &&
             node.name!.hasSuffix(".playlist")) {
@@ -423,7 +480,7 @@ class StorageModel {
     
     func startSongDownloadIfAbsent(_ node: MEGANode) -> Bool
     {
-        if (!app().loginState.online) { return false; }
+        if (!globals.loginState.online) { return false; }
 
         // also start thumbnail downlaoding if it has one and we don't have it already
         _ = thumbnailDownloaded(node);
@@ -442,7 +499,7 @@ class StorageModel {
     
     func startPlaylistDownloadIfAbsent(_ node: MEGANode) -> Bool
     {
-        if (!app().loginState.online) { return false; }
+        if (!globals.loginState.online) { return false; }
 
         if !isDownloadingByNH(node) && !fileDownloadedByNH(node)
         {
@@ -459,14 +516,14 @@ class StorageModel {
     {
         downloadingFP.remove(fingerprint);
         downloadingNH.remove(node.handle);
-        app().playQueue.songDownloaded(node: node)
+        globals.playQueue.songDownloaded(node: node)
     }
    
    func fileFailed(fingerprint : String, node : MEGANode)
    {
        downloadingFP.remove(fingerprint);
        downloadingNH.remove(node.handle);
-       app().playQueue.songDownloaded(node: nil)
+       globals.playQueue.songDownloaded(node: nil)
    }
 
     

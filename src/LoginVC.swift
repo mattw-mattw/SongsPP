@@ -38,7 +38,7 @@ class LoginVC: UIViewController {
 
     @IBAction func onLoginButtonClicked(_ sender: UIButton) {
         let spinner = ProgressSpinner(uic: self, title: "Logging in", message: "Requesting");
-        app().loginState.login(spinner: spinner, user: emailText.text!, pw: passwordText.text!, twoFactor: "",
+        globals.loginState.login(spinner: spinner, user: emailText.text!, pw: passwordText.text!, twoFactor: "",
                             onFinish: { (success) in
                                 spinner.dismissOrReportError(success: success)
                                 if (success) {
