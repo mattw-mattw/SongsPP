@@ -32,22 +32,6 @@ class PlayQueueTVC: UITableViewController {
 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
-        
-//        pvc = AVPlayerViewController();
-//        pvc!.updatesNowPlayingInfoCenter = false;
-//        pvc!.showsPlaybackControls = true;
-//        //pvc!.contentOverlayView = nil;
-//        
-//        //playerPlaceholder.addSubview(pvc!.view);
-//        //pvc!.view.frame = playerPlaceholder.bounds;
-//        //topHStack.addArrangedSubview(payingSongImage)
-//        //pvc!.view.frame = CGRect(x: 0, y: 0, width: playerLocationView.frame.width, height: playerLocationView.frame.height);
-//        
-//        playerLocationView.addSubview(pvc!.view);
-//        pvc!.didMove(toParent: self);
-//        pvc!.player = playQueue.player;
-//        pvc!.beginAppearanceTransition(true, animated: false)
-//        //pvc!.set
 
         app().playQueueTVC = self;
         tableView.estimatedRowHeight = 43.5;
@@ -70,9 +54,21 @@ class PlayQueueTVC: UITableViewController {
         playingSongText.addGestureRecognizer(longPressGR2);
         playingSongText.isUserInteractionEnabled = true;
         
-//        tabBarContoller!.viewControllers?.forEach { let _ = $0.view }
-//        let _ = app().tabBarContoller!.viewControllers![1].view;
-        
+        playButton.setTitle("", for: .normal)
+        playButton.setTitle("", for: .highlighted)
+        playButton.setTitle("", for: .disabled)
+        playButton.setTitle("", for: .selected)
+        playButton.setTitle("", for: .focused)
+        playButton.setTitle("", for: .application)
+        playButton.setTitle("", for: .reserved)
+        pauseButton.setTitle("", for: .normal)
+        pauseButton.setTitle("", for: .highlighted)
+        pauseButton.setTitle("", for: .disabled)
+        pauseButton.setTitle("", for: .selected)
+        pauseButton.setTitle("", for: .focused)
+        pauseButton.setTitle("", for: .application)
+        pauseButton.setTitle("", for: .reserved)
+
         Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateSlider), userInfo: nil, repeats: true)
     }
     
@@ -111,8 +107,6 @@ class PlayQueueTVC: UITableViewController {
         let playing = playQueue.player.rate > 0;
         playButton.isEnabled = !playing;
         pauseButton.isEnabled = playing;
-        playButton.titleLabel?.text = "";
-        pauseButton.titleLabel?.text = "";
     }
 
     @IBOutlet weak var songLabel : UILabel!;
@@ -316,11 +310,9 @@ class PlayQueueTVC: UITableViewController {
         playQueue.player.seek(to: startAt);
         if (wasPlaying) { playQueue.player.play(); }
         sliderEditing = false;
-        print("edit done");
     }
     @IBAction func sliderTouchDown(_ sender: Any) {
         sliderEditing = true;
-        print("edit begun");
     }
     @IBAction func sliderTouchCancel(_ sender: Any) {
         sliderEditing = false;
