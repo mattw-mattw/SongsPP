@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-class MenuVC: UIViewController {
+class MenuVC: UIViewController, UIDocumentPickerDelegate {
 
     @IBOutlet weak var loginButton : UIButton?
     @IBOutlet weak var logoutButton : UIButton?
@@ -21,6 +21,220 @@ class MenuVC: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated);
         setEnabled();
+    }
+    
+    @IBAction func onExportMetadata(_ sender: Any) {
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder]);
+        picker.delegate = self;
+        //picker.directoryURL = "/";
+        present(picker, animated: true, completion: nil)
+    }
+    
+    func createFolder(_ url : String) -> Void
+    {
+        do {
+            if !FileManager.default.fileExists(atPath: url) {
+                try FileManager.default.createDirectory(atPath: url, withIntermediateDirectories: true, attributes: nil);
+            }
+            var urv = URLResourceValues();
+            urv.isExcludedFromBackup = true;
+            var attribUrl = URL(fileURLWithPath: url)
+            try attribUrl.setResourceValues(urv);
+        }
+        catch
+        {
+        }
+    }
+    
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL])
+    {
+        //for u in urls {
+        //    reportMessage(uic: self, message: u.absoluteString)
+        //}
+        
+        if (urls.count != 1) { return; }
+        let url = urls[0];
+        
+        
+       
+        let exportFolder = globals.storageModel.cacheFilesPath() + "/export";
+
+        deleteOldExportFolder(exportFolder);
+        createFolder(exportFolder);
+        createFolder(exportFolder + "/thumb");
+        createFolder(exportFolder + "/playlist");
+
+        exportNodeAttribs(globals.musicBrowseFolder!, exportFolder);
+        exportPlaylists(globals.playlistBrowseFolder!, exportFolder + "/playlist")
+        	
+        outputJsonAttrs(exportFolder)
+
+        guard url.startAccessingSecurityScopedResource() else { return };
+        defer { url.stopAccessingSecurityScopedResource() }
+        
+        do {
+            try FileManager.default.copyItem(at: URL(fileURLWithPath: exportFolder, isDirectory: true),
+                                             to: url.appendingPathComponent("songs++index", isDirectory: true));
+        }
+        catch
+        {
+            reportMessage(uic: self, message: "copy failed: \(error)")
+        }
+    }
+    
+    func deleteOldExportFolder(_ exportFolder : String)
+    {
+        do {
+            try FileManager.default.removeItem(at: URL(fileURLWithPath: exportFolder, isDirectory: true));
+        }
+        catch
+        {
+            reportMessage(uic: self, message: "remove old folder failed: \(error)")
+        }
+    }
+    	
+    func exportNodeAttribs(_ n : MEGANode, _ exportFolder : String)
+    {
+        if (n.isFolder())
+        {
+            let children = mega().children(forParent: n)
+            for i in 0..<children.size.intValue {
+                exportNodeAttribs(children.node(at: i), exportFolder)
+            }
+        }
+        else
+        {
+            exportAttribs(n, exportFolder)
+        }
+    }
+    
+    func exportPlaylists(_ n : MEGANode, _ exportFolder : String)
+    {
+        let children = mega().children(forParent: n)
+        for i in 0..<children.size.intValue {
+            let nn = children.node(at: i)!;
+            if (nn.isFolder())
+            {
+                createFolder(exportFolder + "/" + nn.name!);
+                exportPlaylists(nn, exportFolder + "/" + nn.name!)
+            }
+            else
+            {
+                exportPlaylist(nn, exportFolder)
+            }
+        }
+    }
+    
+    func exportPlaylist(_ n : MEGANode, _ exportFolder : String)
+    {
+        
+        var v : [MEGANode] = [];
+        globals.storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true, filterIntent: nil);
+        
+        var playlist : [[String: String]] = [];
+        
+        for nn in v {
+            var jn : [String: String] = [:];
+            jn["mega_h"] = nn.base64Handle;
+            jn["npath"] = app().nodePath(nn);
+            
+            if let filename = globals.storageModel.songFingerprintPath(node: nn) {
+                if let sparseFingerprint = globals.mega?.fingerprint(forFilePath: filename, modificationTime: Date(timeIntervalSince1970: 0)) {
+                    jn["sparse_fp"] = sparseFingerprint;
+                }
+            }
+            playlist.append(jn);
+        }
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: playlist, options: JSONSerialization.WritingOptions.sortedKeys)
+            let str = String(data: jsonData, encoding: .utf8);
+            let url = URL(fileURLWithPath: exportFolder + "/" + n.name!);
+            try! str!.write(to: url, atomically: true, encoding: .utf8)
+        } catch {
+        }
+
+    }
+    
+    func exportThumbnail(_ n : MEGANode, _ exportFolder : String)
+    {
+        if (globals.storageModel.thumbnailDownloaded(n)) {
+            if let path = globals.storageModel.thumbnailPath(node: n) {
+                
+                if let thumbFingerprint = globals.mega?.fingerprint(forFilePath: path, modificationTime: Date(timeIntervalSince1970: 0)) {
+                    do {
+                        try FileManager.default.copyItem(atPath: path, toPath: exportFolder + "/thumb/" + thumbFingerprint + ".jpg")
+                    }
+                    catch {
+                    }
+                }
+            }
+        }
+    }
+    
+    var jsonAttrs : [[String: String]] = [];
+    var thumbsDone : Set<String> = [];
+    
+    func exportAttribs(_ n : MEGANode, _ exportFolder : String)
+    {
+        
+        var jn : [String: String] = [:];
+        jn["mega_h"] = n.base64Handle;
+        jn["npath"] = app().nodePath(n);
+        
+        var title : String? = n.customTitle;
+        if (title == nil) { title = n.name; }
+        jn["title"] = title!;
+        
+        var bpm : String? = n.customBPM;
+        if (bpm == nil) { bpm = ""; }
+        jn["bpm"] = bpm!;
+        
+        var artist : String? = n.customArtist;
+        if (artist == nil) { artist = "" }
+        jn["artist"] = artist!;
+        
+        if (globals.playQueue.isPlayable(n, orMightContainPlayable: false)) {
+            jn["durat"] = String(format: "%02d:%02d", n.duration / 60, n.duration % 60)
+        }
+        
+        if (globals.storageModel.thumbnailDownloaded(n)) {
+            if let path = globals.storageModel.thumbnailPath(node: n) {
+                
+                if let thumbFingerprint = globals.mega?.fingerprint(forFilePath: path, modificationTime: Date(timeIntervalSince1970: 0)) {
+                    if !thumbsDone.contains(thumbFingerprint) {
+                        thumbsDone.insert(thumbFingerprint)
+                        do {
+                            try FileManager.default.copyItem(atPath: path, toPath: exportFolder + "/thumb/" + thumbFingerprint + ".jpg");
+                            jn["thumb"] = thumbFingerprint;
+                        }
+                        catch {
+                        }
+                    }
+                }
+            }
+        }
+        
+        if let filename = globals.storageModel.songFingerprintPath(node: n) {
+            if let sparseFingerprint = globals.mega?.fingerprint(forFilePath: filename, modificationTime: Date(timeIntervalSince1970: 0)) {
+                jn["sparse_fp"] = sparseFingerprint;
+            }
+        }
+        
+        jsonAttrs.append(jn);
+    }
+    
+    func outputJsonAttrs(_ exportFolder : String)
+    {
+        do {
+
+            //Convert to Data
+            let jsonData = try JSONSerialization.data(withJSONObject: jsonAttrs, options: JSONSerialization.WritingOptions.sortedKeys)
+            let str = String(data: jsonData, encoding: .utf8);
+            let url = URL(fileURLWithPath: exportFolder + "/songs++index.json");
+            try! str!.write(to: url, atomically: true, encoding: .utf8)
+        } catch {
+        }
     }
     
     func setEnabled()

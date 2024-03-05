@@ -55,6 +55,13 @@
 			remoteGlobalIDString = 9472044319ED916F00F6805F;
 			remoteInfo = MEGASDK;
 		};
+		C991657D2B8DA08F00F85AD2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C962CA4A25DF6F1B00A77721 /* MEGASDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C90788112837586E007E4F02;
+			remoteInfo = SiriExtension_SongsPlusPlusLite;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -270,6 +277,7 @@
 			isa = PBXGroup;
 			children = (
 				C962CA4F25DF6F1B00A77721 /* libMEGASDK.a */,
+				C991657E2B8DA08F00F85AD2 /* SiriExtension_SongsPlusPlusLite.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -348,6 +356,13 @@
 			fileType = archive.ar;
 			path = libMEGASDK.a;
 			remoteRef = C962CA4E25DF6F1B00A77721 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C991657E2B8DA08F00F85AD2 /* SiriExtension_SongsPlusPlusLite.appex */ = {
+			isa = PBXReferenceProxy;
+			fileType = "wrapper.app-extension";
+			path = SiriExtension_SongsPlusPlusLite.appex;
+			remoteRef = C991657D2B8DA08F00F85AD2 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -548,7 +563,7 @@
 					"/Users/matt/repos/3rdParty_sdk_ios_arm64/vcpkg/installed/arm64-ios-mega/include",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Songs++Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -585,7 +600,7 @@
 					"/Users/matt/repos/3rdParty_sdk_ios_arm64/vcpkg/installed/arm64-ios-mega/include",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Songs++Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
