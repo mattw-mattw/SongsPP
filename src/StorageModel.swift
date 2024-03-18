@@ -635,6 +635,13 @@ class StorageModel {
         return p;
     }
 
+    func importFolderPath() -> String
+    {
+        let p = cacheFilesPath() + "/import";
+        assureFolderExists(p, doneName: "import")
+        return p;
+    }
+    
     func tempFilesPath() -> String
     {
         // .cachesDirectory: Stores files in here that can be discarded when the space is low. This is a good location for any content that can be re-downloaded when needed.

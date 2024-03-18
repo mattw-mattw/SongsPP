@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22155" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="xjS-cL-gcQ">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="xjS-cL-gcQ">
     <device id="retina6_72" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22131"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22684"/>
         <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
@@ -1540,7 +1540,7 @@
                                 <rect key="frame" x="0.0" y="103" width="430" height="697"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="zxj-iJ-WZB">
-                                        <rect key="frame" x="10" y="10" width="430" height="394.33333333333331"/>
+                                        <rect key="frame" x="10" y="10" width="430" height="428.66666666666669"/>
                                         <subviews>
                                             <button opaque="NO" tag="99" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wRn-O1-P0l">
                                                 <rect key="frame" x="0.0" y="0.0" width="430" height="30"/>
@@ -1638,6 +1638,14 @@
                                                 <buttonConfiguration key="configuration" style="plain" title="Export Metadata"/>
                                                 <connections>
                                                     <action selector="onExportMetadata:" destination="m7B-uG-kn7" eventType="touchUpInside" id="yEl-WQ-s8t"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="pIS-ad-pDJ">
+                                                <rect key="frame" x="0.0" y="394.33333333333331" width="430" height="34.333333333333314"/>
+                                                <state key="normal" title="Button"/>
+                                                <buttonConfiguration key="configuration" style="plain" title="Import from Shared Folder"/>
+                                                <connections>
+                                                    <action selector="onImportFromSharedFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="zg3-BA-sZO"/>
                                                 </connections>
                                             </button>
                                         </subviews>
@@ -1906,7 +1914,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="2OH-Ib-MJF"/>
+        <segue reference="QhH-eg-gF4"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="book.circle" catalog="system" width="128" height="123"/>

@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-class MenuVC: UIViewController, UIDocumentPickerDelegate {
+class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
 
     @IBOutlet weak var loginButton : UIButton?
     @IBOutlet weak var logoutButton : UIButton?
@@ -22,8 +22,20 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         super.viewWillAppear(animated);
         setEnabled();
     }
+
+    var isImport = false;
+
+    @IBAction func onImportFromSharedFolder(_ sender: Any) {
+        isImport = true;
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder]);
+        picker.delegate = self;
+        //picker.directoryURL = "/";
+        present(picker, animated: true, completion: nil)
+    }
+    
     
     @IBAction func onExportMetadata(_ sender: Any) {
+        isImport = false;
         let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder]);
         picker.delegate = self;
         //picker.directoryURL = "/";
@@ -46,6 +58,100 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         }
     }
     
+    actor scanQueue  // actor = thread safe
+    {
+        var q : [(URL?, URL?)] = [];
+        
+        func push(_ a : URL?, _ b : URL?)
+        {
+            q.append((a, b));
+        }
+        
+        func pop() -> (URL?, URL?)?
+        {
+            if q.count == 0 { return nil; }
+            let (a, b) = q[q.count-1];
+            q.remove(at: q.count-1);
+            return (a,b)
+        }
+    }
+    
+    var sc = scanQueue();
+    
+    func ScanDoubleDirs(_ source : String, _ dest : String)
+    {
+        print("scanning folders  \(source) \(dest) ")
+        do
+        {
+            var sourceItems = try FileManager.default.contentsOfDirectory(atPath: source);
+            var destItems = try FileManager.default.contentsOfDirectory(atPath: dest);
+            try sourceItems.sort(by: {(a,b) throws -> Bool in a < b } )
+            try destItems.sort(by: {(a,b) throws -> Bool in a < b } )
+            
+            var i = 0;
+            var j = 0;
+            while true {
+                var ileaf = i < sourceItems.count ? sourceItems[i] : nil;
+                var jleaf = j < destItems.count ? destItems[j] : nil;
+                if (ileaf != nil && jleaf != nil) {
+                    if (ileaf! < jleaf!) { jleaf = nil; }
+                    else if (jleaf! < ileaf!) { ileaf = nil; }
+                }
+                if (ileaf == nil && jleaf == nil) { break; }
+                
+                let ii = source + "/" + (ileaf == nil ? jleaf! : ileaf!)
+                let jj = dest + "/" + (jleaf == nil ? ileaf! : jleaf!)
+                if (ileaf != nil && jleaf != nil) {
+
+                    i += 1;
+                    j += 1;
+                    var resultStorage: ObjCBool = false;
+                    FileManager.default.fileExists(atPath: ii, isDirectory: &resultStorage)
+                    if (resultStorage.boolValue)
+                    {
+                        ScanDoubleDirs(ii, jj)
+                    }
+                    else {
+                        //print("skipping pre-existing  \(ii) \(jj) ")
+                    }
+                    continue;
+                }
+                else if (ileaf != nil) {
+                    i += 1;
+                    
+                    var resultStorage: ObjCBool = false;
+                    FileManager.default.fileExists(atPath: ii, isDirectory: &resultStorage)
+                    if (resultStorage.boolValue)
+                    {
+                        print("creating dest folder  \(jj) ")
+                        try FileManager.default.createDirectory(atPath: jj, withIntermediateDirectories: false)
+                        ScanDoubleDirs(ii, jj)
+                    }
+                    else
+                    {
+                        print("copying  \(ii) \(jj) ")
+                        try FileManager.default.copyItem(atPath: ii, toPath: jj)
+                    }
+                }
+                else if (jleaf != nil) {
+                    j += 1;
+                    //let leaf = jj!.lastPathComponent;
+                    //ii = URL(fileURLWithPath: dest + "/" + leaf, isDirectory: jj!.hasDirectoryPath);
+                }
+                else {
+                    break;
+                }
+                //await sc.push(ii, jj)
+            }
+            
+            
+        }
+        catch
+        {
+            print("scan failed at \(source) \(dest) due to \(error)")
+        }
+    }
+    
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL])
     {
         //for u in urls {
@@ -55,31 +161,69 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         if (urls.count != 1) { return; }
         let url = urls[0];
         
-        
-       
-        let exportFolder = globals.storageModel.cacheFilesPath() + "/export";
-
-        deleteOldExportFolder(exportFolder);
-        createFolder(exportFolder);
-        createFolder(exportFolder + "/thumb");
-        createFolder(exportFolder + "/playlist");
-
-        exportNodeAttribs(globals.musicBrowseFolder!, exportFolder);
-        exportPlaylists(globals.playlistBrowseFolder!, exportFolder + "/playlist")
-        	
-        outputJsonAttrs(exportFolder)
-
-        guard url.startAccessingSecurityScopedResource() else { return };
-        defer { url.stopAccessingSecurityScopedResource() }
-        
-        do {
-            try FileManager.default.copyItem(at: URL(fileURLWithPath: exportFolder, isDirectory: true),
-                                             to: url.appendingPathComponent("songs++index", isDirectory: true));
+        if isImport {
+            let importFolder = globals.storageModel.importFolderPath();
+            
+            guard url.startAccessingSecurityScopedResource() else { return };
+            defer { url.stopAccessingSecurityScopedResource() }
+            
+            do {
+                let fm = FileManager();
+                fm.delegate = self;
+                
+                var source = url.relativeString;
+                if (source.contains("file://"))
+                {
+                    source.removeFirst(7);
+                }
+                
+                ScanDoubleDirs(source, importFolder + "/root2");
+                
+                
+                //try fm.copyItem(at: url,
+                //                to: URL(fileURLWithPath: importFolder + "/root2", isDirectory: true));
+            }
+//            catch
+//            {
+//                reportMessage(uic: self, message: "copy failed: \(error)")
+//            }
         }
-        catch
+        else
         {
-            reportMessage(uic: self, message: "copy failed: \(error)")
+            let exportFolder = globals.storageModel.cacheFilesPath() + "/export";
+            
+            deleteOldExportFolder(exportFolder);
+            createFolder(exportFolder);
+            createFolder(exportFolder + "/thumb");
+            createFolder(exportFolder + "/playlist");
+            
+            exportNodeAttribs(globals.musicBrowseFolder!, exportFolder);
+            exportPlaylists(globals.playlistBrowseFolder!, exportFolder + "/playlist")
+            
+            outputJsonAttrs(exportFolder)
+            
+            guard url.startAccessingSecurityScopedResource() else { return };
+            defer { url.stopAccessingSecurityScopedResource() }
+            
+            do {
+                let fm = FileManager();
+                fm.delegate = self;
+                
+                try fm.copyItem(at: URL(fileURLWithPath: exportFolder, isDirectory: true),
+                                                 to: url.appendingPathComponent("songs++index", isDirectory: true));
+            }
+            catch
+            {
+                reportMessage(uic: self, message: "copy failed: \(error)")
+            }
         }
+    }
+    
+    func fileManager(_ fileManager: FileManager, shouldCopyItemAtPath srcPath: String, toPath dstPath: String) -> Bool {
+        let exists = fileManager.fileExists(atPath: dstPath);
+        if exists { print("skip " + srcPath + " -> " + dstPath);}
+        if !exists { print("copy " + srcPath + " -> " + dstPath);}
+        return !exists;
     }
     
     func deleteOldExportFolder(_ exportFolder : String)
