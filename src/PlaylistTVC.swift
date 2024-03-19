@@ -271,12 +271,14 @@ class PlaylistTVC: UITableViewController {
 
         let node = playlistSongs[indexPath.row];
 
-        let notes : String? = node.customNotes;
+        let songAttr = globals.storageModel.attrs_of_node(mega_node: node);
+        
+        let notes : String? = songAttr?["notes"]; //node.customNotes;
         
         let cell = tableView.dequeueReusableCell(withIdentifier: notes == nil || notes! == "" ? "MusicCell" : "MusicCellWithNotes", for: indexPath)
 
         if let musicCell = cell as? TableViewMusicCell {
-            musicCell.populateFromNode(node);
+            musicCell.populateFromSongAttr(songAttr ?? [:]);
         }
         
         return cell

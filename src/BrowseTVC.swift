@@ -695,12 +695,14 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             cell = tableView.dequeueReusableCell(withIdentifier: filtering ? "MusicCellWithNotes" : "MusicCell", for: indexPath)
             if (node != nil)
             {
+                let songAttr = globals.storageModel.attrs_of_node(mega_node: node!);
+                
                 if let mCell = cell as? TableViewMusicCellWithNotes {
-                    mCell.populateFromNode(node!);
+                    mCell.populateFromSongAttr(songAttr ?? [:]);
                     mCell.notesLabel?.text = app().nodePathBetween(currentFolder, node!);
                 }
                 else if let mCell = cell as? TableViewMusicCell {
-                    mCell.populateFromNode(node!);
+                    mCell.populateFromSongAttr(songAttr ?? [:]);
                 }
             }
         }

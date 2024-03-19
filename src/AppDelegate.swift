@@ -241,6 +241,10 @@ class Globals
         playlistBrowseFolder = nil;
     }
 
+    init()
+    {
+        storageModel.load();
+    }
 }
 
 var globals = Globals();
@@ -449,16 +453,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         recentPlaylists = [];
     }
 
-    func downloadProgress(nodeHandle : UInt64, percent : NSNumber )
-    {
-        if (playQueueTVC != nil)
-        {
-            let n = globals.mega!.node(forHandle: nodeHandle)
-            if (n != nil && n!.fingerprint != nil) {
-                playQueueTVC!.downloadProgress(fingerprint: n!.fingerprint!, percent: percent);
-            }
-        }
-    }
+//    func downloadProgress(nodeHandle : UInt64, percent : NSNumber )
+//    {
+//        if (playQueueTVC != nil)
+//        {
+//            let n = globals.mega!.node(forHandle: nodeHandle)
+//            if (n != nil && n!.fingerprint != nil) {
+//                playQueueTVC!.downloadProgress(fingerprint: n!.fingerprint!, percent: percent);
+//            }
+//        }
+//    }
     
     var swipeRightPlaysSong : Bool = true;
     

@@ -18,7 +18,8 @@ class TableViewMusicCell: UITableViewCell {
     @IBOutlet weak var thumbnailView: UIImageView!
     @IBOutlet var isPlayingIndicator_noHistory: UIImageView?
     
-    var node : MEGANode?
+    //var node : MEGANode?
+    var songAttr : [String : String] = [:];
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -31,45 +32,33 @@ class TableViewMusicCell: UITableViewCell {
         // Configure the view for the selected state
     }
     
-    func populateFromNode(_ n : MEGANode)
+    func populateFromSongAttr(_ attr : [String : String])
     {
-        node = n;
+        //node = n;
+        songAttr = attr;
         
-        var title : String? = node?.customTitle;
-        if (title == nil) { title = node?.name; }
+        var title : String? = attr["title"];
+        if (title == nil) { title = "<unknown>"; }
         titleLabel.text = title!;
 
-        var bpm : String? = node?.customBPM;
+        var bpm : String? = attr["bpm"]
         if (bpm == nil) { bpm = ""; }
         bpmLabel.text = bpm!;
 
-        var artist : String? = node?.customArtist;
+        var artist : String? = attr["artist"] ?? "";
         if (artist == nil) { artist = "" }
         artistLabel.text = artist!;
 
-        thumbnailView.image = nil;
-        durationLabel.text = "";
+        var durat : String? = attr["durat"]
+        if (durat == nil) { durat = "" }
+        durationLabel.text = durat!;
 
-        if (node != nil) {
-            if (globals.playQueue.isPlayable(node!, orMightContainPlayable: false)) {
-                durationLabel.text = String(format: "%02d:%02d", node!.duration / 60, node!.duration % 60)
-            }
-        
-            if (node!.hasThumbnail())
-            {
-                if (globals.storageModel.thumbnailDownloaded(node!)) {
-                    if let path = globals.storageModel.thumbnailPath(node: node!) {
-                        if let image = UIImage(contentsOfFile: path) {
-                            
-                            //cell.imageView!.frame = CGRect(x: cell.imageView!.frame.origin.x
-                            //ycell.imageView!.frame.origin.y,width: 40, height: 40)
-                            //cell.imageView!.autoresizingMask = [.flexibleWidth]
-                            //cell.imageView!.translatesAutoresizingMaskIntoConstraints = true;
-                            //cell.imageView!.contentMode = .;
-                            thumbnailView.image = image;
-                        }
-                    }
-                }
+        thumbnailView.image = nil;
+
+        if let thumbfp = attr["thumb"] {
+            let path = globals.storageModel.importFolderPath() + "/root2/songs++index/thumb/"+thumbfp+".jpg";
+            if let image = UIImage(contentsOfFile: path) {
+                thumbnailView.image = image;
             }
         }
         
@@ -77,7 +66,7 @@ class TableViewMusicCell: UITableViewCell {
         {
             contentView.bringSubviewToFront(progressBar);
         
-            let exists = node != nil ? globals.storageModel.fileDownloadedByType(node!) : false;
+            let exists = true; //node != nil ? globals.storageModel.fileDownloadedByType(node!) : false;
 
             progressBar.isHidden = !exists;
             progressBar.progress = exists ? 100 : 0;
@@ -106,11 +95,11 @@ class TableViewMusicCellWithNotes: TableViewMusicCell {
         // Configure the view for the selected state
     }
     
-    override func populateFromNode(_ node : MEGANode)
+    override func populateFromSongAttr(_ attr : [String : String])
     {
-        super.populateFromNode(node);
+        super.populateFromSongAttr(attr);
         
-        let notes : String? = node.customNotes;
+        let notes : String? = attr["notes"];
 
         if (notes != nil) {
             notesLabel.text = notes!;

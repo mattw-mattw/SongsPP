@@ -14,10 +14,10 @@ class TransferHandler: NSObject, MEGATransferDelegate {
     func onTransferStart(_ api: MEGASdk, transfer: MEGATransfer) {
     }
     
-    func onTransferUpdate(_ api: MEGASdk, transfer: MEGATransfer) {
-        let percent = NSNumber(value: transfer.transferredBytes.floatValue / transfer.totalBytes.floatValue);
-        app().downloadProgress(nodeHandle: transfer.nodeHandle, percent: percent)
-    }
+//    func onTransferUpdate(_ api: MEGASdk, transfer: MEGATransfer) {
+//        let percent = NSNumber(value: transfer.transferredBytes.floatValue / transfer.totalBytes.floatValue);
+//        app().downloadProgress(nodeHandle: transfer.nodeHandle, percent: percent)
+//    }
     
     func onTransferFinish(_ api: MEGASdk, transfer request: MEGATransfer, error: MEGAError) {
         let n = mega().node(forHandle: request.nodeHandle)
@@ -116,6 +116,8 @@ class MEGAHandler: NSObject, MEGADelegate {
 
 class StorageModel {
     
+    var index : [String : [String : String]] = [:];
+    
     var downloadingFP : Set<String> = [];
     var downloadedFP : Set<String> = [];
     
@@ -142,6 +144,42 @@ class StorageModel {
         downloadedThumbnail = [];
 
         alreadyCreatedFolders = [];
+    }
+    
+    func load()
+    {
+        //_ exportFolder : String
+        let attrsFile = importFolderPath() + "/root2/songs++index/songs++index.json";
+        
+        let attrsJson = loadFileAsJSON(filename: attrsFile)
+        
+        if let array = attrsJson as? [Any] {
+            for object in array {
+                if let attribs = object as? [String : String] {
+                    if var p = attribs["npath"] {
+                        if (p.hasPrefix("/music/music/"))
+                        {
+                            p = String(p.suffix(from: p.index(p.startIndex, offsetBy: 13)))
+                        }
+                        index[p] = attribs;
+                    }
+                }
+            }
+        }
+    }
+    
+    func attrs_of_node(mega_node : MEGANode) -> [String : String]?
+    {
+        var p : String = app().nodePath(mega_node);
+        if (p.hasPrefix("/music/music/"))
+        {
+            p = String(p.suffix(from: p.index(p.startIndex, offsetBy: 13)))
+        }
+        var result = index[p];
+        if result != nil && result!["title"] == nil {
+            result!["title"] = URL(fileURLWithPath: p).lastPathComponent;
+        }
+        return result;
     }
     
     func deleteCachedFiles(includingAccountAndSettings : Bool) -> Bool

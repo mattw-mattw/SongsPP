@@ -405,14 +405,16 @@ class PlayQueueTVC: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-        let node = displaySongs()[indexPath.row];
+        let mega_node = displaySongs()[indexPath.row];
 
-        let notes : String? = node.customNotes;
+        let songAttr = globals.storageModel.attrs_of_node(mega_node: mega_node);
+        
+        let notes : String? = songAttr?["notes"];//node.customNotes;
         
         let cell = tableView.dequeueReusableCell(withIdentifier: notes == nil || notes! == "" ? "MusicCell" : "MusicCellWithNotes", for: indexPath)
 
         if let musicCell = cell as? TableViewMusicCell {
-            musicCell.populateFromNode(node);
+            musicCell.populateFromSongAttr(songAttr ?? [:]);
 
             if (playQueue.noHistoryMode &&
                     indexPath.row == playQueue.noHistoryMode_currentTrackIndex
@@ -431,29 +433,29 @@ class PlayQueueTVC: UITableViewController {
         return notes == nil || notes! == "" ? 43.5 : 70;
     }
     
-    func downloadProgress(fingerprint : String, percent : NSNumber )
-    {
-        let vc = tableView.visibleCells;
-        for cell in vc
-        {
-            let musicCell = cell as? TableViewMusicCell
-            if (musicCell != nil)
-            {
-                if musicCell!.node != nil
-                {
-                    if musicCell!.progressBar != nil
-                    {
-                        if musicCell!.node!.fingerprint != nil && musicCell!.node!.fingerprint! == fingerprint
-                        {
-                            musicCell!.progressBar!.isHidden = false;
-                            musicCell!.progressBar!.progress = percent.floatValue;
-                            musicCell!.progressBar!.setNeedsDisplay();
-                        }
-                    }
-                }
-            }
-        }
-    }
+//    func downloadProgress(fingerprint : String, percent : NSNumber )
+//    {
+//        let vc = tableView.visibleCells;
+//        for cell in vc
+//        {
+//            let musicCell = cell as? TableViewMusicCell
+//            if (musicCell != nil)
+//            {
+//                if musicCell!.node != nil
+//                {
+//                    if musicCell!.progressBar != nil
+//                    {
+//                        if musicCell!.node!.fingerprint != nil && musicCell!.node!.fingerprint! == fingerprint
+//                        {
+//                            musicCell!.progressBar!.isHidden = false;
+//                            musicCell!.progressBar!.progress = percent.floatValue;
+//                            musicCell!.progressBar!.setNeedsDisplay();
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     @objc func playingItemMenu(press : UILongPressGestureRecognizer)
     {
