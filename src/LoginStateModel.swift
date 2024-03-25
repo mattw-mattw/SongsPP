@@ -111,9 +111,9 @@ class LoginState //: ObservableObject
             globals.playlistBrowseFolder = mega().node(forPath: playlistPath)
         }
         
-        app().nodeForBrowseFirstLoad = globals.musicBrowseFolder;
-        app().browseMusicTVC?.load(node: globals.musicBrowseFolder);
-        app().browsePlaylistsTVC?.load(node: globals.playlistBrowseFolder);
+        app().nodeForBrowseFirstLoad = Path(rp: "", r: Path.RootType.MusicRoot, f: true);
+        app().browseMusicTVC?.load(Path(rp: "", r: Path.RootType.MusicRoot, f: true));
+        app().browsePlaylistsTVC?.load(Path(rp: "", r: Path.RootType.PlaylistRoot, f: true));
 
         onFinish(true)
     }

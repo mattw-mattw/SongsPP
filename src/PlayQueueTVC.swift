@@ -137,7 +137,7 @@ class PlayQueueTVC: UITableViewController {
         redraw()
     }
     
-    func displaySongs() -> [MEGANode]
+    func displaySongs() -> [Path]
     {
         return showHistory ? playQueue.playedSongs : playQueue.nextSongs;
     }
@@ -157,53 +157,53 @@ class PlayQueueTVC: UITableViewController {
         app().tabBarContoller!.navigationItem.rightBarButtonItem = nil;
     }
     
-    func checkDownloadAll()
-    {
-        let alert = UIAlertController(title: "Download Info", message: "This function will start downloading everything not yet already downloaded, or already downloading, in the current queue as quickly as it can.  For a large number of files, it's best to be on wifi and plugged into a power source (for decryption) before starting this operation.", preferredStyle: .alert)
-        
-        alert.addAction(UIAlertAction(title: "Start downloads", style: .default, handler:
-                { (UIAlertAction) -> () in self.downloadAll(false) }));
-        
-        alert.addAction(UIAlertAction(title: "Remove already downloaded from the queue first", style: .default, handler:
-                { (UIAlertAction) -> () in self.downloadAll(true) }));
-        
-        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
-        
-        self.present(alert, animated: false, completion: nil)
-    }
-    
-    func downloadAll(_ removeAlreadyDownloaded : Bool)
-    {
-        if (CheckOnlineOrWarn("Please go online before activating downloads.", uic: self)) {
+//    func checkDownloadAll()
+//    {
+//        let alert = UIAlertController(title: "Download Info", message: "This function will start downloading everything not yet already downloaded, or already downloading, in the current queue as quickly as it can.  For a large number of files, it's best to be on wifi and plugged into a power source (for decryption) before starting this operation.", preferredStyle: .alert)
+//        
+//        alert.addAction(UIAlertAction(title: "Start downloads", style: .default, handler:
+//                { (UIAlertAction) -> () in self.downloadAll(false) }));
+//        
+//        alert.addAction(UIAlertAction(title: "Remove already downloaded from the queue first", style: .default, handler:
+//                { (UIAlertAction) -> () in self.downloadAll(true) }));
+//        
+//        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+//        
+//        self.present(alert, animated: false, completion: nil)
+//    }
+//    
+//    func downloadAll(_ removeAlreadyDownloaded : Bool)
+//    {
+//        if (CheckOnlineOrWarn("Please go online before activating downloads.", uic: self)) {
+//
+//            let replaceable = playQueue.playerSongIsEphemeral();
+//            let numStarted = playQueue.downloadAllSongsInQueue(removeAlreadyDownloaded);
+//            playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable)
+//
+//            let alert = UIAlertController(title: "Downloading", message: "Initiated " + String(numStarted) + " downloads (and " + String(globals.storageModel.downloadingThumbnail.count) + " thumbnails).", preferredStyle: .alert)
+//            alert.addAction(UIAlertAction(title: "OK", style: .cancel));
+//            self.present(alert, animated: false, completion: nil)
+//        }
+//    }
 
-            let replaceable = playQueue.playerSongIsEphemeral();
-            let numStarted = playQueue.downloadAllSongsInQueue(removeAlreadyDownloaded);
-            playQueue.onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable)
-
-            let alert = UIAlertController(title: "Downloading", message: "Initiated " + String(numStarted) + " downloads (and " + String(globals.storageModel.downloadingThumbnail.count) + " thumbnails).", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .cancel));
-            self.present(alert, animated: false, completion: nil)
-        }
-    }
-
-    var nodesChanged: Bool = false;
-    
-    func nodesChanging(_ node: MEGANode)
-    {
-        if (replaceNodeIn(node, &playQueue.nextSongs) ||
-            replaceNodeIn(node, &playQueue.playedSongs) )
-        {
-            nodesChanged = true;
-        }
-    }
-    func nodesFinishedChanging()
-    {
-        if (nodesChanged)
-        {
-            redraw();
-            nodesChanged = false;
-        }
-    }
+//    var nodesChanged: Bool = false;
+//
+//    func nodesChanging(_ node: MEGANode)
+//    {
+//        if (replaceNodeIn(node, &playQueue.nextSongs) ||
+//            replaceNodeIn(node, &playQueue.playedSongs) )
+//        {
+//            nodesChanged = true;
+//        }
+//    }
+//    func nodesFinishedChanging()
+//    {
+//        if (nodesChanged)
+//        {
+//            redraw();
+//            nodesChanged = false;
+//        }
+//    }
 
     let rearrangeModeCheckbox = ContextMenuCheckbox("Rearrange mode", false);
     let noHistoryModeCheckbox = ContextMenuCheckbox("No-History mode", false);
@@ -217,8 +217,8 @@ class PlayQueueTVC: UITableViewController {
         
         let alert = UIAlertController(title: nil, message: "Options", preferredStyle: .alert)
         
-        alert.addAction(UIAlertAction(title: "Download entire queue", style: .default, handler:
-            { (UIAlertAction) -> () in self.checkDownloadAll() }));
+//        alert.addAction(UIAlertAction(title: "Download entire queue", style: .default, handler:
+//            { (UIAlertAction) -> () in self.checkDownloadAll() }));
         
         alert.addAction(UIAlertAction(title: "Shuffle queue", style: .default, handler:
                                         { (UIAlertAction) -> () in self.playQueue.shuffleQueue() }));
@@ -256,7 +256,7 @@ class PlayQueueTVC: UITableViewController {
         self.present(alert, animated: false, completion: nil)
     }
     
-    func editSong(node : MEGANode?) {
+    func editSong(node : Path?) {
         let vc = self.storyboard?.instantiateViewController(identifier: "EditSongVC") as! EditSongVC
         vc.node = node;
         self.navigationController?.pushViewController(vc, animated: true)
@@ -336,7 +336,22 @@ class PlayQueueTVC: UITableViewController {
     {
         var sum = 0;
         for n in displaySongs() {
-            if (n.duration > 0) { sum += n.duration; }
+            if let a = globals.storageModel.lookupSong(n) {
+                if let d = a["durat"] {
+                    var min = 0;
+                    var sec = 0;
+                    for c in d {
+                        if (c >= "0" && c <= "9") {
+                            sec = sec * 10 + (c.wholeNumberValue ?? 0);
+                        }
+                        else if (c == ":") {
+                            min = sec;
+                            sec = 0;
+                        }
+                    }
+                    sum += min * 60 + sec;
+                }
+            }
         }
         songCountLabel.text = String(format: "%d Songs %02d:%02d:%02d", displaySongs().count, sum/3600, (sum/60)%60, sum%60)
     }
@@ -372,24 +387,22 @@ class PlayQueueTVC: UITableViewController {
     {
         playingSongImage.image = nil;
         playingSongText.text = "";
-        if let node = globals.playQueue.nodeInPlayer
+        if let n = globals.playQueue.nodeInPlayer
         {
-            if (node.hasThumbnail())
-            {
-                if (globals.storageModel.thumbnailDownloaded(node)) {
-                    if let path = globals.storageModel.thumbnailPath(node: node) {
-                        if let image = UIImage(contentsOfFile: path) {
-                            playingSongImage.image = image;
-                        }
+            if let attr = globals.storageModel.lookupSong(n) {
+                
+                if let thumb = attr["thumb"]
+                {
+                    if let image = UIImage(contentsOfFile: Path(rp: thumb, r: Path.RootType.ThumbRoot, f: false).fullPath()) {
+                        playingSongImage.image = image;
                     }
                 }
+                
+                var text : String? = attr["title"];
+                let artist : String? = attr["artist"];
+                if (artist != nil) { text! += "\n" + artist! }
+                playingSongText.text = text!;
             }
-
-            var text : String? = node.customTitle;
-            if (text == nil) { text = node.name; }
-            let artist : String? = node.customArtist;
-            if (artist != nil) { text! += "\n" + artist! }
-            playingSongText.text = text!;
         }
         
         if (playingSongImage.image == nil && playingSongText.text == "")
@@ -405,9 +418,9 @@ class PlayQueueTVC: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-        let mega_node = displaySongs()[indexPath.row];
+        let n = displaySongs()[indexPath.row];
 
-        let songAttr = globals.storageModel.attrs_of_node(mega_node: mega_node);
+        let songAttr = globals.storageModel.lookupSong(n);
         
         let notes : String? = songAttr?["notes"];//node.customNotes;
         
@@ -428,8 +441,9 @@ class PlayQueueTVC: UITableViewController {
     }
     
     override func tableView(_: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let node = displaySongs()[indexPath.row];
-        let notes : String? = node.customNotes;
+        let n = displaySongs()[indexPath.row];
+        let a = globals.storageModel.lookupSong(n);
+        let notes : String? = a?["notes"];
         return notes == nil || notes! == "" ? 43.5 : 70;
     }
     
@@ -460,13 +474,13 @@ class PlayQueueTVC: UITableViewController {
     @objc func playingItemMenu(press : UILongPressGestureRecognizer)
     {
         if press.state == .began {
-            let node = playQueue.nodeInPlayer;
-            if (node != nil) {
+            let n = playQueue.nodeInPlayer;
+            if (n != nil) {
                 let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
-                alert.addAction(menuAction_songInfo(node!, viewController: self));
-                alert.addAction(menuAction_songBrowseTo(node!, viewController: self));
-                if (globals.playlistBrowseFolder != nil && playQueue.isPlayable(node!, orMightContainPlayable: false)) {
-                    alert.addAction(menuAction_addToPlaylistInFolder_recents(node!, viewController: self));
+                alert.addAction(menuAction_songInfo(n!, viewController: self));
+                alert.addAction(menuAction_songBrowseTo(n!, viewController: self));
+                if (globals.playlistBrowseFolder != nil && playQueue.isPlayable(n!, orMightContainPlayable: false)) {
+                    alert.addAction(menuAction_addToPlaylistInFolder_recents(n!, viewController: self));
                 }
                 alert.addAction(menuAction_neverMind());
                 self.present(alert, animated: false, completion: nil)
@@ -488,10 +502,10 @@ class PlayQueueTVC: UITableViewController {
                 let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
                 
                 alert.addAction(UIAlertAction(title: "Play next", style: .default, handler:
-                                                { (UIAlertAction) -> () in self.playQueue.queueSong(front: true, node: node, uic:self); tableView.reloadData() }));
+                                                { (UIAlertAction) -> () in self.playQueue.queueSong(front: true, song: node, uic:self); tableView.reloadData() }));
                 
                 alert.addAction(UIAlertAction(title: "Queue song", style: .default, handler:
-                                                { (UIAlertAction) -> () in self.playQueue.queueSong(front: false, node: node, uic: self); tableView.reloadData() }));
+                                                { (UIAlertAction) -> () in self.playQueue.queueSong(front: false, song: node, uic: self); tableView.reloadData() }));
 
                 alert.addAction(UIAlertAction(title: "Time travel", style: .default, handler:
                                                 { (UIAlertAction) -> () in self.playQueue.timeTravel(index: indexPath.row); self.QueueButtonHit(self); tableView.reloadData() }));

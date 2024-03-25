@@ -53,10 +53,10 @@ class PlayQueue : NSObject, UITextFieldDelegate {
     //var timeObservation : Any? = nil;
 
     // things to reset
-    var nextSongs : [MEGANode] = [];
-    var playedSongs : [MEGANode] = [];
+    var nextSongs : [Path] = [];
+    var playedSongs : [Path] = [];
     //var currentTimeString = "0:00"
-    var nodeInPlayer : MEGANode? = nil;
+    var nodeInPlayer : Path? = nil;
     var nodeInPlayerStarted : Bool = false;
     var isPlaying : Bool = false;
     var shouldBePlaying : Bool = false;
@@ -90,7 +90,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
                 nodeInPlayerStarted = true;
                 
                 if (!noHistoryMode && nodeInPlayer != nil &&
-                    nextSongs.count > 0 && nextSongs[0].handle == nodeInPlayer!.handle)
+                    nextSongs.count > 0 && nextSongs[0] == nodeInPlayer!)
                 {
                     nextSongs.remove(at: 0)
                     onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: false);
@@ -114,12 +114,12 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         return String(format: "%d:%02d", mins, secs)
     }
 
-    func queueSong(front: Bool, node : MEGANode, uic : UIViewController)
+    func queueSong(front: Bool, song : Path, uic : UIViewController)
     {
-        queueSongs(front: front, nodes: [node], uic: uic, reportQueueLimit: false);
+        queueSongs(front: front, songs: [song], uic: uic, reportQueueLimit: false);
     }
     
-    func queueSongs(front: Bool, nodes : [MEGANode], uic : UIViewController, reportQueueLimit : Bool)
+    func queueSongs(front: Bool, songs : [Path], uic : UIViewController, reportQueueLimit : Bool)
     {
 //        if (timeObservation == nil)
 //        {
@@ -139,11 +139,14 @@ class PlayQueue : NSObject, UITextFieldDelegate {
 
         
         let replaceable = playerSongIsEphemeral();
-        var playableNodes : [MEGANode] = [];
-        for n in nodes {
+        var playableNodes : [Path] = [];
+        for n in songs {
             if isPlayable(n, orMightContainPlayable: true) {
-                var v : [MEGANode] = [];
-                globals.storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true, filterIntent: nil);
+                var v : [Path] = [];
+                do {
+                    try globals.storageModel.loadSongsFromPathRecursive(n: n, &v, recurse: true, filterIntent: nil);
+                } catch {
+                }
                 playableNodes.append(contentsOf: v);
             }
         }
@@ -197,9 +200,9 @@ class PlayQueue : NSObject, UITextFieldDelegate {
     {
         if row < nextSongs.count
         {
-            let node = nextSongs[row];
+            let n = nextSongs[row];
             nextSongs.remove(at: row);
-            queueSong(front: true, node: node, uic: uic);
+            queueSong(front: true, song: n, uic: uic);
         }
     }
     
@@ -218,9 +221,9 @@ class PlayQueue : NSObject, UITextFieldDelegate {
     {
         if row < nextSongs.count
         {
-            let node = nextSongs[row];
+            let n = nextSongs[row];
             nextSongs.remove(at: row);
-            queueSong(front: false, node: node, uic: uic);
+            queueSong(front: false, song: n, uic: uic);
         }
     }
     
@@ -266,10 +269,10 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         onNextSongsEdited(reloadView: true, triggerPlay: false, canReplacePlayerSong: replaceable);
     }
     
-    func playRightNow(_ node: MEGANode)
+    func playRightNow(_ n: Path)
     {
         let replaceable = playerSongIsEphemeral();
-        nextSongs.insert(node, at: 0);
+        nextSongs.insert(n, at: 0);
         onNextSongsEdited(reloadView: true, triggerPlay: true, canReplacePlayerSong: replaceable);
     }
 
@@ -316,26 +319,27 @@ class PlayQueue : NSObject, UITextFieldDelegate {
     let playableExtensions = [ ".mp3", ".m4a", ".aac", ".wav", ".flac", ".aiff", ".au", ".pcm", ".ac3", ".aa", ".aax"];
     let artworkExtensions = [ ".jpg", ".jpeg", ".png", ".bmp"];
     
-    func isPlayable(_ n : MEGANode, orMightContainPlayable : Bool) -> Bool
+    func isPlayable(_ n : Path, orMightContainPlayable : Bool) -> Bool
     {
-        if (n.name == nil) { return false; }
+        //if (n.name == nil) { return false; }
         if orMightContainPlayable {
-            if (n.isFile() && n.name!.hasSuffix(".playlist")) { return true; }
-            if (n.isFolder()) { return true; }
+            if //(n.isFile() &&
+                n.relativePath.hasSuffix(".playlist") { return true; }
+            //if (n.isFolder()) { return true; }
         }
-        if (n.isFile()) {
-            let name = n.name!.lowercased();
+        //if (n.isFile()) {
+            let name = n.relativePath.lowercased();
             for ext in playableExtensions {
                 if name.hasSuffix(ext) { return true; }
             }
-        }
+        //}
         return false;
     }
 
-    func isArtwork(_ n : MEGANode) -> Bool
+    func isArtwork(_ n : Path) -> Bool
     {
-        if (n.isFile()) {
-            let name = n.name!.lowercased()
+        if (!n.isFolder) {
+            let name = leafName(n).lowercased()
             for ext in artworkExtensions {
                 if name.hasSuffix(ext) { return true; }
             }
@@ -393,26 +397,26 @@ class PlayQueue : NSObject, UITextFieldDelegate {
 //        return node.type != MEGANodeType.file || node.name.hasSuffix(".playlist") && app().storageModel.fileDownloadedByNH(node);
 //    }
     
-    func downloadAllSongsInQueue(_ removeAlreadyDownloaded : Bool) -> Int
-    {
-        var newQueue : [MEGANode] = [];
-        var started : Int = 0;
-        for i in 0..<nextSongs.count {
-            if (removeAlreadyDownloaded && !globals.storageModel.fileDownloadedByFP(nextSongs[i]))
-            {
-                newQueue.append(nextSongs[i]);
-            }
-            if (globals.storageModel.startSongDownloadIfAbsent(nextSongs[i]))  // todo: separate out playlists
-            {
-                started += 1;
-            }
-        }
-        if (removeAlreadyDownloaded)
-        {
-            nextSongs = newQueue;
-        }
-        return started;
-    }
+//    func downloadAllSongsInQueue(_ removeAlreadyDownloaded : Bool) -> Int
+//    {
+//        var newQueue : [MEGANode] = [];
+//        var started : Int = 0;
+//        for i in 0..<nextSongs.count {
+//            if (removeAlreadyDownloaded && !globals.storageModel.fileDownloadedByFP(nextSongs[i]))
+//            {
+//                newQueue.append(nextSongs[i]);
+//            }
+//            if (globals.storageModel.startSongDownloadIfAbsent(nextSongs[i]))  
+//            {
+//                started += 1;
+//            }
+//        }
+//        if (removeAlreadyDownloaded)
+//        {
+//            nextSongs = newQueue;
+//        }
+//        return started;
+//    }
     
     func playerSongIsEphemeral() -> Bool {
         
@@ -425,47 +429,48 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         else
         {
             return nextSongs.count > 0 &&
-                   nodeInPlayer!.handle == nextSongs[0].handle &&
+                   nodeInPlayer! == nextSongs[0] &&
                    player.currentTime().seconds == 0 &&
                    !nodeInPlayerStarted;
         }
     }
 
-    func startNextSongDownloads() -> Bool
-    {
-        let reloadTableView : Bool = false;
-        let baseIndex = noHistoryMode ? noHistoryMode_currentTrackIndex : 0;
-        var index = baseIndex;
-        var numDownloading = 0;
-        while (index < nextSongs.count) {
-            if (index >= baseIndex + (noHistoryMode ? 3 : 2)) { break }
-            
-//            while (nextSongs.count > index && isExpandable(node: nextSongs[index]))
+//    func startNextSongDownloads() -> Bool
+//    {
+//        let reloadTableView : Bool = false;
+//        let baseIndex = noHistoryMode ? noHistoryMode_currentTrackIndex : 0;
+//        var index = baseIndex;
+//        var numDownloading = 0;
+//        while (index < nextSongs.count) {
+//            if (index >= baseIndex + (noHistoryMode ? 3 : 2)) { break }
+//            
+////            while (nextSongs.count > index && isExpandable(node: nextSongs[index]))
+////            {
+////                expandQueueItem(index);
+////                reloadTableView = true;
+////            }
+//            if (index < nextSongs.count &&
+//                (globals.storageModel.isDownloadingByType(nextSongs[index]) ||
+//                 globals.storageModel.startDownloadIfAbsent(node: nextSongs[index])))
 //            {
-//                expandQueueItem(index);
-//                reloadTableView = true;
+//                numDownloading += 1;
 //            }
-            if (index < nextSongs.count &&
-                (globals.storageModel.isDownloadingByType(nextSongs[index]) ||
-                 globals.storageModel.startDownloadIfAbsent(node: nextSongs[index])))
-            {
-                numDownloading += 1;
-            }
-            if (numDownloading >= 3) { break }
-            
-            index += 1;
-        }
-        return reloadTableView;
-    }
+//            if (numDownloading >= 3) { break }
+//            
+//            index += 1;
+//        }
+//        return reloadTableView;
+//    }
 
     func onNextSongsEdited(reloadView : Bool, triggerPlay: Bool, canReplacePlayerSong : Bool)
     {
-        var reloadTableView = startNextSongDownloads() || reloadView;
+        var reloadTableView = //startNextSongDownloads() ||
+                              reloadView;
 
         if (triggerPlay || nodeInPlayer == nil || canReplacePlayerSong)
         {
             loadPlayer(startIt: triggerPlay);
-            reloadTableView = startNextSongDownloads()
+            //reloadTableView = startNextSongDownloads()
             reloadTableView = true
         }
         
@@ -474,18 +479,18 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         }
     }
     
-    func nodesChanging(_ node: MEGANode)
-    {
-        if (nodeInPlayer != nil) &&
-           (nodeInPlayer!.handle == node.handle)
-        {
-            nodeInPlayer = node;
-            app().playQueueTVC?.playingSongUpdated();
-        }
-    }
-    func nodesFinishedChanging()
-    {
-    }
+//    func nodesChanging(_ n: String)
+//    {
+//        if (nodeInPlayer != nil) &&
+//           (nodeInPlayer! == n)
+//        {
+//            nodeInPlayer = n;
+//            app().playQueueTVC?.playingSongUpdated();
+//        }
+//    }
+//    func nodesFinishedChanging()
+//    {
+//    }
 
     
     func loadPlayer(startIt: Bool)
@@ -496,58 +501,59 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         
         if (nextSongs.count > songIndex)
         {
-            if let fileURL = globals.storageModel.getDownloadedSongURL(nextSongs[songIndex]) {
-                let play = startIt || isPlaying;
-                nodeInPlayer = nextSongs[songIndex];
-                nodeInPlayerStarted = false;
-                downloadingNodeToStartPlaying = nil;
-                
-                let playerItem = AVPlayerItem(url: fileURL);
-                playerItem.addObserver(self,
-                                         forKeyPath: #keyPath(AVPlayerItem.status),
-                                       options: [.old, .new], context: nil)
-                
-                player.replaceCurrentItem(with: playerItem);
-                if (play) {
-                    self.player.play();  // if it does start playing, and we're in history mode, observeValue() will remove queue entry 0, ie song really is in player and not queue anymore
-                    shouldBePlaying = true;
-                }
-                app().setupNowPlaying(node: nodeInPlayer!)
-                app().playQueueTVC!.playingSongUpdated()
-                return ;
+            let fileURL = URL(fileURLWithPath: nextSongs[songIndex].fullPath());
+            
+            let play = startIt || isPlaying;
+            nodeInPlayer = nextSongs[songIndex];
+            nodeInPlayerStarted = false;
+            //downloadingNodeToStartPlaying = nil;
+            
+            let playerItem = AVPlayerItem(url: fileURL);
+            playerItem.addObserver(self,
+                                     forKeyPath: #keyPath(AVPlayerItem.status),
+                                   options: [.old, .new], context: nil)
+            
+            player.replaceCurrentItem(with: playerItem);
+            if (play) {
+                self.player.play();  // if it does start playing, and we're in history mode, observeValue() will remove queue entry 0, ie song really is in player and not queue anymore
+                shouldBePlaying = true;
             }
-            else if (!globals.loginState.online)
-            {
-                reportMessage(uic: app().playQueueTVC!, message: "Please go online to get the next song")
-            }
+            app().setupNowPlaying(n: nodeInPlayer!)
+            app().playQueueTVC!.playingSongUpdated()
+            return ;
+            
+//            else if (!globals.loginState.online)
+//            {
+//                reportMessage(uic: app().playQueueTVC!, message: "Please go online to get the next song")
+//            }
         }
 
         shouldBePlaying = startIt && nextSongs.count > 0;
-        downloadingNodeToStartPlaying = shouldBePlaying ? nextSongs[0] : nil;
-        if (downloadingNodeToStartPlaying == nil)
-        {
-            downloadingNodeToStartPlaying = nil;
-        }
+//        downloadingNodeToStartPlaying = shouldBePlaying ? nextSongs[0] : nil;
+//        if (downloadingNodeToStartPlaying == nil)
+//        {
+//            downloadingNodeToStartPlaying = nil;
+//        }
         nodeInPlayer = nil;
         nodeInPlayerStarted = false;
         self.player.replaceCurrentItem(with: nil);
-        app().setupNowPlaying(node: nodeInPlayer)
+        app().setupNowPlaying(n: nodeInPlayer)
         app().playQueueTVC?.playingSongUpdated()
     }
 
-    var downloadingNodeToStartPlaying : MEGANode? = nil;
+    //var downloadingNodeToStartPlaying : MEGANode? = nil;
 
-    func songDownloaded(node: MEGANode?)
-    {
-        if (downloadingNodeToStartPlaying == nil) {
-            onNextSongsEdited(reloadView: false, triggerPlay: false, canReplacePlayerSong: false)  // reloading the view interrupts users moving tracks around in edit mode
-        }
-        else if (node != nil && nextSongs.count > 0) {
-            if (node!.handle == nextSongs[0].handle) {
-                onNextSongsEdited(reloadView: false, triggerPlay: node!.handle == downloadingNodeToStartPlaying!.handle, canReplacePlayerSong: false)  // reloading the view interrupts users moving tracks around in edit mode
-            }
-        }
-    }
+//    func songDownloaded(node: MEGANode?)
+//    {
+//        if (downloadingNodeToStartPlaying == nil) {
+//            onNextSongsEdited(reloadView: false, triggerPlay: false, canReplacePlayerSong: false)  // reloading the view interrupts users moving tracks around in edit mode
+//        }
+//        else if (node != nil && nextSongs.count > 0) {
+//            if (node!.handle == nextSongs[0].handle) {
+//                onNextSongsEdited(reloadView: false, triggerPlay: node!.handle == downloadingNodeToStartPlaying!.handle, canReplacePlayerSong: false)  // reloading the view interrupts users moving tracks around in edit mode
+//            }
+//        }
+//    }
     
     func pushToHistory()
     {
@@ -570,7 +576,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         let replaceable = playerSongIsEphemeral();
         if (index < playedSongs.count)
         {
-            if nodeInPlayer != nil && nextSongs.count > 0 && nextSongs[0] != nodeInPlayer
+            if nodeInPlayer != nil && nextSongs.count > 0 && nextSongs[0] != nodeInPlayer!
             {
                 nextSongs.insert(nodeInPlayer!, at: 0);
             }
@@ -668,28 +674,30 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         onNextSongsEdited(reloadView: true, triggerPlay: true, canReplacePlayerSong: replaceable);
     }
 
-    func playlistNodeToJSON(_ n : MEGANode) -> [String: String]
+    func itemToJSON(_ n : MEGANode) -> [String: String]
     {
         var jn : [String: String] = [:];
         jn["h"] = n.base64Handle;
         jn["lkpath"] = app().nodePath(n);
         return jn;
     }
-
     
-    func nodeHandleArrayToJSON(optionalExtraFirstNode : MEGANode?, array : [MEGANode] ) -> String
+    func nodeHandleArrayToJSON(optionalExtraFirstNode : Path?, array : [Path] ) -> String
     {
         var ja : [[String: String]] = [];
         
         if (optionalExtraFirstNode != nil) {
-            ja.append(playlistNodeToJSON(optionalExtraFirstNode!));
+            if let nn = globals.storageModel.lookupSong(optionalExtraFirstNode!){
+                ja.append(nn);
+            }
         }
         for n in array {
-            ja.append(playlistNodeToJSON(n));
+            if let nn = globals.storageModel.lookupSong(n) {
+                ja.append(nn);
+            }
         }
         
         do {
-
             //Convert to Data
             let jsonData = try JSONSerialization.data(withJSONObject: ja, options: JSONSerialization.WritingOptions.sortedKeys)
 
@@ -710,7 +718,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         {
             nextSongs.insert(nodeInPlayer!, at: 0)
         }
-        if (!noHistoryMode && noHistoryMode_currentTrackIndex == 0 && nodeInPlayer != nil && nextSongs.count > 0 && nextSongs[0].handle == nodeInPlayer!.handle)
+        if (!noHistoryMode && noHistoryMode_currentTrackIndex == 0 && nodeInPlayer != nil && nextSongs.count > 0 && nextSongs[0] == nodeInPlayer!)
         {
             nextSongs.remove(at: 0)
         }
@@ -752,11 +760,12 @@ class PlayQueue : NSObject, UITextFieldDelegate {
                         }
                     }
                 }
-                let s = self.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: self.nextSongs);
-                let uploadpath = globals.storageModel.uploadFilesPath() + "/" + inputName + ".playlist";
-                let url = URL(fileURLWithPath: uploadpath);
-                try! s.write(to: url, atomically: true, encoding: .ascii)
-                mega().startUpload(withLocalPath:uploadpath, parent: globals.playlistBrowseFolder!)
+            // todo: update locally only
+//                let s = self.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: self.nextSongs);
+//                let uploadpath = globals.storageModel.uploadFilesPath() + "/" + inputName + ".playlist";
+//                let url = URL(fileURLWithPath: uploadpath);
+//                try! s.write(to: url, atomically: true, encoding: .ascii)
+//                mega().startUpload(withLocalPath:uploadpath, parent: globals.playlistBrowseFolder!)
             }));
         
         textInput.addAction(menuAction_neverMind());

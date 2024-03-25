@@ -11,7 +11,7 @@ import UIKit
 
 class EditSongVC: UIViewController, UITextFieldDelegate {
     
-    var node : MEGANode? = nil;
+    var node : Path? = nil;
     @IBOutlet weak var titleText: UITextField!
     @IBOutlet weak var artistText: UITextField!
     @IBOutlet weak var notesText: UITextField!
@@ -70,10 +70,10 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
         var artist : NSString? = nil;
         var bpm : NSString? = nil;
 
-        let songPath = globals.storageModel.songFingerprintPath(node: node!);
-        if (songPath == nil) { return; }
+        let songPath = node!; //globals.storageModel.songFingerprintPath(node: node!);
+//        if (songPath == nil) { return; }
 
-        if (SongsCPP.getSongProperties(songPath!, title: &title, artist: &artist, bpm: &bpm)) {
+        if (SongsCPP.getSongProperties(songPath.fullPath(), title: &title, artist: &artist, bpm: &bpm)) {
             
             titleText.text = title == nil ? "" : title! as String;
             artistText.text = artist == nil ? "": artist! as String;
@@ -90,38 +90,37 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
 
         setAttrError = nil;
         pending += 4;
-        mega().setCustomNodeAttribute(node!, name: "title", value: titleText.text!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in self.setAttrDone(e) }));
-        mega().setCustomNodeAttribute(node!, name: "artist", value: artistText.text!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in self.setAttrDone(e) }));
-        mega().setCustomNodeAttribute(node!, name: "BPM", value: bpmText.text!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in self.setAttrDone(e) }));
-        mega().setCustomNodeAttribute(node!, name: "notes", value: notesText.text!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in self.setAttrDone(e) }));
+//        mega().setCustomNodeAttribute(node!, name: "title", value: titleText.text!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in self.setAttrDone(e) }));
+//        mega().setCustomNodeAttribute(node!, name: "artist", value: artistText.text!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in self.setAttrDone(e) }));
+//        mega().setCustomNodeAttribute(node!, name: "BPM", value: bpmText.text!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in self.setAttrDone(e) }));
+//        mega().setCustomNodeAttribute(node!, name: "notes", value: notesText.text!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in self.setAttrDone(e) }));
     }
     
     override func viewWillAppear(_ animated: Bool) {
         if (node != nil)
         {
-            var title : String? = node!.customTitle;
-            if (title == nil) { title = node!.name; }
-            var bpm : String? = node!.customBPM;
-            if (bpm == nil) { bpm = ""; }
-            var artist : String? = node!.customArtist;
-            if (artist == nil) { artist = "" }
-            var notes : String? = node!.customNotes;
-            if (notes == nil) { notes = "" }
-
-            titleText.text = title!;
-            bpmText.text = bpm!;
-            artistText.text = artist!;
-            notesText.text = notes!;
-            filePathLabel.text = app().nodePath(node!);
-            
-            image.image = nil;
-            if (node!.hasThumbnail())
-            {
-                if (globals.storageModel.thumbnailDownloaded(node!)) {
-                    if let path = globals.storageModel.thumbnailPath(node: node!) {
-                        if let imagefile = UIImage(contentsOfFile: path) {
-                            image.image = imagefile;
-                        }
+            if let attr = globals.storageModel.lookupSong(node!) {
+                
+                var title : String? = attr["title"];
+                if (title == nil) { title = leafName(node!); }
+                var bpm : String? = attr["bpm"];
+                if (bpm == nil) { bpm = ""; }
+                var artist : String? = attr["artist"];
+                if (artist == nil) { artist = "" }
+                var notes : String? = attr["notes"];
+                if (notes == nil) { notes = "" }
+                
+                titleText.text = title!;
+                bpmText.text = bpm!;
+                artistText.text = artist!;
+                notesText.text = notes!;
+                filePathLabel.text = node!.relativePath;
+                
+                image.image = nil;
+                if let thumb = attr["thumb"]
+                {
+                    if let imagefile = UIImage(contentsOfFile: Path(rp: thumb, r: Path.RootType.ThumbRoot, f: false).fullPath()) {
+                        image.image = imagefile;
                     }
                 }
             }

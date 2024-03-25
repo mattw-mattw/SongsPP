@@ -11,12 +11,12 @@ import UIKit
 
 class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
 
-    @IBOutlet weak var loginButton : UIButton?
-    @IBOutlet weak var logoutButton : UIButton?
-    @IBOutlet weak var forgetFolderLinkButton : UIButton?
-    @IBOutlet weak var goOfflineButton : UIButton?
-    @IBOutlet weak var goOnlineButton : UIButton?
-    @IBOutlet var reloadAccountButton: UIButton!
+//    @IBOutlet weak var loginButton : UIButton?
+//    @IBOutlet weak var logoutButton : UIButton?
+//    @IBOutlet weak var forgetFolderLinkButton : UIButton?
+//    @IBOutlet weak var goOfflineButton : UIButton?
+//    @IBOutlet weak var goOnlineButton : UIButton?
+//    @IBOutlet var reloadAccountButton: UIButton!
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated);
@@ -113,6 +113,12 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
                     }
                     else {
                         //print("skipping pre-existing  \(ii) \(jj) ")
+                        if (ileaf == "songs++index.json")
+                        {
+                            print("copying  \(ii) \(jj) ")
+                            try FileManager.default.removeItem(atPath: jj)
+                            try FileManager.default.copyItem(atPath: ii, toPath: jj)
+                        }
                     }
                     continue;
                 }
@@ -198,7 +204,7 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
             createFolder(exportFolder + "/playlist");
             
             exportNodeAttribs(globals.musicBrowseFolder!, exportFolder);
-            exportPlaylists(globals.playlistBrowseFolder!, exportFolder + "/playlist")
+            //exportPlaylists(globals.playlistBrowseFolder!, exportFolder + "/playlist")
             
             outputJsonAttrs(exportFolder)
             
@@ -272,48 +278,48 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
     func exportPlaylist(_ n : MEGANode, _ exportFolder : String)
     {
         
-        var v : [MEGANode] = [];
-        globals.storageModel.loadSongsFromNodeRecursive(node: n, &v, recurse: true, filterIntent: nil);
-        
-        var playlist : [[String: String]] = [];
-        
-        for nn in v {
-            var jn : [String: String] = [:];
-            jn["mega_h"] = nn.base64Handle;
-            jn["npath"] = app().nodePath(nn);
-            
-            if let filename = globals.storageModel.songFingerprintPath(node: nn) {
-                if let sparseFingerprint = globals.mega?.fingerprint(forFilePath: filename, modificationTime: Date(timeIntervalSince1970: 0)) {
-                    jn["sparse_fp"] = sparseFingerprint;
-                }
-            }
-            playlist.append(jn);
-        }
-        
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: playlist, options: JSONSerialization.WritingOptions.sortedKeys)
-            let str = String(data: jsonData, encoding: .utf8);
-            let url = URL(fileURLWithPath: exportFolder + "/" + n.name!);
-            try! str!.write(to: url, atomically: true, encoding: .utf8)
-        } catch {
-        }
+//        var v : [String] = [];
+//        globals.storageModel.loadSongsFromPathRecursive(node: n, &v, recurse: true, filterIntent: nil);
+//        
+//        var playlist : [[String: String]] = [];
+//        
+//        for nn in v {
+//            var jn : [String: String] = [:];
+//            jn["mega_h"] = nn.base64Handle;
+//            jn["npath"] = app().nodePath(nn);
+//            
+//            if let filename = globals.storageModel.songFingerprintPath(node: nn) {
+//                if let sparseFingerprint = globals.mega?.fingerprint(forFilePath: filename, modificationTime: Date(timeIntervalSince1970: 0)) {
+//                    jn["sparse_fp"] = sparseFingerprint;
+//                }
+//            }
+//            playlist.append(jn);
+//        }
+//        
+//        do {
+//            let jsonData = try JSONSerialization.data(withJSONObject: playlist, options: JSONSerialization.WritingOptions.sortedKeys)
+//            let str = String(data: jsonData, encoding: .utf8);
+//            let url = URL(fileURLWithPath: exportFolder + "/" + n.name!);
+//            try! str!.write(to: url, atomically: true, encoding: .utf8)
+//        } catch {
+//        }
 
     }
     
     func exportThumbnail(_ n : MEGANode, _ exportFolder : String)
     {
-        if (globals.storageModel.thumbnailDownloaded(n)) {
-            if let path = globals.storageModel.thumbnailPath(node: n) {
-                
-                if let thumbFingerprint = globals.mega?.fingerprint(forFilePath: path, modificationTime: Date(timeIntervalSince1970: 0)) {
-                    do {
-                        try FileManager.default.copyItem(atPath: path, toPath: exportFolder + "/thumb/" + thumbFingerprint + ".jpg")
-                    }
-                    catch {
-                    }
-                }
-            }
-        }
+//        if (globals.storageModel.thumbnailDownloaded(n)) {
+//            if let path = globals.storageModel.thumbnailPath(node: n) {
+//                
+//                if let thumbFingerprint = globals.mega?.fingerprint(forFilePath: path, modificationTime: Date(timeIntervalSince1970: 0)) {
+//                    do {
+//                        try FileManager.default.copyItem(atPath: path, toPath: exportFolder + "/thumb/" + thumbFingerprint + ".jpg")
+//                    }
+//                    catch {
+//                    }
+//                }
+//            }
+//        }
     }
     
     var jsonAttrs : [[String: String]] = [];
@@ -338,26 +344,31 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
         if (artist == nil) { artist = "" }
         jn["artist"] = artist!;
         
-        if (globals.playQueue.isPlayable(n, orMightContainPlayable: false)) {
-            jn["durat"] = String(format: "%02d:%02d", n.duration / 60, n.duration % 60)
+        let notes : String? = n.customNotes;
+        if (notes != nil) {
+            jn["notes"] = notes!;
         }
-        
-        if (globals.storageModel.thumbnailDownloaded(n)) {
-            if let path = globals.storageModel.thumbnailPath(node: n) {
-                
-                if let thumbFingerprint = globals.mega?.fingerprint(forFilePath: path, modificationTime: Date(timeIntervalSince1970: 0)) {
-                    if !thumbsDone.contains(thumbFingerprint) {
-                        thumbsDone.insert(thumbFingerprint)
-                        do {
-                            try FileManager.default.copyItem(atPath: path, toPath: exportFolder + "/thumb/" + thumbFingerprint + ".jpg");
-                            jn["thumb"] = thumbFingerprint;
-                        }
-                        catch {
-                        }
-                    }
-                }
-            }
-        }
+//        
+//        if (globals.playQueue.isPlayable(n, orMightContainPlayable: false)) {
+//            jn["durat"] = String(format: "%02d:%02d", n.duration / 60, n.duration % 60)
+//        }
+//        
+//        if (globals.storageModel.thumbnailDownloaded(n)) {
+//            if let path = globals.storageModel.thumbnailPath(node: n) {
+//                
+//                if let thumbFingerprint = globals.mega?.fingerprint(forFilePath: path, modificationTime: Date(timeIntervalSince1970: 0)) {
+//                    jn["thumb"] = thumbFingerprint;
+//                    if !thumbsDone.contains(thumbFingerprint) {
+//                        thumbsDone.insert(thumbFingerprint)
+//                        do {
+//                            //try FileManager.default.copyItem(atPath: path, toPath: exportFolder + "/thumb/" + thumbFingerprint + ".jpg");
+//                        }
+//                        catch {
+//                        }
+//                    }
+//                }
+//            }
+//        }
         
         if let filename = globals.storageModel.songFingerprintPath(node: n) {
             if let sparseFingerprint = globals.mega?.fingerprint(forFilePath: filename, modificationTime: Date(timeIntervalSince1970: 0)) {
@@ -375,350 +386,352 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
             //Convert to Data
             let jsonData = try JSONSerialization.data(withJSONObject: jsonAttrs, options: JSONSerialization.WritingOptions.sortedKeys)
             let str = String(data: jsonData, encoding: .utf8);
-            let url = URL(fileURLWithPath: exportFolder + "/songs++index.json");
-            try! str!.write(to: url, atomically: true, encoding: .utf8)
+            //let url = URL(fileURLWithPath: exportFolder + "/songs++index.json", isDirectory: false);
+            //globals.mega!.platformSetRLimitNumFile(100000);
+            try! str!.write(toFile: exportFolder + "/songs++index.json", atomically: false, encoding: .utf8)  //(to: url, atomically: true, encoding: .utf8)
         } catch {
+            print("index file write failed: \(error)")
         }
     }
     
-    func setEnabled()
+    func setEnabled()	
     {
-        loginButton?.isEnabled = !globals.loginState.accountBySession && !globals.loginState.accountByFolderLink;
-        logoutButton?.isEnabled = globals.loginState.accountBySession && globals.loginState.online;
-        logoutButton?.isHidden = globals.loginState.accountByFolderLink;
-        forgetFolderLinkButton?.isEnabled = globals.loginState.accountByFolderLink;
-        forgetFolderLinkButton?.isHidden = !globals.loginState.accountByFolderLink;
-        goOfflineButton?.isEnabled = globals.loginState.online;
-        goOnlineButton?.isEnabled = !globals.loginState.online && (globals.loginState.accountBySession || globals.loginState.accountByFolderLink);
-        reloadAccountButton.isEnabled = globals.loginState.online && (globals.loginState.accountBySession || globals.loginState.accountByFolderLink);
+//        loginButton?.isEnabled = !globals.loginState.accountBySession && !globals.loginState.accountByFolderLink;
+//        logoutButton?.isEnabled = globals.loginState.accountBySession && globals.loginState.online;
+//        logoutButton?.isHidden = globals.loginState.accountByFolderLink;
+//        forgetFolderLinkButton?.isEnabled = globals.loginState.accountByFolderLink;
+//        forgetFolderLinkButton?.isHidden = !globals.loginState.accountByFolderLink;
+//        goOfflineButton?.isEnabled = globals.loginState.online;
+//        goOnlineButton?.isEnabled = !globals.loginState.online && (globals.loginState.accountBySession || globals.loginState.accountByFolderLink);
+//        reloadAccountButton.isEnabled = globals.loginState.online && (globals.loginState.accountBySession || globals.loginState.accountByFolderLink);
     }
     
-    @IBAction func onLoginClicked(_ sender: Any) {
-        let alert = UIAlertController(title: "Log in to MEGA", message: "Log in with your MEGA email and password.  If you have 2FA turned on, enter that also.", preferredStyle: .alert)
-        
-        alert.addTextField( configurationHandler: { newTextField in
-            newTextField.placeholder = "email";
-            newTextField.returnKeyType = .next
-        });
-
-        alert.addTextField( configurationHandler: { newTextField in
-            newTextField.placeholder = "password";
-            newTextField.isSecureTextEntry = true;
-            newTextField.returnKeyType = .next
-        });
-
-        alert.addTextField( configurationHandler: { newTextField in
-            newTextField.placeholder = "2FA code";
-            newTextField.returnKeyType = .next
-        });
-
-        alert.addAction(UIAlertAction(title: "Log in", style: .default, handler: { (UIAlertAction) -> () in
-            if (alert.textFields != nil && alert.textFields!.count == 3) {
-                let email = alert.textFields![0].text ?? "";
-                let pw = alert.textFields![1].text ?? "";
-                let twoFA = alert.textFields![2].text ?? "";
-                
-                let spinner = ProgressSpinner(uic: self, title: "Logging in", message: "");
-                
-                globals.loginState.login(spinner: spinner, user: email, pw: pw, twoFactor: twoFA,
-                                    onFinish: { (success) in
-                                        spinner.dismissOrReportError(success: success);
-                                        if (success) { self.navigationController?.popViewController(animated: true); }
-                                        self.setEnabled()
-                                    })
-            }}));
-        
-        alert.addAction(menuAction_neverMind());
-        present(alert, animated: false, completion: nil)
-    }
-    
-    @IBAction func onGoOfflineButtonClicked(_ sender: UIButton) {
-        let spinner = ProgressSpinner(uic: self, title: "Going Offline", message: "");
-        globals.loginState.goOffline(spinner: spinner,
-            onFinish: { (success) in
-                spinner.dismissOrReportError(success: success);
-                self.setEnabled();
-            })
-    }
-    
-    @IBAction func onGoOnlineButtonClicked(_ sender: UIButton) {
-        let spinner = ProgressSpinner(uic: self, title: "Going Online", message: "");
-        globals.loginState.goOnline(spinner: spinner,
-            onFinish: { (success) in
-                spinner.dismissOrReportError(success: success);
-                self.setEnabled();
-            })
-    }
-    
-    @IBAction func onReloadAccountClicked(_ sender: Any) {
-        
-        let alert = UIAlertController(title: "Refetch Account", message: "This action re-fetches and caches your account folder and file tree from the servers.  It can be useful if you think it has gotten out of sync, perhaps with thumbnails available for some copies of a file but not others, for example.", preferredStyle: .alert)
-        
-        alert.addAction(UIAlertAction(title: "Refetch Account", style: .default, handler: { (UIAlertAction) -> () in
-            
-            let spinner = ProgressSpinner(uic: self, title: "Reloading Account", message: "");
-            
-            mega().localLogout();
-            do {
-                try FileManager.default.removeItem(atPath: globals.storageModel.accountPath());
-            }
-            catch {
-            }
-            globals.storageModel.alreadyCreatedFolders = [];
-            _ = globals.storageModel.accountPath(); // recreate folder
-            globals.loginState.goOnline(spinner: spinner, onFinish: {b in
-                spinner.dismissOrReportError(success: b);
-            });
-        }));
-
-        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
-        self.present(alert, animated: false, completion: nil)
-    }
-    
-    @IBAction func onLogoutButtonClicked(_ sender: UIButton) {
-        
-        let alert = UIAlertController(title: "Logout", message: "Keeping your cached files can be useful when swapping between a full account, or a writable folder link, by avoiding re-downloading those files.", preferredStyle: .alert)
-        
-        let startA1 = UIAlertAction(title: "Logout and wipe all cached data", style: .default, handler:
-                { (UIAlertAction) -> () in self.logoutAndDealWithCache(deleteCache: true) });
-        
-        let startA2 = UIAlertAction(title: "Logout but keep cached data", style: .default, handler:
-                { (UIAlertAction) -> () in self.logoutAndDealWithCache(deleteCache: false) });
-
-        let cancelA = UIAlertAction(title: "Never mind", style: .cancel);
-
-        alert.addAction(startA1);
-        alert.addAction(startA2);
-        alert.addAction(cancelA);
-
-        self.present(alert, animated: false, completion: nil)
-    }
-    
-    func logoutAndDealWithCache(deleteCache : Bool)
-    {
-        let spinner = ProgressSpinner(uic: self, title: "Logging out", message: "");
-        globals.loginState.logout(spinner: spinner, onFinish: { success_in in
-            
-            var success = success_in;
-            
-            if (success)
-            {
-                app().clear();
-                if (deleteCache)
-                {
-                    success = globals.storageModel.deleteCachedFiles(includingAccountAndSettings: true);
-                    if (!success)
-                    {
-                        spinner.setErrorMessage("Failed to erase cache after logout");
-                    }
-                }
-            }
-            
-            spinner.dismissOrReportError(success: success);
-            self.setEnabled();
-        })
-    }
-    
-    @IBAction func onForgetFolderLinkButtonClicked(_ sender: UIButton) {
-        
-        let alert = UIAlertController(title: "Forget folder link", message: "This operation is the equivalent of logging out when using a writable folder link. You have the option to wipe cached files or not also. Keeping your cached files can be useful if you log back into your full account as you won't need to re-download those files.", preferredStyle: .alert)
-        
-        let startA1 = UIAlertAction(title: "Forget folder and wipe all cached data", style: .default, handler:
-                { (UIAlertAction) -> () in self.forgetFolderLinkAndDealWithCache(deleteCache: true) });
-        
-        let startA2 = UIAlertAction(title: "Forget folder but keep cached data", style: .default, handler:
-                { (UIAlertAction) -> () in self.forgetFolderLinkAndDealWithCache(deleteCache: false) });
-
-        let cancelA = UIAlertAction(title: "Never mind", style: .cancel);
-
-        alert.addAction(startA1);
-        alert.addAction(startA2);
-        alert.addAction(cancelA);
-
-        self.present(alert, animated: false, completion: nil)
-    }
-    
-    func forgetFolderLinkAndDealWithCache(deleteCache: Bool)
-    {
-        let spinner = ProgressSpinner(uic: self, title: "Forgetting Folder Link", message: "");
-        globals.loginState.forgetFolderLink(spinner: spinner, onFinish: { success in
-            var b = success;
-            if (b) {
-                if (deleteCache)
-                {
-                    spinner.updateTitleMessage("Deleting cache", "Folder link already forgotten.")
-                    if (!globals.storageModel.deleteCachedFiles(includingAccountAndSettings: true))
-                    {
-                        b = false;
-                        spinner.setErrorMessage("Failed to erase cache after wiping folder link");
-                    }
-                }
-                app().clear();
-            }
-            spinner.dismissOrReportError(success: b);
-            self.setEnabled();
-        })
-    }
-    
-    @IBAction func OnClearFileCacheClicked(_ sender: Any) {
-        
-        let alert = UIAlertController(title: "Clear Cached Files", message: "Clearing your cached files can be useful to gain storage space for your device, or to cause files to re-download, or to make sure all orphaned local cached files are cleaned up.", preferredStyle: .alert)
-        
-        let startA1 = UIAlertAction(title: "Wipe all cached files", style: .default, handler:
-            { (UIAlertAction) -> () in
-            
-                let spinner = ProgressSpinner(uic: self, title: "Clearing Cache", message: "");
-            
-                if (globals.storageModel.deleteCachedFiles(includingAccountAndSettings: false))
-                {
-                    spinner.dismiss();
-                    reportMessage(uic: self, message: "Cached files cleared");
-                }
-                else
-                {
-                    spinner.setErrorMessage("Some cached data failed to delete");
-                    spinner.dismissOrReportError(success: false);
-                }
-            });
-        
-        let cancelA = UIAlertAction(title: "Never mind", style: .cancel);
-
-        alert.addAction(startA1);
-        alert.addAction(cancelA);
-
-        self.present(alert, animated: false, completion: nil)
-    }
-    
-    class LogCallback: NSObject, MEGALoggerDelegate {
-
-        var logStream : OutputStream? = nil;
-
-        func log(withTime time : String, logLevel : Int, source : String, message: String)
-        {
-            if (logStream != nil) {
-                logString(time);
-                logString(" ");
-                logString(message);
-                logString("\n");
-            }
-        }
-        	
-        func logString(_ s : String)
-        {
-            let _ = write(s.data(using: String.Encoding.utf8, allowLossyConversion: false)!);
-            
-//            let pointer: UnsafePointer<Int8>? = NSString(string: s).utf8String;
-//            let length = NSString(string: s).length;
+//    @IBAction func onLoginClicked(_ sender: Any) {
+//        let alert = UIAlertController(title: "Log in to MEGA", message: "Log in with your MEGA email and password.  If you have 2FA turned on, enter that also.", preferredStyle: .alert)
+//        
+//        alert.addTextField( configurationHandler: { newTextField in
+//            newTextField.placeholder = "email";
+//            newTextField.returnKeyType = .next
+//        });
 //
-//            logStream!.write(UnsafePointer<UInt8>(pointer), maxLength: length);
-            
-            //data.withUnsafeBytes<UInt8>({ (p	: UnsafePointer<UInt8>) -> Void in
-            //  logStream!.write(p, maxLength: data.count)
-            //})
-        }
-        
-        func write(_ data: Data) -> Int {
-            return data.withUnsafeBytes({ (rawBufferPointer: UnsafeRawBufferPointer) -> Int in
-                let bufferPointer = rawBufferPointer.bindMemory(to: UInt8.self)
-                return logStream!.write(bufferPointer.baseAddress!, maxLength: data.count)
-            })
-        }
-    }
-    
-    var logCallback : LogCallback? = nil;
-    var logStream : OutputStream? = nil;
-    
-    func startLogging(verbose : Bool)
-    {
-        if (logCallback == nil)
-        {
-            logStream = OutputStream(toFileAtPath: logFilePath(), append: true);
-            if (logStream != nil) {
-                logStream!.open();
-                logCallback = LogCallback();
-                logCallback!.logStream = logStream;
-                MEGASdk.setLogLevel(.debug);
-                mega().add(logCallback!);
-            }
-        }
-    }
-    
-    func stopLogging()
-    {
-	    if (logCallback != nil)
-        {
-            logCallback?.logStream = nil;
-            mega().remove(logCallback!);
-            logCallback = nil;
-        }
-        if (logStream != nil)
-        {
-            logStream!.close();
-            logStream = nil;
-        }
-        MEGASdk.setLogLevel(.error);
-    }
-    
-    func uploadLogFile()
-    {
-        if (CheckOnlineOrWarn("Please go online before uploading the log file", uic: self))
-        {
-            if (mega().rootNode != nil) {
-                mega().startUpload(withLocalPath: logFilePath(), parent: mega().rootNode!)
-            }
-        }
-    }
-    
-    func deleteLogFile()
-    {
-        do {
-            try FileManager.default.removeItem(atPath: logFilePath())
-        }
-        catch {
-        }
-    }
-    
-    func logFilePath() -> String
-    {
-        return globals.storageModel.tempFilesPath() + "/iOS_logfile.log";
-    }
-    
-    @IBAction func onTroubleshootWithLogFilesClicked(_ sender: UIButton) {
-
-        let alert = UIAlertController(title: "Log file", message: "", preferredStyle: .alert)
-        
-        let startA1 = UIAlertAction(title: "Start logging to file (debug)", style: .default, handler:
-                { (UIAlertAction) -> () in self.startLogging(verbose: false) });
-        
-        let startA2 = UIAlertAction(title: "Start logging to file (verbose)", style: .default, handler:
-                { (UIAlertAction) -> () in self.startLogging(verbose: true) });
-        
-        let stopA = UIAlertAction(title: "Stop logging to file", style: .default, handler:
-                { (UIAlertAction) -> () in self.stopLogging() });
-        
-        let uploadA = UIAlertAction(title: "Upload log file", style: .default, handler:
-                { (UIAlertAction) -> () in self.uploadLogFile() });
-        
-        let deleteA = UIAlertAction(title: "Delete log file", style: .default, handler:
-                { (UIAlertAction) -> () in self.deleteLogFile() });
-        
-        let cancelA = UIAlertAction(title: "Never mind", style: .cancel);
-
-        startA1.isEnabled = logCallback == nil || logStream == nil;
-        startA2.isEnabled = logCallback == nil || logStream == nil;
-        stopA.isEnabled = logCallback != nil || logStream != nil;
-        uploadA.isEnabled = logCallback == nil && logStream == nil && FileManager.default.fileExists(atPath: logFilePath());
-        deleteA.isEnabled = logCallback == nil && logStream == nil && FileManager.default.fileExists(atPath: logFilePath());
-
-        alert.addAction(startA1);
-        alert.addAction(startA2);
-        alert.addAction(stopA);
-        alert.addAction(uploadA);
-        alert.addAction(deleteA);
-        alert.addAction(cancelA);
-
-        self.present(alert, animated: false, completion: nil)
-    }
+//        alert.addTextField( configurationHandler: { newTextField in
+//            newTextField.placeholder = "password";
+//            newTextField.isSecureTextEntry = true;
+//            newTextField.returnKeyType = .next
+//        });
+//
+//        alert.addTextField( configurationHandler: { newTextField in
+//            newTextField.placeholder = "2FA code";
+//            newTextField.returnKeyType = .next
+//        });
+//
+//        alert.addAction(UIAlertAction(title: "Log in", style: .default, handler: { (UIAlertAction) -> () in
+//            if (alert.textFields != nil && alert.textFields!.count == 3) {
+//                let email = alert.textFields![0].text ?? "";
+//                let pw = alert.textFields![1].text ?? "";
+//                let twoFA = alert.textFields![2].text ?? "";
+//                
+//                let spinner = ProgressSpinner(uic: self, title: "Logging in", message: "");
+//                
+//                globals.loginState.login(spinner: spinner, user: email, pw: pw, twoFactor: twoFA,
+//                                    onFinish: { (success) in
+//                                        spinner.dismissOrReportError(success: success);
+//                                        if (success) { self.navigationController?.popViewController(animated: true); }
+//                                        self.setEnabled()
+//                                    })
+//            }}));
+//        
+//        alert.addAction(menuAction_neverMind());
+//        present(alert, animated: false, completion: nil)
+//    }
+//    
+//    @IBAction func onGoOfflineButtonClicked(_ sender: UIButton) {
+//        let spinner = ProgressSpinner(uic: self, title: "Going Offline", message: "");
+//        globals.loginState.goOffline(spinner: spinner,
+//            onFinish: { (success) in
+//                spinner.dismissOrReportError(success: success);
+//                self.setEnabled();
+//            })
+//    }
+//    
+//    @IBAction func onGoOnlineButtonClicked(_ sender: UIButton) {
+//        let spinner = ProgressSpinner(uic: self, title: "Going Online", message: "");
+//        globals.loginState.goOnline(spinner: spinner,
+//            onFinish: { (success) in
+//                spinner.dismissOrReportError(success: success);
+//                self.setEnabled();
+//            })
+//    }
+//    
+//    @IBAction func onReloadAccountClicked(_ sender: Any) {
+//        
+//        let alert = UIAlertController(title: "Refetch Account", message: "This action re-fetches and caches your account folder and file tree from the servers.  It can be useful if you think it has gotten out of sync, perhaps with thumbnails available for some copies of a file but not others, for example.", preferredStyle: .alert)
+//        
+//        alert.addAction(UIAlertAction(title: "Refetch Account", style: .default, handler: { (UIAlertAction) -> () in
+//            
+//            let spinner = ProgressSpinner(uic: self, title: "Reloading Account", message: "");
+//            
+//            mega().localLogout();
+//            do {
+//                try FileManager.default.removeItem(atPath: globals.storageModel.accountPath());
+//            }
+//            catch {
+//            }
+//            globals.storageModel.alreadyCreatedFolders = [];
+//            _ = globals.storageModel.accountPath(); // recreate folder
+//            globals.loginState.goOnline(spinner: spinner, onFinish: {b in
+//                spinner.dismissOrReportError(success: b);
+//            });
+//        }));
+//
+//        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
+//        self.present(alert, animated: false, completion: nil)
+//    }
+//    
+//    @IBAction func onLogoutButtonClicked(_ sender: UIButton) {
+//        
+//        let alert = UIAlertController(title: "Logout", message: "Keeping your cached files can be useful when swapping between a full account, or a writable folder link, by avoiding re-downloading those files.", preferredStyle: .alert)
+//        
+//        let startA1 = UIAlertAction(title: "Logout and wipe all cached data", style: .default, handler:
+//                { (UIAlertAction) -> () in self.logoutAndDealWithCache(deleteCache: true) });
+//        
+//        let startA2 = UIAlertAction(title: "Logout but keep cached data", style: .default, handler:
+//                { (UIAlertAction) -> () in self.logoutAndDealWithCache(deleteCache: false) });
+//
+//        let cancelA = UIAlertAction(title: "Never mind", style: .cancel);
+//
+//        alert.addAction(startA1);
+//        alert.addAction(startA2);
+//        alert.addAction(cancelA);
+//
+//        self.present(alert, animated: false, completion: nil)
+//    }
+//    
+//    func logoutAndDealWithCache(deleteCache : Bool)
+//    {
+//        let spinner = ProgressSpinner(uic: self, title: "Logging out", message: "");
+//        globals.loginState.logout(spinner: spinner, onFinish: { success_in in
+//            
+//            var success = success_in;
+//            
+//            if (success)
+//            {
+//                app().clear();
+//                if (deleteCache)
+//                {
+//                    success = globals.storageModel.deleteCachedFiles(includingAccountAndSettings: true);
+//                    if (!success)
+//                    {
+//                        spinner.setErrorMessage("Failed to erase cache after logout");
+//                    }
+//                }
+//            }
+//            
+//            spinner.dismissOrReportError(success: success);
+//            self.setEnabled();
+//        })
+//    }
+//    
+//    @IBAction func onForgetFolderLinkButtonClicked(_ sender: UIButton) {
+//        
+//        let alert = UIAlertController(title: "Forget folder link", message: "This operation is the equivalent of logging out when using a writable folder link. You have the option to wipe cached files or not also. Keeping your cached files can be useful if you log back into your full account as you won't need to re-download those files.", preferredStyle: .alert)
+//        
+//        let startA1 = UIAlertAction(title: "Forget folder and wipe all cached data", style: .default, handler:
+//                { (UIAlertAction) -> () in self.forgetFolderLinkAndDealWithCache(deleteCache: true) });
+//        
+//        let startA2 = UIAlertAction(title: "Forget folder but keep cached data", style: .default, handler:
+//                { (UIAlertAction) -> () in self.forgetFolderLinkAndDealWithCache(deleteCache: false) });
+//
+//        let cancelA = UIAlertAction(title: "Never mind", style: .cancel);
+//
+//        alert.addAction(startA1);
+//        alert.addAction(startA2);
+//        alert.addAction(cancelA);
+//
+//        self.present(alert, animated: false, completion: nil)
+//    }
+//    
+//    func forgetFolderLinkAndDealWithCache(deleteCache: Bool)
+//    {
+//        let spinner = ProgressSpinner(uic: self, title: "Forgetting Folder Link", message: "");
+//        globals.loginState.forgetFolderLink(spinner: spinner, onFinish: { success in
+//            var b = success;
+//            if (b) {
+//                if (deleteCache)
+//                {
+//                    spinner.updateTitleMessage("Deleting cache", "Folder link already forgotten.")
+//                    if (!globals.storageModel.deleteCachedFiles(includingAccountAndSettings: true))
+//                    {
+//                        b = false;
+//                        spinner.setErrorMessage("Failed to erase cache after wiping folder link");
+//                    }
+//                }
+//                app().clear();
+//            }
+//            spinner.dismissOrReportError(success: b);
+//            self.setEnabled();
+//        })
+//    }
+//    
+//    @IBAction func OnClearFileCacheClicked(_ sender: Any) {
+//        
+//        let alert = UIAlertController(title: "Clear Cached Files", message: "Clearing your cached files can be useful to gain storage space for your device, or to cause files to re-download, or to make sure all orphaned local cached files are cleaned up.", preferredStyle: .alert)
+//        
+//        let startA1 = UIAlertAction(title: "Wipe all cached files", style: .default, handler:
+//            { (UIAlertAction) -> () in
+//            
+//                let spinner = ProgressSpinner(uic: self, title: "Clearing Cache", message: "");
+//            
+//                if (globals.storageModel.deleteCachedFiles(includingAccountAndSettings: false))
+//                {
+//                    spinner.dismiss();
+//                    reportMessage(uic: self, message: "Cached files cleared");
+//                }
+//                else
+//                {
+//                    spinner.setErrorMessage("Some cached data failed to delete");
+//                    spinner.dismissOrReportError(success: false);
+//                }
+//            });
+//        
+//        let cancelA = UIAlertAction(title: "Never mind", style: .cancel);
+//
+//        alert.addAction(startA1);
+//        alert.addAction(cancelA);
+//
+//        self.present(alert, animated: false, completion: nil)
+//    }
+//    
+//    class LogCallback: NSObject, MEGALoggerDelegate {
+//
+//        var logStream : OutputStream? = nil;
+//
+//        func log(withTime time : String, logLevel : Int, source : String, message: String)
+//        {
+//            if (logStream != nil) {
+//                logString(time);
+//                logString(" ");
+//                logString(message);
+//                logString("\n");
+//            }
+//        }
+//        	
+//        func logString(_ s : String)
+//        {
+//            let _ = write(s.data(using: String.Encoding.utf8, allowLossyConversion: false)!);
+//            
+////            let pointer: UnsafePointer<Int8>? = NSString(string: s).utf8String;
+////            let length = NSString(string: s).length;
+////
+////            logStream!.write(UnsafePointer<UInt8>(pointer), maxLength: length);
+//            
+//            //data.withUnsafeBytes<UInt8>({ (p	: UnsafePointer<UInt8>) -> Void in
+//            //  logStream!.write(p, maxLength: data.count)
+//            //})
+//        }
+//        
+//        func write(_ data: Data) -> Int {
+//            return data.withUnsafeBytes({ (rawBufferPointer: UnsafeRawBufferPointer) -> Int in
+//                let bufferPointer = rawBufferPointer.bindMemory(to: UInt8.self)
+//                return logStream!.write(bufferPointer.baseAddress!, maxLength: data.count)
+//            })
+//        }
+//    }
+//    
+//    var logCallback : LogCallback? = nil;
+//    var logStream : OutputStream? = nil;
+//    
+//    func startLogging(verbose : Bool)
+//    {
+//        if (logCallback == nil)
+//        {
+//            logStream = OutputStream(toFileAtPath: logFilePath(), append: true);
+//            if (logStream != nil) {
+//                logStream!.open();
+//                logCallback = LogCallback();
+//                logCallback!.logStream = logStream;
+//                MEGASdk.setLogLevel(.debug);
+//                mega().add(logCallback!);
+//            }
+//        }
+//    }
+//    
+//    func stopLogging()
+//    {
+//	    if (logCallback != nil)
+//        {
+//            logCallback?.logStream = nil;
+//            mega().remove(logCallback!);
+//            logCallback = nil;
+//        }
+//        if (logStream != nil)
+//        {
+//            logStream!.close();
+//            logStream = nil;
+//        }
+//        MEGASdk.setLogLevel(.error);
+//    }
+//    
+//    func uploadLogFile()
+//    {
+//        if (CheckOnlineOrWarn("Please go online before uploading the log file", uic: self))
+//        {
+//            if (mega().rootNode != nil) {
+//                mega().startUpload(withLocalPath: logFilePath(), parent: mega().rootNode!)
+//            }
+//        }
+//    }
+//    
+//    func deleteLogFile()
+//    {
+//        do {
+//            try FileManager.default.removeItem(atPath: logFilePath())
+//        }
+//        catch {
+//        }
+//    }
+//    
+//    func logFilePath() -> String
+//    {
+//        return globals.storageModel.tempFilesPath() + "/iOS_logfile.log";
+//    }
+//    
+//    @IBAction func onTroubleshootWithLogFilesClicked(_ sender: UIButton) {
+//
+//        let alert = UIAlertController(title: "Log file", message: "", preferredStyle: .alert)
+//        
+//        let startA1 = UIAlertAction(title: "Start logging to file (debug)", style: .default, handler:
+//                { (UIAlertAction) -> () in self.startLogging(verbose: false) });
+//        
+//        let startA2 = UIAlertAction(title: "Start logging to file (verbose)", style: .default, handler:
+//                { (UIAlertAction) -> () in self.startLogging(verbose: true) });
+//        
+//        let stopA = UIAlertAction(title: "Stop logging to file", style: .default, handler:
+//                { (UIAlertAction) -> () in self.stopLogging() });
+//        
+//        let uploadA = UIAlertAction(title: "Upload log file", style: .default, handler:
+//                { (UIAlertAction) -> () in self.uploadLogFile() });
+//        
+//        let deleteA = UIAlertAction(title: "Delete log file", style: .default, handler:
+//                { (UIAlertAction) -> () in self.deleteLogFile() });
+//        
+//        let cancelA = UIAlertAction(title: "Never mind", style: .cancel);
+//
+//        startA1.isEnabled = logCallback == nil || logStream == nil;
+//        startA2.isEnabled = logCallback == nil || logStream == nil;
+//        stopA.isEnabled = logCallback != nil || logStream != nil;
+//        uploadA.isEnabled = logCallback == nil && logStream == nil && FileManager.default.fileExists(atPath: logFilePath());
+//        deleteA.isEnabled = logCallback == nil && logStream == nil && FileManager.default.fileExists(atPath: logFilePath());
+//
+//        alert.addAction(startA1);
+//        alert.addAction(startA2);
+//        alert.addAction(stopA);
+//        alert.addAction(uploadA);
+//        alert.addAction(deleteA);
+//        alert.addAction(cancelA);
+//
+//        self.present(alert, animated: false, completion: nil)
+//    }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         // Get the new view controller using segue.destination.

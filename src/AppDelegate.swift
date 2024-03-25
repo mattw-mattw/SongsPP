@@ -12,6 +12,129 @@ import AVKit
 import MediaPlayer
 import Intents
 
+class Path
+{
+    var relativePath : String = "";
+    var isFolder : Bool = false;
+    
+    enum RootType {
+        case MusicRoot
+        case PlaylistRoot
+        case ThumbRoot
+    }
+    
+    var rt : RootType = RootType.MusicRoot;
+    
+    func fullPath() -> String
+    {
+        switch (rt) {
+        case RootType.MusicRoot : return globals.musicFolder + "/" + relativePath;
+        case RootType.PlaylistRoot : return globals.playlistFolder + "/" + relativePath;
+        case RootType.ThumbRoot : return globals.storageModel.importFolderPath() + "/root2/songs++index/thumb/" + relativePath + ".jpg";
+        }
+    }
+    
+    static func == (lhs : Path, rhs : Path) -> Bool
+    {
+        return lhs.rt == rhs.rt && lhs.relativePath == rhs.relativePath;
+    }
+    static func != (lhs : Path, rhs : Path) -> Bool
+    {
+        return lhs.rt != rhs.rt || lhs.relativePath != rhs.relativePath;
+    }
+
+    init(rp : String, r : RootType, f : Bool)
+    {
+        rt = r;
+        relativePath = rp;
+        isFolder = f;
+        
+        if (relativePath.hasPrefix("/music/music/"))
+        {
+            relativePath = String(relativePath.suffix(from: relativePath.index(relativePath.startIndex, offsetBy: 13)))
+        }
+        
+        while (relativePath.first == "/") { relativePath.removeFirst(); }
+    }
+    
+    func hasSuffix(_ s: String) -> Bool
+    {
+        return relativePath.hasSuffix(s);
+    }
+    
+    func edited() -> Path
+    {
+        var p = Path(rp: relativePath, r: rt, f: isFolder);
+        if !p.hasSuffix(".edited") {
+            p.relativePath.append(".edited");
+        }
+        return p;
+    }
+
+    func contentsOfDirectory() throws -> [Path]
+    {
+        var result : [Path] = [];
+        let leafs = try FileManager.default.contentsOfDirectory(atPath: fullPath());
+        for l in leafs
+        {
+            if !l.hasSuffix(".edited") && 
+                l != "songs++index"
+            {
+                result.append(drillInto(entry: l))
+            }
+        }
+        result.sort(by: { (a:Path, b:Path) -> Bool in
+            return a.relativePath < b.relativePath;
+        })
+        return result;
+    }
+    
+    func drillInto(entry : String) -> Path
+    {
+        let p = Path(rp: relativePath, r: rt, f: true);
+        if (p.relativePath.last != nil && p.relativePath.last != "/") { p.relativePath.append("/"); }
+        p.relativePath += entry;
+        while (p.relativePath.last == "/") { p.relativePath.removeLast(); }
+        p.isFolder = pathIsFolder(p.fullPath())
+        return p;
+    }
+    
+    func parentFolder() -> Path
+    {
+        let last = URL(fileURLWithPath: relativePath).lastPathComponent
+        let p = Path(rp: relativePath, r: rt, f: true);
+        p.relativePath.removeLast(last.count);
+        if (p.relativePath.last == "/") { p.relativePath.removeLast(); }
+        return p;
+    }
+}
+
+func leafName(_ n : String) -> String
+{
+    return URL(fileURLWithPath: n).lastPathComponent
+}
+func leafName(_ n : Path) -> String
+{
+    return URL(fileURLWithPath: n.relativePath).lastPathComponent
+}
+
+
+func parentFolder(_ n : String) -> String
+{
+    let last = URL(fileURLWithPath: n).lastPathComponent
+    var p = n;
+    p.removeLast(last.count);
+    if (p.last == "/") { p.removeLast(); }
+    return p;
+}
+
+func pathIsFolder(_ p : String) -> Bool
+{
+    var resultStorage: ObjCBool = false;
+    FileManager.default.fileExists(atPath: p, isDirectory: &resultStorage)
+    return resultStorage.boolValue;
+}
+
 class ProgressSpinner {
 
     var busyControl : UIAlertController? = nil;
@@ -88,7 +211,7 @@ class IntentHandler: NSObject, INPlayMediaIntentHandling {
         completion(INBooleanResolutionResult.success(with: intent.playShuffled != nil &&  intent.playShuffled!));
     }
     
-    func getNodesForPlayIntent(intent: INPlayMediaIntent, resolutionResult : inout INPlayMediaMediaItemResolutionResult?) -> [MEGANode]
+    func getNodesForPlayIntent(intent: INPlayMediaIntent, resolutionResult : inout INPlayMediaMediaItemResolutionResult?) -> [Path]
     {
         if (intent.mediaSearch == nil)
         {
@@ -107,22 +230,24 @@ class IntentHandler: NSObject, INPlayMediaIntentHandling {
         print(intent.mediaSearch!);
 
         let searchLocation = intent.mediaSearch!.mediaType == .playlist ?
-            globals.playlistBrowseFolder :
-            globals.musicBrowseFolder;
+            Path(rp: "", r: Path.RootType.PlaylistRoot, f: true) :
+            Path(rp: "", r: Path.RootType.MusicRoot, f: true);
         
-        if (searchLocation == nil)
-        {
-            resolutionResult = INPlayMediaMediaItemResolutionResult.unsupported(forReason: .restrictedContent)
-            return [];
-        }
+//        if (searchLocation == nil)
+//        {
+//            resolutionResult = INPlayMediaMediaItemResolutionResult.unsupported(forReason: .restrictedContent)
+//            return [];
+//        }
         
-        var v : [MEGANode] = [];
+        var v : [Path] = [];
         v.reserveCapacity(10000);
         
         switch (intent.mediaSearch!.mediaType) {
         case .album, .playlist, .song, .music, .unknown:
-            if (globals.musicBrowseFolder != nil) {
-                globals.storageModel.loadSongsFromNodeRecursive(node: searchLocation!, &v, recurse: true, filterIntent: intent);
+            do {
+                try globals.storageModel.loadSongsFromPathRecursive(n: searchLocation, &v, recurse: true, filterIntent: intent);
+            }
+            catch {
             }
         default:
             if resolutionResult != nil {
@@ -183,10 +308,14 @@ class IntentHandler: NSObject, INPlayMediaIntentHandling {
         let foundNodes = getNodesForPlayIntent(intent: intent, resolutionResult: &dummy);
 
         // load the content of playlists, albums, etc
-        var expanded : [MEGANode] = [];
+        var expanded : [Path] = [];
 
         for n in foundNodes {
-            globals.storageModel.loadSongsFromNodeRecursive(node: n, &expanded, recurse: true, filterIntent: nil);
+            do {
+                try globals.storageModel.loadSongsFromPathRecursive(n: n, &expanded, recurse: true, filterIntent: nil);
+            }
+            catch {
+            }
         }
 
         if (intent.playShuffled != nil && intent.playShuffled!)
@@ -208,7 +337,7 @@ class IntentHandler: NSObject, INPlayMediaIntentHandling {
         {
             let aaa = expanded;
             DispatchQueue.main.asyncAfter(deadline: .now()) {
-                globals.playQueue.queueSongs(front: true, nodes: aaa, uic: app().playQueueTVC!, reportQueueLimit: false);
+                globals.playQueue.queueSongs(front: true, songs: aaa, uic: app().playQueueTVC!, reportQueueLimit: false);
             }
         }
 
@@ -229,7 +358,11 @@ class Globals
 
     var musicBrowseFolder : MEGANode? = nil;
     var playlistBrowseFolder : MEGANode? = nil;
-    
+ 
+    var musicFolder : String;
+    var playlistFolder : String;
+    var thumbsFolder : String;
+
     func clear()
     {
         // get back to on-start state
@@ -243,6 +376,9 @@ class Globals
 
     init()
     {
+        musicFolder = storageModel.importFolderPath() + "/root2/";
+        playlistFolder = storageModel.importFolderPath() + "/root2/songs++index/playlist";
+        thumbsFolder = storageModel.importFolderPath() + "/root2/songs++index/thumb";
         storageModel.load();
     }
 }
@@ -290,31 +426,32 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     }
     
-    func setupNowPlaying(node: MEGANode?) {
+    func setupNowPlaying(n: Path?) {
         
-        if let node = node {
+        let attr = n == nil ? nil : globals.storageModel.lookupSong(n!);
         
-            var title : String? = node.customTitle;
-            if (title == nil) { title = node.name; }
-            var artist : String? = node.customArtist;
-            if (artist == nil) { artist = "" }
+        if attr != nil {
+        
+            var title : String? = attr!["title"] ?? "<title>";
+            var artist : String? = attr!["artist"] ?? "";
             
             var image : UIImage? = nil;
-            if (node.hasThumbnail())
+            if let thumb = attr!["thumb"]
             {
-                if (globals.storageModel.thumbnailDownloaded(node)) {
-                    if let path = globals.storageModel.thumbnailPath(node: node) {
-                        image = UIImage(contentsOfFile: path);
-                    }
-                }
+                image = UIImage(contentsOfFile: globals.storageModel.importFolderPath() + "/root2/songs++index/thumb/" + thumb + ".jpg");
+//                if (globals.storageModel.thumbnailDownloaded(node)) {
+//                    if let path = globals.storageModel.thumbnailPath(node: node) {
+//                        image = UIImage(contentsOfFile: path);
+//                    }
+//                }
             }
             
             var nowPlayingInfo = [String : Any]()
             nowPlayingInfo[MPMediaItemPropertyTitle] = title!;
             nowPlayingInfo[MPMediaItemPropertyArtist] = artist!;
             if image != nil { nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image!.size) { size in return image! } }
-            nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = node.duration / 2;
-            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = node.duration;
+            nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = "0:00";
+            nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = attr!["durat"];
             MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
         }
         else {
@@ -427,7 +564,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
    
     var needsRestoreOnStartup = true;
     
-    var nodeForBrowseFirstLoad : MEGANode? = nil;
+    var nodeForBrowseFirstLoad : Path? = nil;
     
     var playQueueTVC : PlayQueueTVC? = nil;
     var browseMusicTVC : BrowseTVC? = nil;
@@ -437,7 +574,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var explanatoryText : String = "";
     
-    var recentPlaylists : [MEGANode] = [];
+    var recentPlaylists : [Path] = [];
     
     func clear()
     {
@@ -524,8 +661,8 @@ func mega(using fileManager : FileManager = .default) -> MEGASdk {
     {
         let path = globals.storageModel.accountPath() + "/";
         globals.mega = MEGASdk.init(appKey: "dWRWmTiJ", userAgent: "Songs++ " + deviceName(), basePath: path)!;
-        globals.mega!.add(globals.storageModel.transferDelegate);
-        globals.mega!.add(globals.storageModel.megaDelegate);
+//        globals.mega!.add(globals.storageModel.transferDelegate);
+//        globals.mega!.add(globals.storageModel.megaDelegate);
         globals.mega!.platformSetRLimitNumFile(50000);
     }
     return globals.mega!;
@@ -557,9 +694,9 @@ func megaGetContainingFolder(_ node : MEGANode?) -> MEGANode?
     return n;
 }
 
-func shuffleArray(_ a : inout [MEGANode]) -> [MEGANode]
+func shuffleArray(_ a : inout [Path]) -> [Path]
 {
-    var newQueue : [MEGANode] = []
+    var newQueue : [Path] = []
     while a.count > 0 {
         let row = Int.random(in: 0..<a.count)
         newQueue.append(a[row])
@@ -585,35 +722,35 @@ func reportMessage(uic : UIViewController, message : String, continuation : (() 
     }
 }
 
-func CheckOnlineOrWarn(_ warnMessage: String, uic : UIViewController) -> Bool
-{
-    if globals.loginState.online { return true; }
-    let alert = UIAlertController(title: "Not Online", message: warnMessage, preferredStyle: .alert)
-    alert.addAction(UIAlertAction(title: "OK", style: .cancel));
-    uic.present(alert, animated: false, completion: nil)
-    return false;
-}
+//func CheckOnlineOrWarn(_ warnMessage: String, uic : UIViewController) -> Bool
+//{
+//    if globals.loginState.online { return true; }
+//    let alert = UIAlertController(title: "Not Online", message: warnMessage, preferredStyle: .alert)
+//    alert.addAction(UIAlertAction(title: "OK", style: .cancel));
+//    uic.present(alert, animated: false, completion: nil)
+//    return false;
+//}
 
 
-func menuAction_playRightNow(_ node : MEGANode) -> UIAlertAction
+func menuAction_playRightNow(_ n : Path) -> UIAlertAction
 {
     return UIAlertAction(title: "Play right now", style: .default, handler:
-        { (UIAlertAction) -> () in globals.playQueue.playRightNow(node); });
+        { (UIAlertAction) -> () in globals.playQueue.playRightNow(n); });
 }
 
-func menuAction_playNext(_ node : MEGANode, uic : UIViewController) -> UIAlertAction
+func menuAction_playNext(_ n : Path, uic : UIViewController) -> UIAlertAction
 {
     return UIAlertAction(title: "Play next", style: .default, handler:
-        { (UIAlertAction) -> () in globals.playQueue.queueSong(front: true, node: node, uic: uic); });
+        { (UIAlertAction) -> () in globals.playQueue.queueSong(front: true, song: n, uic: uic); });
 }
 
-func menuAction_playLast(_ node : MEGANode, uic : UIViewController) -> UIAlertAction
+func menuAction_playLast(_ n : Path, uic : UIViewController) -> UIAlertAction
 {
     UIAlertAction(title: "Play last", style: .default, handler:
-        { (UIAlertAction) -> () in globals.playQueue.queueSong(front: false, node: node, uic: uic); });
+        { (UIAlertAction) -> () in globals.playQueue.queueSong(front: false, song: n, uic: uic); });
 }
 
-func menuAction_songInfo(_ node : MEGANode, viewController : UIViewController) -> UIAlertAction
+func menuAction_songInfo(_ node : Path, viewController : UIViewController) -> UIAlertAction
 {
     return UIAlertAction(title: "Info...", style: .default, handler:
         { (UIAlertAction) -> () in
@@ -623,13 +760,13 @@ func menuAction_songInfo(_ node : MEGANode, viewController : UIViewController) -
         });
 }
 
-func menuAction_songBrowseTo(_ node : MEGANode, viewController : UIViewController) -> UIAlertAction
+func menuAction_songBrowseTo(_ n : Path, viewController : UIViewController) -> UIAlertAction
 {
     return UIAlertAction(title: "Browse to", style: .default, handler:
         { (UIAlertAction) -> () in
-            app().nodeForBrowseFirstLoad = node;
+            app().nodeForBrowseFirstLoad = n;
             app().tabBarContoller?.selectedIndex = 1;
-            app().browseMusicTVC?.browseToParent(node);
+            app().browseMusicTVC?.browseToParent(n);
         });
 }
 
@@ -638,7 +775,7 @@ func menuAction_neverMind() -> UIAlertAction
     return UIAlertAction(title: "Never mind", style: .cancel);
 }
 
-func menuAction_addToPlaylistInFolder_recents(_ node : MEGANode, viewController : UIViewController) -> UIAlertAction
+func menuAction_addToPlaylistInFolder_recents(_ nn : Path, viewController : UIViewController) -> UIAlertAction
 {
     return UIAlertAction(title: "Add to Playlist...", style: .default, handler:
         { (UIAlertAction) -> () in
@@ -647,93 +784,97 @@ func menuAction_addToPlaylistInFolder_recents(_ node : MEGANode, viewController 
             for i in 0..<app().recentPlaylists.count {
                 
                 // check if playlist is updated
-                let n : MEGANode? = megaGetLatestFileRevision(app().recentPlaylists[i]);
-                if (n == nil) { continue; }
+                let n = app().recentPlaylists[i];
+                //if (n == nil) { continue; }
                 
-                alert.addAction(menuAction_addToPlaylistExact(playlistNode:n!, nodeToAdd: node, viewController: viewController));
+                alert.addAction(menuAction_addToPlaylistExact(playlistPath: n, songToAdd: nn, viewController: viewController));
             }
-            alert.addAction(menuAction_addToPlaylistInFolder(node, overrideName: "Select from all Playlists...", playlistFolder: globals.playlistBrowseFolder!, viewController: viewController));
+        alert.addAction(menuAction_addToPlaylistInFolder(nn, overrideName: "Select from all Playlists...", playlistChooseFolder: Path(rp: "", r: .PlaylistRoot, f: true), viewController: viewController));
             alert.addAction(menuAction_neverMind());
             viewController.present(alert, animated: false, completion: nil)
         });
 }
 
-func menuAction_addToPlaylistInFolder(_ node : MEGANode, overrideName : String?, playlistFolder : MEGANode, viewController : UIViewController) -> UIAlertAction
+func menuAction_addToPlaylistInFolder(_ song : Path, overrideName : String?, playlistChooseFolder : Path, viewController : UIViewController) -> UIAlertAction
 {
-    return UIAlertAction(title: overrideName != nil ? overrideName : playlistFolder.name! + "/ ..."	, style: .default, handler:
-        { (UIAlertAction) -> () in
+    return UIAlertAction(title: overrideName != nil ? overrideName : leafName(playlistChooseFolder) + "/ ..."	, style: .default, handler:
+                            { (UIAlertAction) -> () in do
+        {
             let alert = UIAlertController(title: nil, message: "Add to Playlist", preferredStyle: .alert)
             
-            let list = mega().children(forParent: playlistFolder, order: 1);
-            for i in 0..<list.size.intValue {
-                let n = list.node(at: i);
-                if (n != nil && n!.name != nil) {
-                    if (n!.type == MEGANodeType.file && n!.name!.hasSuffix(".playlist"))
-                    {
-                        alert.addAction(menuAction_addToPlaylistExact(playlistNode: n!, nodeToAdd: node, viewController: viewController));
-                    }
-                    else if (n!.type != .file)
-                    {
-                        alert.addAction(menuAction_addToPlaylistInFolder(node, overrideName: nil, playlistFolder: n!, viewController: viewController));
-                    }
+            let leafs = try playlistChooseFolder.contentsOfDirectory();
+            
+            for l in leafs {
+                if (!l.isFolder && l.relativePath.hasSuffix(".playlist"))
+                {
+                    alert.addAction(menuAction_addToPlaylistExact(playlistPath: l, songToAdd: song, viewController: viewController));
+                }
+                else if (l.isFolder)
+                {
+                    alert.addAction(menuAction_addToPlaylistInFolder(song, overrideName: nil, playlistChooseFolder: l, viewController: viewController));
                 }
             }
             alert.addAction(menuAction_neverMind());
             viewController.present(alert, animated: false, completion: nil)
-        });
+        }
+        catch {
+            reportMessage(uic: viewController, message: "Failed to get dir content: \(error)")
+        }
+            
+    });
 }
 
-func menuAction_addToPlaylistExact(playlistNode : MEGANode, nodeToAdd: MEGANode, viewController : UIViewController) -> UIAlertAction
+func menuAction_addToPlaylistExact(playlistPath : Path, songToAdd: Path, viewController : UIViewController) -> UIAlertAction
 {
-    return UIAlertAction(title: playlistNode.name , style: .default, handler:
+    return UIAlertAction(title: leafName(playlistPath) , style: .default, handler:
         { (UIAlertAction) -> () in
             
-            var uploadFolder = mega().parentNode(for: playlistNode);
-            while (uploadFolder != nil && uploadFolder!.type == .file)
-            {
-                uploadFolder = mega().parentNode(for: uploadFolder!);
-            }
-            if (uploadFolder == nil) { return; }  // todo: alert user
+//            var uploadFolder = mega().parentNode(for: playlistNode);
+//            while (uploadFolder != nil && uploadFolder!.type == .file)
+//            {
+//                uploadFolder = mega().parentNode(for: uploadFolder!);
+//            }
+//            if (uploadFolder == nil) { return; }
 
-            let (json, _) = globals.storageModel.getPlaylistFileEditedOrNotAsJSON(playlistNode);
-
-            if json != nil
-            {
-                var nodes : [MEGANode] = [];
-                globals.storageModel.loadSongsFromPlaylistRecursive(json: json!, &nodes, recurse: true, filterIntent: nil);
-                nodes.append(nodeToAdd);
-                
-                let s = globals.playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: nodes);
-                
-                if let updateFilePath = globals.storageModel.playlistPath(node: playlistNode, forEditing: true) {
-                    let url = URL(fileURLWithPath: updateFilePath);
-                    try! s.write(to: url, atomically: true, encoding: .ascii)
-                    
-                    for i in 0..<app().recentPlaylists.count {
-                        if (app().recentPlaylists[i] == playlistNode) {
-                            app().recentPlaylists.remove(at: i);
-                            break;
-                        }
-                    }
-                    while (app().recentPlaylists.count > 5)
-                    {
-                        app().recentPlaylists.remove(at: 5);
-                    }
-                    app().recentPlaylists.insert(playlistNode, at: 0);
+        do {
+            let json = try globals.storageModel.getPlaylistFileAsJSON(playlistPath, editedIfAvail: true);
+            
+            var songs : [Path] = [];
+            globals.storageModel.loadSongsFromPlaylistRecursive(json: json, &songs, recurse: true, filterIntent: nil);
+            songs.append(songToAdd);
+            
+            let s = globals.playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: songs);
+            
+            let url = URL(fileURLWithPath: playlistPath.edited().fullPath());
+            try! s.write(to: url, atomically: true, encoding: .ascii)
+            
+            for i in 0..<app().recentPlaylists.count {
+                if (app().recentPlaylists[i] == playlistPath) {
+                    app().recentPlaylists.remove(at: i);
+                    break;
                 }
             }
-        });
+            while (app().recentPlaylists.count > 5)
+            {
+                app().recentPlaylists.remove(at: 5);
+            }
+            app().recentPlaylists.insert(playlistPath, at: 0);
+        }
+        catch {
+            reportMessage(uic: viewController, message: "Failed to load: \(error)")
+        }
+    });
 }
 
-func ExtractAndApplyTags(_ node : MEGANode, overwriteExistingTags : Bool, countProcessed : inout Int, countNotDownloaded : inout Int, countNoTags : inout Int, countUpdated : inout Int) -> Bool
+func ExtractAndApplyTags(_ n : Path, overwriteExistingTags : Bool, countProcessed : inout Int, countNotDownloaded : inout Int, countNoTags : inout Int, countUpdated : inout Int) -> Bool
 {
-    if (!globals.playQueue.isPlayable(node, orMightContainPlayable: false))
+    if (!globals.playQueue.isPlayable(n, orMightContainPlayable: false))
     { return true; }
     
-    let songPath = globals.storageModel.songFingerprintPath(node: node);
-    if (songPath == nil) { return false; }
+    let songPath = n; //globals.storageModel.songFingerprintPath(node: node);
+    //if (songPath == nil) { return false; }
 
-    if !FileManager.default.fileExists(atPath: songPath!)
+    if !FileManager.default.fileExists(atPath: songPath.fullPath())
     { countNotDownloaded += 1; return false; }
     
     var title : NSString? = nil;
@@ -742,37 +883,37 @@ func ExtractAndApplyTags(_ node : MEGANode, overwriteExistingTags : Bool, countP
 
     countProcessed += 1;
     
-    if (SongsCPP.getSongProperties(songPath!, title: &title, artist: &artist, bpm: &bpm))
+    if (SongsCPP.getSongProperties(songPath.fullPath(), title: &title, artist: &artist, bpm: &bpm))
     {
         if (title == nil && artist == nil && bpm == nil)
         {
             countNoTags += 1;
         }
         
-        if (title != nil)
-        {
-            if (node.customTitle == nil || (node.customTitle != String(title!) && overwriteExistingTags))
-            {
-                mega().setCustomNodeAttribute(node, name: "title", value: String(title!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
-                countUpdated += 1;
-            }
-        }
-        if (artist != nil)
-        {
-            if (node.customArtist == nil || (node.customArtist != String(artist!) && overwriteExistingTags))
-            {
-                mega().setCustomNodeAttribute(node, name: "artist", value: String(artist!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
-                countUpdated += 1;
-            }
-        }
-        if (bpm != nil)
-        {
-            if (node.customBPM == nil || (node.customBPM != String(bpm!) && overwriteExistingTags))
-            {
-                mega().setCustomNodeAttribute(node, name: "BPM", value: String(bpm!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
-                countUpdated += 1;
-            }
-        }
+//        if (title != nil)
+//        {
+//            if (node.customTitle == nil || (node.customTitle != String(title!) && overwriteExistingTags))
+//            {
+//                mega().setCustomNodeAttribute(node, name: "title", value: String(title!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
+//                countUpdated += 1;
+//            }
+//        }
+//        if (artist != nil)
+//        {
+//            if (node.customArtist == nil || (node.customArtist != String(artist!) && overwriteExistingTags))
+//            {
+//                mega().setCustomNodeAttribute(node, name: "artist", value: String(artist!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
+//                countUpdated += 1;
+//            }
+//        }
+//        if (bpm != nil)
+//        {
+//            if (node.customBPM == nil || (node.customBPM != String(bpm!) && overwriteExistingTags))
+//            {
+//                mega().setCustomNodeAttribute(node, name: "BPM", value: String(bpm!), delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in }));
+//                countUpdated += 1;
+//            }
+//        }
     }
     else
     {
@@ -781,35 +922,37 @@ func ExtractAndApplyTags(_ node : MEGANode, overwriteExistingTags : Bool, countP
     return true;
 }
 
-func ExtractAndApplyTagsRecurse(_ node : MEGANode, recursive : Bool, overwriteExistingTags: Bool, countProcessed : inout Int, countNotDownloaded : inout Int, countNoTags : inout Int, countUpdated : inout Int)
+func ExtractAndApplyTagsRecurse(_ node : String, recursive : Bool, overwriteExistingTags: Bool, countProcessed : inout Int, countNotDownloaded : inout Int, countNoTags : inout Int, countUpdated : inout Int)
 {
-    if (node.type != .file)
-    {
-        let list = mega().children(forParent: node, order: 1);
-        for i in 0..<list.size.intValue {
-            if let n = list.node(at: i) {
-                if (n.type == .file)
-                {
-                    _ = ExtractAndApplyTags(n, overwriteExistingTags: overwriteExistingTags, countProcessed: &countProcessed, countNotDownloaded: &countNotDownloaded, countNoTags: &countNoTags, countUpdated: &countUpdated);
-                }
-                else if (recursive)
-                {
-                    ExtractAndApplyTagsRecurse(n, recursive: recursive, overwriteExistingTags: overwriteExistingTags, countProcessed: &countProcessed, countNotDownloaded: &countNotDownloaded, countNoTags: &countNoTags, countUpdated: &countUpdated);
-                }
-            }
-        }
-    }
+//    if (node.type != .file)
+//    {
+//        let list = mega().children(forParent: node, order: 1);
+//        for i in 0..<list.size.intValue {
+//            if let n = list.node(at: i) {
+//                if (n.type == .file)
+//                {
+//                    _ = ExtractAndApplyTags(n, overwriteExistingTags: overwriteExistingTags, countProcessed: &countProcessed, countNotDownloaded: &countNotDownloaded, countNoTags: &countNoTags, countUpdated: &countUpdated);
+//                }
+//                else if (recursive)
+//                {
+//                    ExtractAndApplyTagsRecurse(n, recursive: recursive, overwriteExistingTags: overwriteExistingTags, countProcessed: &countProcessed, countNotDownloaded: &countNotDownloaded, countNoTags: &countNoTags, countUpdated: &countUpdated);
+//                }
+//            }
+//        }
+//    }
 }
 
-func ExtractAndApplyTags(_ node : MEGANode, recursive : Bool, overwriteExistingTags: Bool, uic : UIViewController)
+func ExtractAndApplyTags(_ n : String, recursive : Bool, overwriteExistingTags: Bool, uic : UIViewController)
 {
-    if (CheckOnlineOrWarn("Please go online first so the file attributes can be updated in MEGA", uic: uic))
-    {
+//    if (CheckOnlineOrWarn("Please go online first so the file attributes can be updated in MEGA", uic: uic))
+//    {
         var countProcessed = 0;
         var countNotDownloaded = 0;
         var countNoTags = 0;
         var countUpdated = 0;
-        ExtractAndApplyTagsRecurse(node, recursive: recursive, overwriteExistingTags: overwriteExistingTags, countProcessed: &countProcessed, countNotDownloaded: &countNotDownloaded, countNoTags: &countNoTags, countUpdated: &countUpdated);
+    
+    // todo: update index file
+        ExtractAndApplyTagsRecurse(n, recursive: recursive, overwriteExistingTags: overwriteExistingTags, countProcessed: &countProcessed, countNotDownloaded: &countNotDownloaded, countNoTags: &countNoTags, countUpdated: &countUpdated);
         var message = "Processed " + String(countProcessed) + " files.";
         if (countNotDownloaded > 0)
         {
@@ -828,7 +971,7 @@ func ExtractAndApplyTags(_ node : MEGANode, recursive : Bool, overwriteExistingT
             message += " Set " + String(countUpdated) + " fields that had not been set yet.";
         }
         reportMessage(uic: uic, message: message);
-    }
+//    }
 }
 
 
