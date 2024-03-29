@@ -11,5 +11,6 @@
 @interface SongsCPP : NSObject {}
 
 + (bool)GetSongProperties:(NSString *)filePath title:(NSString **)title artist:(NSString **)artist bpm:(NSString **)bpm ;
++ (bool)ScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath ;
 
 @end

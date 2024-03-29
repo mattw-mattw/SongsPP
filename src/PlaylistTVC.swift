@@ -248,14 +248,14 @@ class PlaylistTVC: UITableViewController {
         playlistSongs = [];
         
         do {
-            let json = try globals.storageModel.getPlaylistFileAsJSON(n, editedIfAvail: true);
+            let json = try getPlaylistFileAsJSON(n, editedIfAvail: true);
             
             loadedOk = true;
             
             if (loadedOk)
             {
                 playlistSongs = [];
-                globals.storageModel.loadSongsFromPlaylistRecursive(json: json, &playlistSongs, recurse: true, filterIntent: nil);
+                loadSongsFromPlaylistRecursive(json: json, &playlistSongs, recurse: true, filterIntent: nil);
             }
         }
         catch {

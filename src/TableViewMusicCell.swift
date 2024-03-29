@@ -55,9 +55,9 @@ class TableViewMusicCell: UITableViewCell {
 
         thumbnailView.image = nil;
 
-        if let thumbfp = attr["thumb"] {
-            let path = globals.storageModel.importFolderPath() + "/root2/songs++index/thumb/"+thumbfp+".jpg";
-            if let image = UIImage(contentsOfFile: path) {
+        if let thumb = attr["thumb"] {
+            let path = Path(rp: thumb, r: .ThumbRoot, f: false);
+            if let image = UIImage(contentsOfFile: path.fullPath()) {
                 thumbnailView.image = image;
             }
         }

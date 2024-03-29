@@ -12,15 +12,246 @@ import AVKit
 import MediaPlayer
 import Intents
 
+let playableExtensions = [ ".mp3", ".m4a", ".aac", ".wav", ".flac", ".aiff", ".au", ".pcm", ".ac3", ".aa", ".aax"];
+let artworkExtensions = [ ".jpg", ".jpeg", ".png", ".bmp"];
+
+func isPlayable(_ n : Path, orMightContainPlayable : Bool) -> Bool
+{
+    //if (n.name == nil) { return false; }
+    if orMightContainPlayable {
+        if //(n.isFile() &&
+            n.relativePath.hasSuffix(".playlist") { return true; }
+        //if (n.isFolder()) { return true; }
+    }
+    //if (n.isFile()) {
+        let name = n.relativePath.lowercased();
+        for ext in playableExtensions {
+            if name.hasSuffix(ext) { return true; }
+        }
+    //}
+    return false;
+}
+
+func isArtwork(_ n : Path) -> Bool
+{
+    if (!n.isFolder) {
+        let name = leafName(n).lowercased()
+        for ext in artworkExtensions {
+            if name.hasSuffix(ext) { return true; }
+        }
+    }
+    return false;
+}
+
+func loadFileAsJSON(filename : String) -> Any?
+{
+    do
+    {
+        let content = try String(contentsOf: URL(fileURLWithPath: filename), encoding: .utf8);
+        let contentData = content.data(using: .utf8);
+        return try JSONSerialization.jsonObject(with: contentData!, options: []);
+    }
+    catch {
+    }
+    return nil;
+}
+
+func getPlaylistFileAsJSON(_ filename: Path, editedIfAvail: Bool) throws -> Any
+{
+    assert(editedIfAvail ? filename.rt == .PlaylistRoot && !filename.isFolder : true);
+    var f = filename;
+    if editedIfAvail {
+        if FileManager.default.fileExists(atPath: filename.edited().fullPath()) {
+            f = filename.edited();
+        }
+    }
+    let content = try String(contentsOf: URL(fileURLWithPath: f.fullPath()), encoding: .utf8);
+    let contentData = content.data(using: .utf8);
+    return try JSONSerialization.jsonObject(with: contentData!, options: []);
+}
+
+func loadSongsFromPlaylistRecursive(json: Any, _ v : inout [Path], recurse: Bool, filterIntent: INPlayMediaIntent?)
+{
+    if let array = json as? [Any] {
+        for object in array {
+            if let attribs = object as? [String : String] {
+                if let p = attribs["npath"] {
+                    v.append(Path(rp: p, r: Path.RootType.MusicRoot, f: false))
+                }
+            }
+//                if let attribs = object as? [String : Any] {
+//                    if let handleStr = attribs["h"] {
+//                        var node = mega().node(forHandle: MEGASdk.handle(forBase64Handle: handleStr as! String));
+//                        if (node == nil)
+//                        {
+//                            // Maybe the node was replaced with a new version, see if there's something at the old path
+//                            if let lkpath = attribs["lkpath"] {
+//                                node = mega().node(forPath: lkpath as! String);
+//                            }
+//                        }
+//                        if (node != nil) {
+//                            loadSongsFromNodeRecursive(node: node!, &v, recurse: recurse, filterIntent: filterIntent);
+//                        }
+//                    }
+//                }
+        }
+    }
+}
+
+func loadSongsFromPathRecursive(n: Path, _ v : inout [Path], recurse: Bool, filterIntent: INPlayMediaIntent?) throws
+{
+    if (filterIntent != nil)
+    {
+        if (n.isFolder && leafName(n) == "old-playlist-versions") {
+            return;
+        }
+        if (matchNodeOnIntent(n, filterIntent: filterIntent!))
+        {
+            v.append(n);
+            return;
+        }
+    }
+
+    if (n.isFolder)
+    {
+        let leafs = try n.contentsOfDirectory();
+        for l in leafs
+        {
+            if (recurse || !l.isFolder) {
+                try loadSongsFromPathRecursive(n: l, &v, recurse: recurse, filterIntent: filterIntent);
+            }
+        }
+    }
+    else if (n.hasSuffix(".playlist"))// && globals.storageModel.fileDownloadedByNH(node))
+    {
+        if (recurse) {
+            let json = try getPlaylistFileAsJSON(n, editedIfAvail: true);
+            loadSongsFromPlaylistRecursive(json: json, &v, recurse: recurse, filterIntent: filterIntent);
+        }
+    }
+    else if isPlayable(n, orMightContainPlayable: false)
+    {
+        if (filterIntent == nil) { v.append(n) }
+    }
+}
+
+func matchNodeOnIntent(_ n : Path, filterIntent: INPlayMediaIntent) -> Bool
+{
+    switch (filterIntent.mediaSearch?.mediaType) {
+    case .playlist:
+        if (n.isFolder || !n.hasSuffix(".playlist")) {
+            return false;
+        }
+    case .song:
+        if (n.isFolder || !isPlayable(n, orMightContainPlayable: false)) {
+            return false;
+        }
+    case .album:
+        if (!n.isFolder) {
+            return false;
+        }
+    case .music:
+        // this case seems to be used for "all songs"
+        return !n.isFolder &&
+        isPlayable(n, orMightContainPlayable: false);
+    case .unknown:
+        break;
+        
+    default:
+        return false;
+    }
+    
+    if (!isPlayable(n, orMightContainPlayable: true))
+    {
+        return false;
+    }
+    
+    if let searchStr = filterIntent.mediaSearch?.mediaName?.lowercased() {
+        
+        let name = n
+        if (name.relativePath.lowercased().contains(searchStr)) { return true };
+        
+        let ct = n // todo: lookup , get title etc
+            if ct.relativePath.lowercased().contains(searchStr) { return true };
+        
+        return false;
+    }
+    return true;
+}
+class FolderManager
+{
+    var alreadyCreatedFolders : Set<String> = [];
+
+    func assureFolderExists(_ url : String, doneName : String) -> Void
+    {
+        if (alreadyCreatedFolders.contains(doneName)) { return; }
+        do {
+            if !FileManager.default.fileExists(atPath: url) {
+                try FileManager.default.createDirectory(atPath: url, withIntermediateDirectories: true, attributes: nil);
+            }
+            var urv = URLResourceValues();
+            urv.isExcludedFromBackup = true;
+            var attribUrl = URL(fileURLWithPath: url)
+            try attribUrl.setResourceValues(urv);
+            alreadyCreatedFolders.insert(doneName);
+        }
+        catch
+        {
+            print("directory does not exist and could not be created or could not be set non-backup: \(url)")
+        }
+    }
+    
+    func storageBasePath() -> String
+    {
+        // choosing applicationSupportDirectory means the files will not be accessible from other apps,
+        // won't be removed by the system (unlike cache directories) and we can set flags to prevent
+        // the files being synced by iTunes or iCloud.
+        // https://developer.apple.com/library/archive/qa/qa1719/_index.html
+        let folderUrls = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask);
+        let p = folderUrls[0].standardizedFileURL.path;
+        assureFolderExists(p, doneName: "base");
+        return p;
+    }
+    
+    func settingsPath() -> String
+    {
+        let p = storageBasePath() + "/settings";
+        assureFolderExists(p, doneName: "settings");
+        return p;
+    }
+
+//    func cacheFilesPath() -> String
+//    {
+//        let p = storageBasePath() + "/cache";
+//        assureFolderExists(p, doneName: "cache");
+//        return p;
+//    }
+    
+    func syncFolderPath() -> String
+    {
+        let p = storageBasePath() + "/sync5";
+        assureFolderExists(p, doneName: "sync5")
+        assureFolderExists(p + "/songs++index", doneName: "songs++index")
+        assureFolderExists(p + "/songs++index/thumb", doneName: "thumb")
+        assureFolderExists(p + "/songs++index/playlist", doneName: "playlist")
+        return p;
+    }
+};
+
 class Path
 {
     var relativePath : String = "";
     var isFolder : Bool = false;
     
+    static var folderManager = FolderManager()
+    
     enum RootType {
         case MusicRoot
         case PlaylistRoot
         case ThumbRoot
+        case IndexFile
+        case SyncFolder
+        case Settings
     }
     
     var rt : RootType = RootType.MusicRoot;
@@ -28,9 +259,12 @@ class Path
     func fullPath() -> String
     {
         switch (rt) {
-        case RootType.MusicRoot : return globals.musicFolder + "/" + relativePath;
-        case RootType.PlaylistRoot : return globals.playlistFolder + "/" + relativePath;
-        case RootType.ThumbRoot : return globals.storageModel.importFolderPath() + "/root2/songs++index/thumb/" + relativePath + ".jpg";
+        case .MusicRoot : return Path.folderManager.syncFolderPath() + "/" + relativePath;
+        case .PlaylistRoot : return Path.folderManager.syncFolderPath() + "/songs++index/playlist/" + relativePath;
+        case .ThumbRoot : return Path.folderManager.syncFolderPath() + "/songs++index/thumb/" + relativePath + ".jpg";
+        case .IndexFile: return  Path.folderManager.syncFolderPath() + "/songs++index/songs++index.json";
+        case .SyncFolder: return  Path.folderManager.syncFolderPath();
+        case .Settings: return  Path.folderManager.settingsPath() + "/" + relativePath;
         }
     }
     
@@ -64,7 +298,7 @@ class Path
     
     func edited() -> Path
     {
-        var p = Path(rp: relativePath, r: rt, f: isFolder);
+        let p = Path(rp: relativePath, r: rt, f: isFolder);
         if !p.hasSuffix(".edited") {
             p.relativePath.append(".edited");
         }
@@ -245,7 +479,7 @@ class IntentHandler: NSObject, INPlayMediaIntentHandling {
         switch (intent.mediaSearch!.mediaType) {
         case .album, .playlist, .song, .music, .unknown:
             do {
-                try globals.storageModel.loadSongsFromPathRecursive(n: searchLocation, &v, recurse: true, filterIntent: intent);
+                try loadSongsFromPathRecursive(n: searchLocation, &v, recurse: true, filterIntent: intent);
             }
             catch {
             }
@@ -312,7 +546,7 @@ class IntentHandler: NSObject, INPlayMediaIntentHandling {
 
         for n in foundNodes {
             do {
-                try globals.storageModel.loadSongsFromPathRecursive(n: n, &expanded, recurse: true, filterIntent: nil);
+                try loadSongsFromPathRecursive(n: n, &expanded, recurse: true, filterIntent: nil);
             }
             catch {
             }
@@ -351,35 +585,29 @@ class Globals
 {
     // things that may be accessed by the App UI or from independent threads with no UI.
     
-    var mega : MEGASdk? = nil;
-    var loginState = LoginState();
+//    var mega : MEGASdk? = nil;
+//    var loginState = LoginState();
     var playQueue = PlayQueue();
     var storageModel = StorageModel();
 
-    var musicBrowseFolder : MEGANode? = nil;
-    var playlistBrowseFolder : MEGANode? = nil;
- 
-    var musicFolder : String;
-    var playlistFolder : String;
-    var thumbsFolder : String;
+//    var musicBrowseFolder : MEGANode? = nil;
+//    var playlistBrowseFolder : MEGANode? = nil;
 
     func clear()
     {
         // get back to on-start state
-        loginState.clear();
+        //loginState.clear();
         playQueue.clear();
         storageModel.clear();
 
-        musicBrowseFolder = nil;
-        playlistBrowseFolder = nil;
+//        musicBrowseFolder = nil;
+//        playlistBrowseFolder = nil;
     }
 
     init()
     {
-        musicFolder = storageModel.importFolderPath() + "/root2/";
-        playlistFolder = storageModel.importFolderPath() + "/root2/songs++index/playlist";
-        thumbsFolder = storageModel.importFolderPath() + "/root2/songs++index/thumb";
         storageModel.load();
+        playQueue.restoreOnStartup();
     }
 }
 
@@ -430,17 +658,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         let attr = n == nil ? nil : globals.storageModel.lookupSong(n!);
         
-        if attr != nil {
+        if attr != nil {	
         
-            var title : String? = attr!["title"] ?? "<title>";
-            var artist : String? = attr!["artist"] ?? "";
+            let title : String? = attr!["title"] ?? "<title>";
+            let artist : String? = attr!["artist"] ?? "";
             
             var image : UIImage? = nil;
             if let thumb = attr!["thumb"]
             {
-                image = UIImage(contentsOfFile: globals.storageModel.importFolderPath() + "/root2/songs++index/thumb/" + thumb + ".jpg");
+                image = UIImage(contentsOfFile: Path(rp: thumb, r: .ThumbRoot, f: false).fullPath());
 //                if (globals.storageModel.thumbnailDownloaded(node)) {
-//                    if let path = globals.storageModel.thumbnailPath(node: node) {
+//                    if let path = 	thumbnailPath(node: node) {
 //                        image = UIImage(contentsOfFile: path);
 //                    }
 //                }
@@ -501,8 +729,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         NotificationCenter.default.addObserver(self, selector: #selector(mediaDidEnd), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil);
 
-        let dummySpinner = ProgressSpinner(uic: nil, title: "Resuming offline", message: "");
-        globals.loginState.goOffline(spinner: dummySpinner, onFinish: {b in });
+//        let dummySpinner = ProgressSpinner(uic: nil, title: "Resuming offline", message: "");
+//        globals.loginState.goOffline(spinner: dummySpinner, onFinish: {b in });
 
         return true
     }
@@ -560,10 +788,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
         globals.playQueue.saveQueueAndHistory(shuttingDown: true);
     }
-    
-   
-    var needsRestoreOnStartup = true;
-    
+      
     var nodeForBrowseFirstLoad : Path? = nil;
     
     var playQueueTVC : PlayQueueTVC? = nil;
@@ -581,7 +806,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // get back to on-start state
         globals.clear()
 
-        needsRestoreOnStartup = true;
         nodeForBrowseFirstLoad = nil;
         if playQueueTVC != nil { playQueueTVC!.clear(); }
         if browseMusicTVC != nil { browseMusicTVC!.clear(); }
@@ -609,26 +833,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //        else { swipedRightSet.append(node); }
 //    }
     
-    func nodePathBetween(_ a: MEGANode?, _ b: MEGANode) -> String
-    {
-        let textb = SongsPlusPlus.mega().nodePath(for: b) ?? "";
-        let texta = a == nil ? "": (SongsPlusPlus.mega().nodePath(for: a!) ?? "");
-        if (texta == textb)
-        {
-            return "/";
-        }
-        else if (textb.hasPrefix(texta))
-        {
-            if (texta == "/") { return textb; }
-            return String(textb.dropFirst(texta.count));
-        }
-        return textb;
-    }
-
-    func nodePath(_ node: MEGANode) -> String
-    {
-        return nodePathBetween(SongsPlusPlus.mega().rootNode, node);
-    }
+//    func nodePathBetween(_ a: MEGANode?, _ b: MEGANode) -> String
+//    {
+//        let textb = SongsPlusPlus.mega().nodePath(for: b) ?? "";
+//        let texta = a == nil ? "": (SongsPlusPlus.mega().nodePath(for: a!) ?? "");
+//        if (texta == textb)
+//        {
+//            return "/";
+//        }
+//        else if (textb.hasPrefix(texta))
+//        {
+//            if (texta == "/") { return textb; }
+//            return String(textb.dropFirst(texta.count));
+//        }
+//        return textb;
+//    }
+//
+//    func nodePath(_ node: MEGANode) -> String
+//    {
+//        return nodePathBetween(SongsPlusPlus.mega().rootNode, node);
+//    }
 
 
 }
@@ -654,45 +878,45 @@ func app() -> AppDelegate {
 }
 
 var accountFolderDoneAlready = false;
+//
+//func mega(using fileManager : FileManager = .default) -> MEGASdk {
+//    
+//    if (globals.mega == nil)
+//    {
+//        let path = globals.storageModel.accountPath() + "/";
+//        globals.mega = MEGASdk.init(appKey: "dWRWmTiJ", userAgent: "Songs++ " + deviceName(), basePath: path)!;
+////        globals.mega!.add(globals.storageModel.transferDelegate);
+////        globals.mega!.add(globals.storageModel.megaDelegate);
+//        globals.mega!.platformSetRLimitNumFile(50000);
+//    }
+//    return globals.mega!;
+//}
 
-func mega(using fileManager : FileManager = .default) -> MEGASdk {
-    
-    if (globals.mega == nil)
-    {
-        let path = globals.storageModel.accountPath() + "/";
-        globals.mega = MEGASdk.init(appKey: "dWRWmTiJ", userAgent: "Songs++ " + deviceName(), basePath: path)!;
-//        globals.mega!.add(globals.storageModel.transferDelegate);
-//        globals.mega!.add(globals.storageModel.megaDelegate);
-        globals.mega!.platformSetRLimitNumFile(50000);
-    }
-    return globals.mega!;
-}
-
-func megaGetLatestFileRevision(_ node : MEGANode?) -> MEGANode?
-{
-    // check if playlist is updated
-    // also check if it even still exists
-    var n = mega().node(forHandle: node!.handle);
-    while (n != nil) {
-        let p = mega().parentNode(for: n!);
-        if (p == nil)
-        {
-            n = nil;
-            break;
-        }
-        if p!.type != .file { break; }
-        n = p;
-    }
-    return n;
-}
-
-func megaGetContainingFolder(_ node : MEGANode?) -> MEGANode?
-{
-    var n = megaGetLatestFileRevision(node);
-    if (n != nil) { n = mega().parentNode(for: n!); }
-    if (n != nil && n!.type == .file) { n = nil; }
-    return n;
-}
+//func megaGetLatestFileRevision(_ node : MEGANode?) -> MEGANode?
+//{
+//    // check if playlist is updated
+//    // also check if it even still exists
+//    var n = mega().node(forHandle: node!.handle);
+//    while (n != nil) {
+//        let p = mega().parentNode(for: n!);
+//        if (p == nil)
+//        {
+//            n = nil;
+//            break;
+//        }
+//        if p!.type != .file { break; }
+//        n = p;
+//    }
+//    return n;
+//}
+//
+//func megaGetContainingFolder(_ node : MEGANode?) -> MEGANode?
+//{
+//    var n = megaGetLatestFileRevision(node);
+//    if (n != nil) { n = mega().parentNode(for: n!); }
+//    if (n != nil && n!.type == .file) { n = nil; }
+//    return n;
+//}
 
 func shuffleArray(_ a : inout [Path]) -> [Path]
 {
@@ -837,10 +1061,10 @@ func menuAction_addToPlaylistExact(playlistPath : Path, songToAdd: Path, viewCon
 //            if (uploadFolder == nil) { return; }
 
         do {
-            let json = try globals.storageModel.getPlaylistFileAsJSON(playlistPath, editedIfAvail: true);
+            let json = try getPlaylistFileAsJSON(playlistPath, editedIfAvail: true);
             
             var songs : [Path] = [];
-            globals.storageModel.loadSongsFromPlaylistRecursive(json: json, &songs, recurse: true, filterIntent: nil);
+            loadSongsFromPlaylistRecursive(json: json, &songs, recurse: true, filterIntent: nil);
             songs.append(songToAdd);
             
             let s = globals.playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: songs);
@@ -868,7 +1092,7 @@ func menuAction_addToPlaylistExact(playlistPath : Path, songToAdd: Path, viewCon
 
 func ExtractAndApplyTags(_ n : Path, overwriteExistingTags : Bool, countProcessed : inout Int, countNotDownloaded : inout Int, countNoTags : inout Int, countUpdated : inout Int) -> Bool
 {
-    if (!globals.playQueue.isPlayable(n, orMightContainPlayable: false))
+    if (!isPlayable(n, orMightContainPlayable: false))
     { return true; }
     
     let songPath = n; //globals.storageModel.songFingerprintPath(node: node);

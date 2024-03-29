@@ -561,6 +561,8 @@
 				HEADER_SEARCH_PATHS = (
 					/Users/matt/repos/sdk/bindings/ios,
 					"/Users/matt/repos/3rdParty_sdk_ios_arm64/vcpkg/installed/arm64-ios-mega/include",
+					/Users/matt/repos/sdk/include,
+					/Users/matt/repos/sdk/include/mega/posix,
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Songs++Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
@@ -598,6 +600,8 @@
 				HEADER_SEARCH_PATHS = (
 					/Users/matt/repos/sdk/bindings/ios,
 					"/Users/matt/repos/3rdParty_sdk_ios_arm64/vcpkg/installed/arm64-ios-mega/include",
+					/Users/matt/repos/sdk/include,
+					/Users/matt/repos/sdk/include/mega/posix,
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Songs++Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;

@@ -9,6 +9,8 @@
 import Foundation
 import UIKit
 
+
+
 class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
 
 //    @IBOutlet weak var loginButton : UIButton?
@@ -22,24 +24,63 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
         super.viewWillAppear(animated);
         setEnabled();
     }
-
-    var isImport = false;
-
-    @IBAction func onImportFromSharedFolder(_ sender: Any) {
-        isImport = true;
+    
+    
+    @IBAction func LoadFromNetworkFolder(_ sender: Any) {
         let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder]);
         picker.delegate = self;
         //picker.directoryURL = "/";
         present(picker, animated: true, completion: nil)
     }
     
+    @IBAction func SyncChangesWithNetworkFolder(_ sender: Any) {
+    }
+    
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL])
+    {
+        //for u in urls {
+        //    reportMessage(uic: self, message: u.absoluteString)
+        //}
+        
+        if (urls.count != 1) { return; }
+        let url = urls[0];
+        
+        guard url.startAccessingSecurityScopedResource() else { return };
+        defer { url.stopAccessingSecurityScopedResource() }
+            
+        do {
+            let fm = FileManager();
+            fm.delegate = self;
+            
+            var source = url.relativeString;
+            if (source.contains("file://"))
+            {
+                source.removeFirst(7);
+            }
+            
+            if (!SongsCPP.scanDoubleDirs(source, rhs: Path(rp: "", r: .SyncFolder, f: true).fullPath()))
+            {
+                reportMessage(uic: self, message: "Recursive copy failed");
+            }
+        }
+    }
+//    var isImport = false;
+
+    @IBAction func onImportFromSharedFolder(_ sender: Any) {
+//        isImport = true;
+//        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder]);
+//        picker.delegate = self;
+//        //picker.directoryURL = "/";
+//        present(picker, animated: true, completion: nil)
+    }
+    
     
     @IBAction func onExportMetadata(_ sender: Any) {
-        isImport = false;
-        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder]);
-        picker.delegate = self;
-        //picker.directoryURL = "/";
-        present(picker, animated: true, completion: nil)
+//        //isImport = false;
+//        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder]);
+//        picker.delegate = self;
+//        //picker.directoryURL = "/";
+//        present(picker, animated: true, completion: nil)
     }
     
     func createFolder(_ url : String) -> Void
@@ -58,172 +99,89 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
         }
     }
     
-    actor scanQueue  // actor = thread safe
-    {
-        var q : [(URL?, URL?)] = [];
-        
-        func push(_ a : URL?, _ b : URL?)
-        {
-            q.append((a, b));
-        }
-        
-        func pop() -> (URL?, URL?)?
-        {
-            if q.count == 0 { return nil; }
-            let (a, b) = q[q.count-1];
-            q.remove(at: q.count-1);
-            return (a,b)
-        }
-    }
+//    actor scanQueue  // actor = thread safe
+//    {
+//        var q : [(URL?, URL?)] = [];
+//        
+//        func push(_ a : URL?, _ b : URL?)
+//        {
+//            q.append((a, b));
+//        }
+//        
+//        func pop() -> (URL?, URL?)?
+//        {
+//            if q.count == 0 { return nil; }
+//            let (a, b) = q[q.count-1];
+//            q.remove(at: q.count-1);
+//            return (a,b)
+//        }
+//    }
+//    
+//    var sc = scanQueue();
     
-    var sc = scanQueue();
+ 
     
-    func ScanDoubleDirs(_ source : String, _ dest : String)
-    {
-        print("scanning folders  \(source) \(dest) ")
-        do
-        {
-            var sourceItems = try FileManager.default.contentsOfDirectory(atPath: source);
-            var destItems = try FileManager.default.contentsOfDirectory(atPath: dest);
-            try sourceItems.sort(by: {(a,b) throws -> Bool in a < b } )
-            try destItems.sort(by: {(a,b) throws -> Bool in a < b } )
-            
-            var i = 0;
-            var j = 0;
-            while true {
-                var ileaf = i < sourceItems.count ? sourceItems[i] : nil;
-                var jleaf = j < destItems.count ? destItems[j] : nil;
-                if (ileaf != nil && jleaf != nil) {
-                    if (ileaf! < jleaf!) { jleaf = nil; }
-                    else if (jleaf! < ileaf!) { ileaf = nil; }
-                }
-                if (ileaf == nil && jleaf == nil) { break; }
-                
-                let ii = source + "/" + (ileaf == nil ? jleaf! : ileaf!)
-                let jj = dest + "/" + (jleaf == nil ? ileaf! : jleaf!)
-                if (ileaf != nil && jleaf != nil) {
-
-                    i += 1;
-                    j += 1;
-                    var resultStorage: ObjCBool = false;
-                    FileManager.default.fileExists(atPath: ii, isDirectory: &resultStorage)
-                    if (resultStorage.boolValue)
-                    {
-                        ScanDoubleDirs(ii, jj)
-                    }
-                    else {
-                        //print("skipping pre-existing  \(ii) \(jj) ")
-                        if (ileaf == "songs++index.json")
-                        {
-                            print("copying  \(ii) \(jj) ")
-                            try FileManager.default.removeItem(atPath: jj)
-                            try FileManager.default.copyItem(atPath: ii, toPath: jj)
-                        }
-                    }
-                    continue;
-                }
-                else if (ileaf != nil) {
-                    i += 1;
-                    
-                    var resultStorage: ObjCBool = false;
-                    FileManager.default.fileExists(atPath: ii, isDirectory: &resultStorage)
-                    if (resultStorage.boolValue)
-                    {
-                        print("creating dest folder  \(jj) ")
-                        try FileManager.default.createDirectory(atPath: jj, withIntermediateDirectories: false)
-                        ScanDoubleDirs(ii, jj)
-                    }
-                    else
-                    {
-                        print("copying  \(ii) \(jj) ")
-                        try FileManager.default.copyItem(atPath: ii, toPath: jj)
-                    }
-                }
-                else if (jleaf != nil) {
-                    j += 1;
-                    //let leaf = jj!.lastPathComponent;
-                    //ii = URL(fileURLWithPath: dest + "/" + leaf, isDirectory: jj!.hasDirectoryPath);
-                }
-                else {
-                    break;
-                }
-                //await sc.push(ii, jj)
-            }
-            
-            
-        }
-        catch
-        {
-            print("scan failed at \(source) \(dest) due to \(error)")
-        }
-    }
-    
-    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL])
-    {
-        //for u in urls {
-        //    reportMessage(uic: self, message: u.absoluteString)
-        //}
-        
-        if (urls.count != 1) { return; }
-        let url = urls[0];
-        
-        if isImport {
-            let importFolder = globals.storageModel.importFolderPath();
-            
-            guard url.startAccessingSecurityScopedResource() else { return };
-            defer { url.stopAccessingSecurityScopedResource() }
-            
-            do {
-                let fm = FileManager();
-                fm.delegate = self;
-                
-                var source = url.relativeString;
-                if (source.contains("file://"))
-                {
-                    source.removeFirst(7);
-                }
-                
-                ScanDoubleDirs(source, importFolder + "/root2");
-                
-                
-                //try fm.copyItem(at: url,
-                //                to: URL(fileURLWithPath: importFolder + "/root2", isDirectory: true));
-            }
-//            catch
-//            {
-//                reportMessage(uic: self, message: "copy failed: \(error)")
+//    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL])
+//    {
+//        //for u in urls {
+//        //    reportMessage(uic: self, message: u.absoluteString)
+//        //}
+//        
+//        if (urls.count != 1) { return; }
+//        let url = urls[0];
+//        
+//        if isImport {
+//            guard url.startAccessingSecurityScopedResource() else { return };
+//            defer { url.stopAccessingSecurityScopedResource() }
+//            
+//            do {
+//                let fm = FileManager();
+//                fm.delegate = self;
+//                
+//                var source = url.relativeString;
+//                if (source.contains("file://"))
+//                {
+//                    source.removeFirst(7);
+//                }
+//                
+//                ScanDoubleDirs(source, Path(rp: "", r: .SyncFolder, f: true).fullPath());
+//
 //            }
-        }
-        else
-        {
-            let exportFolder = globals.storageModel.cacheFilesPath() + "/export";
-            
-            deleteOldExportFolder(exportFolder);
-            createFolder(exportFolder);
-            createFolder(exportFolder + "/thumb");
-            createFolder(exportFolder + "/playlist");
-            
-            exportNodeAttribs(globals.musicBrowseFolder!, exportFolder);
-            //exportPlaylists(globals.playlistBrowseFolder!, exportFolder + "/playlist")
-            
-            outputJsonAttrs(exportFolder)
-            
-            guard url.startAccessingSecurityScopedResource() else { return };
-            defer { url.stopAccessingSecurityScopedResource() }
-            
-            do {
-                let fm = FileManager();
-                fm.delegate = self;
-                
-                try fm.copyItem(at: URL(fileURLWithPath: exportFolder, isDirectory: true),
-                                                 to: url.appendingPathComponent("songs++index", isDirectory: true));
-            }
-            catch
-            {
-                reportMessage(uic: self, message: "copy failed: \(error)")
-            }
-        }
-    }
+////            catch
+////            {
+////                reportMessage(uic: self, message: "copy failed: \(error)")
+////            }
+//        }
+//        else
+//        {
+////            let exportFolder = globals.storageModel.cacheFilesPath() + "/export";
+////            
+////            deleteOldExportFolder(exportFolder);
+////            createFolder(exportFolder);
+////            createFolder(exportFolder + "/thumb");
+////            createFolder(exportFolder + "/playlist");
+////            
+////  //          exportNodeAttribs(globals.musicBrowseFolder!, exportFolder);
+////            //exportPlaylists(globals.playlistBrowseFolder!, exportFolder + "/playlist")
+////            
+////            outputJsonAttrs(exportFolder)
+////            
+////            guard url.startAccessingSecurityScopedResource() else { return };
+////            defer { url.stopAccessingSecurityScopedResource() }
+////            
+////            do {
+////                let fm = FileManager();
+////                fm.delegate = self;
+////                
+////                try fm.copyItem(at: URL(fileURLWithPath: exportFolder, isDirectory: true),
+////                                                 to: url.appendingPathComponent("songs++index", isDirectory: true));
+////            }
+////            catch
+////            {
+////                reportMessage(uic: self, message: "copy failed: \(error)")
+////            }
+//        }
+//    }
     
     func fileManager(_ fileManager: FileManager, shouldCopyItemAtPath srcPath: String, toPath dstPath: String) -> Bool {
         let exists = fileManager.fileExists(atPath: dstPath);
@@ -243,37 +201,37 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
         }
     }
     	
-    func exportNodeAttribs(_ n : MEGANode, _ exportFolder : String)
-    {
-        if (n.isFolder())
-        {
-            let children = mega().children(forParent: n)
-            for i in 0..<children.size.intValue {
-                exportNodeAttribs(children.node(at: i), exportFolder)
-            }
-        }
-        else
-        {
-            exportAttribs(n, exportFolder)
-        }
-    }
-    
-    func exportPlaylists(_ n : MEGANode, _ exportFolder : String)
-    {
-        let children = mega().children(forParent: n)
-        for i in 0..<children.size.intValue {
-            let nn = children.node(at: i)!;
-            if (nn.isFolder())
-            {
-                createFolder(exportFolder + "/" + nn.name!);
-                exportPlaylists(nn, exportFolder + "/" + nn.name!)
-            }
-            else
-            {
-                exportPlaylist(nn, exportFolder)
-            }
-        }
-    }
+//    func exportNodeAttribs(_ n : MEGANode, _ exportFolder : String)
+//    {
+//        if (n.isFolder())
+//        {
+//            let children = mega().children(forParent: n)
+//            for i in 0..<children.size.intValue {
+//                exportNodeAttribs(children.node(at: i), exportFolder)
+//            }
+//        }
+//        else
+//        {
+//            exportAttribs(n, exportFolder)
+//        }
+//    }
+//    
+//    func exportPlaylists(_ n : MEGANode, _ exportFolder : String)
+//    {
+//        let children = mega().children(forParent: n)
+//        for i in 0..<children.size.intValue {
+//            let nn = children.node(at: i)!;
+//            if (nn.isFolder())
+//            {
+//                createFolder(exportFolder + "/" + nn.name!);
+//                exportPlaylists(nn, exportFolder + "/" + nn.name!)
+//            }
+//            else
+//            {
+//                exportPlaylist(nn, exportFolder)
+//            }
+//        }
+//    }
     
     func exportPlaylist(_ n : MEGANode, _ exportFolder : String)
     {
@@ -325,59 +283,59 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
     var jsonAttrs : [[String: String]] = [];
     var thumbsDone : Set<String> = [];
     
-    func exportAttribs(_ n : MEGANode, _ exportFolder : String)
-    {
-        
-        var jn : [String: String] = [:];
-        jn["mega_h"] = n.base64Handle;
-        jn["npath"] = app().nodePath(n);
-        
-        var title : String? = n.customTitle;
-        if (title == nil) { title = n.name; }
-        jn["title"] = title!;
-        
-        var bpm : String? = n.customBPM;
-        if (bpm == nil) { bpm = ""; }
-        jn["bpm"] = bpm!;
-        
-        var artist : String? = n.customArtist;
-        if (artist == nil) { artist = "" }
-        jn["artist"] = artist!;
-        
-        let notes : String? = n.customNotes;
-        if (notes != nil) {
-            jn["notes"] = notes!;
-        }
+//    func exportAttribs(_ n : MEGANode, _ exportFolder : String)
+//    {
 //        
-//        if (globals.playQueue.isPlayable(n, orMightContainPlayable: false)) {
-//            jn["durat"] = String(format: "%02d:%02d", n.duration / 60, n.duration % 60)
+//        var jn : [String: String] = [:];
+//        jn["mega_h"] = n.base64Handle;
+//        jn["npath"] = app().nodePath(n);
+//        
+//        var title : String? = n.customTitle;
+//        if (title == nil) { title = n.name; }
+//        jn["title"] = title!;
+//        
+//        var bpm : String? = n.customBPM;
+//        if (bpm == nil) { bpm = ""; }
+//        jn["bpm"] = bpm!;
+//        
+//        var artist : String? = n.customArtist;
+//        if (artist == nil) { artist = "" }
+//        jn["artist"] = artist!;
+//        
+//        let notes : String? = n.customNotes;
+//        if (notes != nil) {
+//            jn["notes"] = notes!;
 //        }
+////        
+////        if (globals.playQueue.isPlayable(n, orMightContainPlayable: false)) {
+////            jn["durat"] = String(format: "%02d:%02d", n.duration / 60, n.duration % 60)
+////        }
+////        
+////        if (globals.storageModel.thumbnailDownloaded(n)) {
+////            if let path = globals.storageModel.thumbnailPath(node: n) {
+////                
+////                if let thumbFingerprint = globals.mega?.fingerprint(forFilePath: path, modificationTime: Date(timeIntervalSince1970: 0)) {
+////                    jn["thumb"] = thumbFingerprint;
+////                    if !thumbsDone.contains(thumbFingerprint) {
+////                        thumbsDone.insert(thumbFingerprint)
+////                        do {
+////                            //try FileManager.default.copyItem(atPath: path, toPath: exportFolder + "/thumb/" + thumbFingerprint + ".jpg");
+////                        }
+////                        catch {
+////                        }
+////                    }
+////                }
+////            }
+////        }
 //        
-//        if (globals.storageModel.thumbnailDownloaded(n)) {
-//            if let path = globals.storageModel.thumbnailPath(node: n) {
-//                
-//                if let thumbFingerprint = globals.mega?.fingerprint(forFilePath: path, modificationTime: Date(timeIntervalSince1970: 0)) {
-//                    jn["thumb"] = thumbFingerprint;
-//                    if !thumbsDone.contains(thumbFingerprint) {
-//                        thumbsDone.insert(thumbFingerprint)
-//                        do {
-//                            //try FileManager.default.copyItem(atPath: path, toPath: exportFolder + "/thumb/" + thumbFingerprint + ".jpg");
-//                        }
-//                        catch {
-//                        }
-//                    }
-//                }
+//        if let filename = globals.storageModel.songFingerprintPath(node: n) {
+//            if let sparseFingerprint = globals.mega?.fingerprint(forFilePath: filename, modificationTime: Date(timeIntervalSince1970: 0)) {
+//                jn["sparse_fp"] = sparseFingerprint;
 //            }
 //        }
-        
-        if let filename = globals.storageModel.songFingerprintPath(node: n) {
-            if let sparseFingerprint = globals.mega?.fingerprint(forFilePath: filename, modificationTime: Date(timeIntervalSince1970: 0)) {
-                jn["sparse_fp"] = sparseFingerprint;
-            }
-        }
-        
-        jsonAttrs.append(jn);
-    }
+//        
+//        jsonAttrs.append(jn);
+//    }
     
     func outputJsonAttrs(_ exportFolder : String)
     {

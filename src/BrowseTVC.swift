@@ -429,7 +429,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         var v : [Path] = [];
         do {
             for n in nodeArray {
-                try globals.storageModel.loadSongsFromPathRecursive(n: n, &v, recurse: true, filterIntent: nil);
+                try loadSongsFromPathRecursive(n: n, &v, recurse: true, filterIntent: nil);
             }
         }
         catch {
@@ -444,7 +444,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         do
         {
             for n in nodeArray {
-                try globals.storageModel.loadSongsFromPathRecursive(n: n, &v, recurse: true, filterIntent: nil);
+                try loadSongsFromPathRecursive(n: n, &v, recurse: true, filterIntent: nil);
             }
         }
         catch {
@@ -481,7 +481,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     func AddFilteredNodes(parent : Path) throws
     {
-        var leafs = try parent.contentsOfDirectory();
+        let leafs = try parent.contentsOfDirectory();
         for l in leafs
         {
             if (filtering && l.isFolder)
@@ -782,21 +782,22 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             
             let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
             
-            if globals.playQueue.isPlayable(node, orMightContainPlayable: true) {
+            if isPlayable(node, orMightContainPlayable: true) {
                 alert.addAction(menuAction_playNext(node, uic: self));
                 alert.addAction(menuAction_playLast(node, uic: self));
             }
-            if globals.playQueue.isPlayable(node, orMightContainPlayable: false) {
+            if isPlayable(node, orMightContainPlayable: false) {
                 alert.addAction(menuAction_songInfo(node, viewController: self));
             }
-            if globals.playQueue.isArtwork(node) {
+            if isArtwork(node) {
                 alert.addAction(UIAlertAction(title: "Set as artwork for songs in this folder", style: .default, handler:
                       { (UIAlertAction) -> () in self.setArtworkForSongsInFolder(node); }));
             }
             if (filtering) {
                 alert.addAction(menuAction_songBrowseTo(node, viewController: self));
             }
-            if (globals.playlistBrowseFolder != nil && globals.playQueue.isPlayable(node, orMightContainPlayable: false)) {
+            if (//globals.playlistBrowseFolder != nil && 
+                isPlayable(node, orMightContainPlayable: false)) {
                 alert.addAction(menuAction_addToPlaylistInFolder_recents(node, viewController: self));
             }
             alert.addAction(UIAlertAction(title: "Never mind", style: .cancel));
@@ -828,7 +829,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
 //                let list = mega().children(forParent: parent, order: 1);
 //                for i in 0..<list.size.intValue {
 //                    if let n = list.node(at: i) {
-//                        if (globals.playQueue.isPlayable(n, orMightContainPlayable: false))
+//                        if (isPlayable(n, orMightContainPlayable: false))
 //                        {
 //                            mega().setThumbnailNode(n, sourceFilePath: thumbnailFile, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
 //                                globals.storageModel.megaDelegate.onThumbnailUpdate(node: node)

@@ -1543,7 +1543,7 @@
                                         <rect key="frame" x="10" y="10" width="430" height="360"/>
                                         <subviews>
                                             <button opaque="NO" tag="99" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wRn-O1-P0l">
-                                                <rect key="frame" x="0.0" y="0.0" width="430" height="171.33333333333334"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="430" height="82.333333333333329"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                 <state key="normal" title="About"/>
                                                 <connections>
@@ -1551,7 +1551,7 @@
                                                 </connections>
                                             </button>
                                             <button opaque="NO" tag="98" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Pzo-Og-v7H">
-                                                <rect key="frame" x="0.0" y="171.33333333333331" width="430" height="30"/>
+                                                <rect key="frame" x="0.0" y="82.333333333333343" width="430" height="30"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                 <state key="normal" title="Version History"/>
                                                 <connections>
@@ -1559,7 +1559,7 @@
                                                 </connections>
                                             </button>
                                             <button opaque="NO" tag="97" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="RBK-S4-lLN">
-                                                <rect key="frame" x="0.0" y="201.33333333333331" width="430" height="30"/>
+                                                <rect key="frame" x="0.0" y="112.33333333333334" width="430" height="30"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                 <state key="normal" title="How the App works"/>
                                                 <connections>
@@ -1567,7 +1567,7 @@
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2X6-ym-ho0">
-                                                <rect key="frame" x="0.0" y="231.33333333333331" width="430" height="30"/>
+                                                <rect key="frame" x="0.0" y="142.33333333333334" width="430" height="30"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                 <state key="normal" title="Clear File Cache..."/>
                                                 <connections>
@@ -1575,7 +1575,7 @@
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MB5-xC-qmh">
-                                                <rect key="frame" x="0.0" y="261.33333333333331" width="430" height="30"/>
+                                                <rect key="frame" x="0.0" y="172.33333333333331" width="430" height="30"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                 <state key="normal" title="Acknowledgements"/>
                                                 <connections>
@@ -1583,7 +1583,7 @@
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VUG-e4-UzH">
-                                                <rect key="frame" x="0.0" y="291.33333333333331" width="430" height="34.333333333333314"/>
+                                                <rect key="frame" x="0.0" y="202.33333333333331" width="430" height="34.333333333333343"/>
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="plain" title="Export Metadata"/>
                                                 <connections>
@@ -1591,13 +1591,35 @@
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="pIS-ad-pDJ">
-                                                <rect key="frame" x="0.0" y="325.66666666666669" width="430" height="34.333333333333314"/>
+                                                <rect key="frame" x="0.0" y="236.66666666666669" width="430" height="34.333333333333314"/>
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="plain" title="Import from Shared Folder"/>
                                                 <connections>
                                                     <action selector="onImportFromSharedFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="zg3-BA-sZO"/>
                                                 </connections>
                                             </button>
+                                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uS7-mG-qPC">
+                                                <rect key="frame" x="0.0" y="271" width="430" height="34.333333333333314"/>
+                                                <state key="normal" title="Button"/>
+                                                <buttonConfiguration key="configuration" style="plain" title="Load from Network Folder"/>
+                                                <connections>
+                                                    <action selector="LoadFromNetworkFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="kvk-0F-QRz"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Pzl-YB-6ih">
+                                                <rect key="frame" x="0.0" y="305.33333333333331" width="430" height="34.333333333333314"/>
+                                                <state key="normal" title="Button"/>
+                                                <buttonConfiguration key="configuration" style="plain" title="Sync changes with Network Folder"/>
+                                                <connections>
+                                                    <action selector="SyncChangesWithNetworkFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="Sgr-35-yaF"/>
+                                                </connections>
+                                            </button>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="~ - ~ - ~ - ~ - ~ - ~ - ~" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oIY-nW-Ldz">
+                                                <rect key="frame" x="0.0" y="339.66666666666669" width="430" height="20.333333333333314"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
                                         </subviews>
                                     </stackView>
                                 </subviews>

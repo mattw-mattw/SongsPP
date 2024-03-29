@@ -35,15 +35,15 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
         return false; // don't do control default, we've processed it
     }
     
-    func goOnline()
-    {
-        let spinner = ProgressSpinner(uic: self, title: "Going Online", message: "");
-
-        globals.loginState.goOnline(spinner: spinner,
-            onFinish: { (success) in
-                spinner.dismissOrReportError(success: success)
-        })
-    }
+//    func goOnline()
+//    {
+//        let spinner = ProgressSpinner(uic: self, title: "Going Online", message: "");
+//
+//        globals.loginState.goOnline(spinner: spinner,
+//            onFinish: { (success) in
+//                spinner.dismissOrReportError(success: success)
+//        })
+//    }
     
     var saveAllSpinner : ProgressSpinner? = nil;
 
@@ -83,8 +83,8 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
     
     @IBAction func SaveAllHit(_ sender: Any) {
         if node == nil { return; }
-        if !globals.loginState.online { goOnline(); }
-        if !globals.loginState.online { return; }
+  //      if !globals.loginState.online { goOnline(); }
+  //      if !globals.loginState.online { return; }
         
         saveAllSpinner = ProgressSpinner(uic: self, title: "Saving song data", message: "");
 

@@ -9,42 +9,42 @@
 import Foundation
 import MediaPlayer
 
-class BrowseNode /*: ObservableObject*/ {
-    /*@Published*/ var node : MEGANode? = nil;
-    /*@Published*/ var subnodes : [ MEGANode ] = [];
-    /*@Published*/ var path : String = "";
-    var root : MEGANode? = nil;
-
-    func load(_ n : MEGANode?)
-    {
-        var newPath : String = ""
-        var array : [MEGANode] = []
-        if (n != nil)
-        {
-            if (n!.isFile()) { return; }
-            let children = mega().children(forParent: n!)
-            for i in 0..<children.size.intValue {
-                array.append(children.node(at: i))
-            }
-            newPath = app().nodePath(n!)
-        }
-        node = n;
-        subnodes = array;
-        path = newPath;
-    }
-    
-    func loadParent()
-    {
-        if (node != nil && node != root)
-        {
-            let n = mega().parentNode(for: node!)
-            if (n != nil)
-            {
-                load(n)
-            }
-        }
-    }
-}
+//class BrowseNode /*: ObservableObject*/ {
+//    /*@Published*/ var node : MEGANode? = nil;
+//    /*@Published*/ var subnodes : [ MEGANode ] = [];
+//    /*@Published*/ var path : String = "";
+//    var root : MEGANode? = nil;
+//
+//    func load(_ n : MEGANode?)
+//    {
+//        var newPath : String = ""
+//        var array : [MEGANode] = []
+//        if (n != nil)
+//        {
+//            if (n!.isFile()) { return; }
+//            let children = mega().children(forParent: n!)
+//            for i in 0..<children.size.intValue {
+//                array.append(children.node(at: i))
+//            }
+//            newPath = app().nodePath(n!)
+//        }
+//        node = n;
+//        subnodes = array;
+//        path = newPath;
+//    }
+//    
+//    func loadParent()
+//    {
+//        if (node != nil && node != root)
+//        {
+//            let n = mega().parentNode(for: node!)
+//            if (n != nil)
+//            {
+//                load(n)
+//            }
+//        }
+//    }
+//}
 
 class PlayQueue : NSObject, UITextFieldDelegate {
 
@@ -144,7 +144,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
             if isPlayable(n, orMightContainPlayable: true) {
                 var v : [Path] = [];
                 do {
-                    try globals.storageModel.loadSongsFromPathRecursive(n: n, &v, recurse: true, filterIntent: nil);
+                    try loadSongsFromPathRecursive(n: n, &v, recurse: true, filterIntent: nil);
                 } catch {
                 }
                 playableNodes.append(contentsOf: v);
@@ -315,37 +315,6 @@ class PlayQueue : NSObject, UITextFieldDelegate {
 //        }
 //        nextSongs.remove(at: row);
 //    }
-    
-    let playableExtensions = [ ".mp3", ".m4a", ".aac", ".wav", ".flac", ".aiff", ".au", ".pcm", ".ac3", ".aa", ".aax"];
-    let artworkExtensions = [ ".jpg", ".jpeg", ".png", ".bmp"];
-    
-    func isPlayable(_ n : Path, orMightContainPlayable : Bool) -> Bool
-    {
-        //if (n.name == nil) { return false; }
-        if orMightContainPlayable {
-            if //(n.isFile() &&
-                n.relativePath.hasSuffix(".playlist") { return true; }
-            //if (n.isFolder()) { return true; }
-        }
-        //if (n.isFile()) {
-            let name = n.relativePath.lowercased();
-            for ext in playableExtensions {
-                if name.hasSuffix(ext) { return true; }
-            }
-        //}
-        return false;
-    }
-
-    func isArtwork(_ n : Path) -> Bool
-    {
-        if (!n.isFolder) {
-            let name = leafName(n).lowercased()
-            for ext in artworkExtensions {
-                if name.hasSuffix(ext) { return true; }
-            }
-        }
-        return false;
-    }
 
 //    func expandAll()
 //    {
@@ -674,13 +643,13 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         onNextSongsEdited(reloadView: true, triggerPlay: true, canReplacePlayerSong: replaceable);
     }
 
-    func itemToJSON(_ n : MEGANode) -> [String: String]
-    {
-        var jn : [String: String] = [:];
-        jn["h"] = n.base64Handle;
-        jn["lkpath"] = app().nodePath(n);
-        return jn;
-    }
+//    func itemToJSON(_ n : MEGANode) -> [String: String]
+//    {
+//        var jn : [String: String] = [:];
+//        jn["h"] = n.base64Handle;
+//        jn["lkpath"] = app().nodePath(n);
+//        return jn;
+//    }
     
     func nodeHandleArrayToJSON(optionalExtraFirstNode : Path?, array : [Path] ) -> String
     {
@@ -729,15 +698,15 @@ class PlayQueue : NSObject, UITextFieldDelegate {
     
     func saveAsPlaylist(uic : UIViewController)
     {
-        if globals.playlistBrowseFolder == nil {
-            reportMessage(uic: uic, message: "Please choose the playlist folder first. (Navigate to it and use the Option menu)");
-            return;
-        }
-        if (!globals.loginState.online)
-        {
-            reportMessage(uic: uic, message: "Please go online to upload the playlist.");
-            return;
-        }
+//        if globals.playlistBrowseFolder == nil {
+//            reportMessage(uic: uic, message: "Please choose the playlist folder first. (Navigate to it and use the Option menu)");
+//            return;
+//        }
+//        if (!globals.loginState.online)
+//        {
+//            reportMessage(uic: uic, message: "Please go online to upload the playlist.");
+//            return;
+//        }
 
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyyMMdd-HHmmss"
@@ -784,8 +753,8 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         let s1 = nodeHandleArrayToJSON(optionalExtraFirstNode: noHistoryMode || playerSongIsEphemeral() ? nil : nodeInPlayer, array: nextSongs);
         let s2 = nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: playedSongs);
         do {
-            try s1.write(toFile: globals.storageModel.settingsPath() + "/nextSongs", atomically: true, encoding: String.Encoding.utf8);
-            try s2.write(toFile: globals.storageModel.settingsPath() + "/playedSongs", atomically: true, encoding: String.Encoding.utf8);
+            try s1.write(toFile: Path(rp: "nextSongs", r: .Settings, f: false).fullPath(), atomically: true, encoding: String.Encoding.utf8);
+            try s2.write(toFile: Path(rp: "playedSongs", r: .Settings, f: false).fullPath(), atomically: true, encoding: String.Encoding.utf8);
         }
         catch {
         }
@@ -793,13 +762,13 @@ class PlayQueue : NSObject, UITextFieldDelegate {
 
     func restoreOnStartup()
     {
-        if let json1 = globals.storageModel.loadFileAsJSON(filename: globals.storageModel.settingsPath() + "/nextSongs") {
+        if let json1 = loadFileAsJSON(filename: Path(rp: "nextSongs", r: .Settings, f: false).fullPath()) {
             nextSongs = [];
-            globals.storageModel.loadSongsFromPlaylistRecursive(json: json1, &nextSongs, recurse: true, filterIntent: nil);
+            loadSongsFromPlaylistRecursive(json: json1, &nextSongs, recurse: true, filterIntent: nil);
         }
-        if let json2 = globals.storageModel.loadFileAsJSON(filename: globals.storageModel.settingsPath() + "/playedSongs") {
+        if let json2 = loadFileAsJSON(filename: Path(rp: "playedSongs", r: .Settings, f: false).fullPath()) {
             playedSongs = [];
-            globals.storageModel.loadSongsFromPlaylistRecursive(json: json2, &playedSongs, recurse: true, filterIntent: nil);
+            loadSongsFromPlaylistRecursive(json: json2, &playedSongs, recurse: true, filterIntent: nil);
         }
     }
 

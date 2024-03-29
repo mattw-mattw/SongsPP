@@ -42,32 +42,32 @@ import Intents
 //    }
 //}
 
-func replaceNodeIn(_ n : MEGANode, _ v : inout [MEGANode]) -> Bool
-{
-    var result : Bool = false;
-    for i in v.indices {
-        if v[i].handle == n.handle
-            // attempt to handle file versions but not quite right
-            //|| (n.type == .file && v[i].type == .file && n.parentHandle == v[i].handle)
-        {
-            v[i] = n;
-            result = true;
-        }
-    }
-    return result;
-}
-
-func isThumbnailInNodeVec(_ thumbHandle : String, _ v : [MEGANode]) -> Bool
-{
-    for i in v.indices {
-        if let th = v[i].thumbnailAttributeHandle {
-            if (th == thumbHandle) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
+//func replaceNodeIn(_ n : MEGANode, _ v : inout [MEGANode]) -> Bool
+//{
+//    var result : Bool = false;
+//    for i in v.indices {
+//        if v[i].handle == n.handle
+//            // attempt to handle file versions but not quite right
+//            //|| (n.type == .file && v[i].type == .file && n.parentHandle == v[i].handle)
+//        {
+//            v[i] = n;
+//            result = true;
+//        }
+//    }
+//    return result;
+//}
+//
+//func isThumbnailInNodeVec(_ thumbHandle : String, _ v : [MEGANode]) -> Bool
+//{
+//    for i in v.indices {
+//        if let th = v[i].thumbnailAttributeHandle {
+//            if (th == thumbHandle) {
+//                return true;
+//            }
+//        }
+//    }
+//    return false;
+//}
 
 //class MEGAHandler: NSObject, MEGADelegate {
 //
@@ -130,7 +130,6 @@ class StorageModel {
     //var transferDelegate = TransferHandler();
     //var megaDelegate = MEGAHandler();
     
-    var alreadyCreatedFolders : Set<String> = [];
 
     func clear()
     {
@@ -142,16 +141,14 @@ class StorageModel {
 //
 //        downloadingThumbnail = [];
 //        downloadedThumbnail = [];
-
-        alreadyCreatedFolders = [];
     }
     
     func load()
     {
         //_ exportFolder : String
-        let attrsFile = importFolderPath() + "/root2/songs++index/songs++index.json";
+        let attrsFile = Path(rp: "", r: .IndexFile, f: false);
         
-        let attrsJson = loadFileAsJSON(filename: attrsFile)
+        let attrsJson = loadFileAsJSON(filename: attrsFile.fullPath())
         
         if let array = attrsJson as? [Any] {
             for object in array {
@@ -168,20 +165,20 @@ class StorageModel {
         }
     }
     
-    func attrs_of_node(mega_node : MEGANode) -> [String : String]?
-    {
-        var p : String = app().nodePath(mega_node);
-        if (p.hasPrefix("/music/music/"))
-        {
-            p = String(p.suffix(from: p.index(p.startIndex, offsetBy: 13)))
-        }
-        var result = index[p];
-        if result != nil && result!["title"] == nil {
-            result!["title"] = URL(fileURLWithPath: p).lastPathComponent;
-        }
-        return result;
-    }
-    
+//    func attrs_of_node(mega_node : MEGANode) -> [String : String]?
+//    {
+//        var p : String = app().nodePath(mega_node);
+//        if (p.hasPrefix("/music/music/"))
+//        {
+//            p = String(p.suffix(from: p.index(p.startIndex, offsetBy: 13)))
+//        }
+//        var result = index[p];
+//        if result != nil && result!["title"] == nil {
+//            result!["title"] = URL(fileURLWithPath: p).lastPathComponent;
+//        }
+//        return result;
+//    }
+//    
     func lookupSong(_ n: Path) -> [String : String]?
     {
         assert(n.rt == Path.RootType.MusicRoot);
@@ -193,35 +190,35 @@ class StorageModel {
         return result;
     }
     
-    func deleteCachedFiles(includingAccountAndSettings : Bool) -> Bool
-    {
-        clear();
-        
-        var result : Bool = true;
-        do
-        {
-            if (includingAccountAndSettings)
-            {
-                try FileManager.default.removeItem(at: URL(fileURLWithPath: storageBasePath()));
-            }
-            else
-            {
-                try FileManager.default.removeItem(at: URL(fileURLWithPath: cacheFilesPath()));
-            }
-            try FileManager.default.removeItem(at: URL(fileURLWithPath: tempFilesPath()));
-        }
-        catch {
-            result = false;
-        }
-        
-        // recreate those folders again (now empty) so we don't have issues with the next login etc.
-        globals.storageModel.alreadyCreatedFolders = [];
-        _ = accountPath();
-        _ =  cacheFilesPath();
-        _ = tempFilesPath();
-        
-        return result;
-    }
+//    func deleteCachedFiles(includingAccountAndSettings : Bool) -> Bool
+//    {
+//        clear();
+//        
+//        var result : Bool = true;
+//        do
+//        {
+//            if (includingAccountAndSettings)
+//            {
+//                try FileManager.default.removeItem(at: URL(fileURLWithPath: storageBasePath()));
+//            }
+//            else
+//            {
+//                try FileManager.default.removeItem(at: URL(fileURLWithPath: cacheFilesPath()));
+//            }
+//            try FileManager.default.removeItem(at: URL(fileURLWithPath: tempFilesPath()));
+//        }
+//        catch {
+//            result = false;
+//        }
+//        
+//        // recreate those folders again (now empty) so we don't have issues with the next login etc.
+//        globals.storageModel.alreadyCreatedFolders = [];
+//        _ = accountPath();
+//        _ =  cacheFilesPath();
+//        _ = tempFilesPath();
+//        
+//        return result;
+//    }
 
 //    func fileDownloadedByFP(_ node: MEGANode) -> Bool
 //    {
@@ -285,88 +282,62 @@ class StorageModel {
 //        return s;
 //    }
     
-    func getOldPlaylistsFolder() -> MEGANode?
-    {
-        var node : MEGANode? = nil;
-        if (globals.playlistBrowseFolder != nil)
-        {
-            node = mega().node(forPath: "old-playlist-versions", node: globals.playlistBrowseFolder!);
-            if (node == nil && globals.loginState.online)
-            {
-                mega().createFolder(withName: "old-playlist-versions", parent: globals.playlistBrowseFolder!)
-            }
-        }
-        return node;
-    }
+//    func getOldPlaylistsFolder() -> MEGANode?
+//    {
+//        var node : MEGANode? = nil;
+//        if (globals.playlistBrowseFolder != nil)
+//        {
+//            node = mega().node(forPath: "old-playlist-versions", node: globals.playlistBrowseFolder!);
+//            if (node == nil && globals.loginState.online)
+//            {
+//                mega().createFolder(withName: "old-playlist-versions", parent: globals.playlistBrowseFolder!)
+//            }
+//        }
+//        return node;
+//    }
 
-    func songFingerprintPath(node: MEGANode) -> String?
-    {
-        if node.type != .file {
-            print ("attempted fingerprint path for a non-file: " + (node.name ?? "<nil>"))
-            return nil;
-        }
-        if (node.fingerprint == nil) {
-            print ("fingerprint was nil for: " + (node.name ?? "<nil>"))
-            return nil;
-        }
-        
-        if (node.name == nil) { return nil }
-        
-        let u = URL(fileURLWithPath: node.name!);
-        let pathExtension = u.pathExtension;
+//    func songFingerprintPath(node: MEGANode) -> String?
+//    {
+//        if node.type != .file {
+//            print ("attempted fingerprint path for a non-file: " + (node.name ?? "<nil>"))
+//            return nil;
+//        }
+//        if (node.fingerprint == nil) {
+//            print ("fingerprint was nil for: " + (node.name ?? "<nil>"))
+//            return nil;
+//        }
+//        
+//        if (node.name == nil) { return nil }
+//        
+//        let u = URL(fileURLWithPath: node.name!);
+//        let pathExtension = u.pathExtension;
+//
+//        return songsFolderPath() + "/" + node.fingerprint! + "." + pathExtension;
+//    }
+    
+//    func thumbnailPath(node: MEGANode) -> String?
+//    {
+//        if node.type != .file {
+//            print ("attempted fingerprint path for a non-file: " + (node.name ?? "<nil>"))
+//            return nil;
+//        }
+//        if (node.fingerprint == nil) {
+//            print ("fingerprint was nil for: " + (node.name ?? "<nil>"))
+//            return nil;
+//        }
+//        
+//        if let b64 = node.thumbnailAttributeHandle {
+//            return thumbnailsFolderPath() + "/" + b64 + ".jpg";
+//        }
+//        return nil;
+//    }
+    
+//    func getDownloadedSongURL(_ node: MEGANode) -> URL?
+//    {
+//        guard let filename = songFingerprintPath(node: node) else { return nil }
+//        return FileManager.default.fileExists(atPath: filename) ? URL(fileURLWithPath: filename) : nil;
+//    }
 
-        return songsFolderPath() + "/" + node.fingerprint! + "." + pathExtension;
-    }
-    
-    func thumbnailPath(node: MEGANode) -> String?
-    {
-        if node.type != .file {
-            print ("attempted fingerprint path for a non-file: " + (node.name ?? "<nil>"))
-            return nil;
-        }
-        if (node.fingerprint == nil) {
-            print ("fingerprint was nil for: " + (node.name ?? "<nil>"))
-            return nil;
-        }
-        
-        if let b64 = node.thumbnailAttributeHandle {
-            return thumbnailsFolderPath() + "/" + b64 + ".jpg";
-        }
-        return nil;
-    }
-    
-    func getDownloadedSongURL(_ node: MEGANode) -> URL?
-    {
-        guard let filename = songFingerprintPath(node: node) else { return nil }
-        return FileManager.default.fileExists(atPath: filename) ? URL(fileURLWithPath: filename) : nil;
-    }
-  
-    func loadFileAsJSON(filename : String) -> Any?
-    {
-        do
-        {
-            let content = try String(contentsOf: URL(fileURLWithPath: filename), encoding: .utf8);
-            let contentData = content.data(using: .utf8);
-            return try JSONSerialization.jsonObject(with: contentData!, options: []);
-        }
-        catch {
-        }
-        return nil;
-    }
-    
-    func getPlaylistFileAsJSON(_ filename: Path, editedIfAvail: Bool) throws -> Any
-    {
-        assert(editedIfAvail ? filename.rt == .PlaylistRoot && !filename.isFolder : true);
-        var f = filename;
-        if editedIfAvail {
-            if FileManager.default.fileExists(atPath: filename.edited().fullPath()) {
-                f = filename.edited();
-            }
-        }
-        let content = try String(contentsOf: URL(fileURLWithPath: f.fullPath()), encoding: .utf8);
-        let contentData = content.data(using: .utf8);
-        return try JSONSerialization.jsonObject(with: contentData!, options: []);
-    }
 
 //    func getPlaylistFileAsJSON(_ n: Path, edited : Bool) -> Any?
 //    {
@@ -385,115 +356,7 @@ class StorageModel {
 //        }
 //        return (p, true);
 //    }
-    
-    func loadSongsFromPlaylistRecursive(json: Any, _ v : inout [Path], recurse: Bool, filterIntent: INPlayMediaIntent?)
-    {
-        if let array = json as? [Any] {
-            for object in array {
-                if let attribs = object as? [String : String] {
-                    if var p = attribs["npath"] {
-                        v.append(Path(rp: p, r: Path.RootType.MusicRoot, f: false))
-                    }
-                }
-//                if let attribs = object as? [String : Any] {
-//                    if let handleStr = attribs["h"] {
-//                        var node = mega().node(forHandle: MEGASdk.handle(forBase64Handle: handleStr as! String));
-//                        if (node == nil)
-//                        {
-//                            // Maybe the node was replaced with a new version, see if there's something at the old path
-//                            if let lkpath = attribs["lkpath"] {
-//                                node = mega().node(forPath: lkpath as! String);
-//                            }
-//                        }
-//                        if (node != nil) {
-//                            loadSongsFromNodeRecursive(node: node!, &v, recurse: recurse, filterIntent: filterIntent);
-//                        }
-//                    }
-//                }
-            }
-        }
-    }
-    
-    func loadSongsFromPathRecursive(n: Path, _ v : inout [Path], recurse: Bool, filterIntent: INPlayMediaIntent?) throws
-    {
-        if (filterIntent != nil)
-        {
-            if (n.isFolder && leafName(n) == "old-playlist-versions") {
-                return;
-            }
-            if (matchNodeOnIntent(n, filterIntent: filterIntent!))
-            {
-                v.append(n);
-                return;
-            }
-        }
 
-        if (n.isFolder)
-        {
-            let leafs = try n.contentsOfDirectory();
-            for l in leafs
-            {
-                if (recurse || !l.isFolder) {
-                    try loadSongsFromPathRecursive(n: l, &v, recurse: recurse, filterIntent: filterIntent);
-                }
-            }
-        }
-        else if (n.hasSuffix(".playlist"))// && globals.storageModel.fileDownloadedByNH(node))
-        {
-            if (recurse) {
-                let json = try globals.storageModel.getPlaylistFileAsJSON(n, editedIfAvail: true);
-                loadSongsFromPlaylistRecursive(json: json, &v, recurse: recurse, filterIntent: filterIntent);
-            }
-        }
-        else if globals.playQueue.isPlayable(n, orMightContainPlayable: false)
-        {
-            if (filterIntent == nil) { v.append(n) }
-        }
-    }
-    
-    func matchNodeOnIntent(_ n : Path, filterIntent: INPlayMediaIntent) -> Bool
-    {
-        switch (filterIntent.mediaSearch?.mediaType) {
-        case .playlist:
-            if (n.isFolder || !n.hasSuffix(".playlist")) {
-                return false;
-            }
-        case .song:
-            if (n.isFolder || !globals.playQueue.isPlayable(n, orMightContainPlayable: false)) {
-                return false;
-            }
-        case .album:
-            if (!n.isFolder) {
-                return false;
-            }
-        case .music:
-            // this case seems to be used for "all songs"
-            return !n.isFolder &&
-                   globals.playQueue.isPlayable(n, orMightContainPlayable: false);
-        case .unknown:
-            break;
-            
-        default:
-            return false;
-        }
-        
-        if (!globals.playQueue.isPlayable(n, orMightContainPlayable: true))
-        {
-            return false;
-        }
-        
-        if let searchStr = filterIntent.mediaSearch?.mediaName?.lowercased() {
-            
-            let name = n
-            if (name.relativePath.lowercased().contains(searchStr)) { return true };
-            
-            let ct = n // todo: lookup , get title etc
-                if ct.relativePath.lowercased().contains(searchStr) { return true };
-            
-            return false;
-        }
-        return true;
-    }
     
 
 //    func isDownloadingByFP(_ node : MEGANode) -> Bool
@@ -581,7 +444,7 @@ class StorageModel {
     func loadSettingFile(leafname : String) -> String?
     {
         do {
-            return try String(contentsOf: URL(fileURLWithPath: settingsPath() + "/" + leafname), encoding: .utf8);
+            return try String(contentsOf: URL(fileURLWithPath: Path.folderManager.settingsPath() + "/" + leafname), encoding: .utf8);
         }
         catch {
         }
@@ -591,8 +454,9 @@ class StorageModel {
     func storeSettingFile(leafname : String, content : String) -> Bool
     {
         do {
-            try content.write(toFile: settingsPath() + "/" + leafname, atomically: true, encoding: String.Encoding.utf8);
-            print("Wrote file: " + settingsPath() + "/" + leafname)
+            let path = Path(rp: leafname, r: .Settings, f: false);
+            try content.write(toFile: path.fullPath(), atomically: true, encoding: String.Encoding.utf8);
+            print("Wrote file: " + path.fullPath())
             return true;
         }
         catch {
@@ -602,115 +466,72 @@ class StorageModel {
     
     func deleteSettingFile(leafname : String)
     {
-        if FileManager.default.fileExists(atPath: settingsPath() + "/" + leafname) {
+        let path = Path(rp: leafname, r: .Settings, f: false);
+        if FileManager.default.fileExists(atPath: path.fullPath()) {
             do {
-                try FileManager.default.removeItem(atPath: settingsPath() + "/" + leafname)
-                print("Removed file: " + settingsPath() + "/" + leafname)
+                try FileManager.default.removeItem(atPath: path.fullPath())
+                print("Removed file: " + path.fullPath())
             }
             catch {
-                print("Failed to remove file " + settingsPath() + "/" + leafname)
+                print("Failed to remove file " + path.fullPath())
             }
         }
     }
     
-    func assureFolderExists(_ url : String, doneName : String) -> Void
-    {
-        if (alreadyCreatedFolders.contains(doneName)) { return; }
-        do {
-            if !FileManager.default.fileExists(atPath: url) {
-                try FileManager.default.createDirectory(atPath: url, withIntermediateDirectories: true, attributes: nil);
-            }
-            var urv = URLResourceValues();
-            urv.isExcludedFromBackup = true;
-            var attribUrl = URL(fileURLWithPath: url)
-            try attribUrl.setResourceValues(urv);
-            alreadyCreatedFolders.insert(doneName);
-        }
-        catch
-        {
-            print("directory does not exist and could not be created or could not be set non-backup: \(url)")
-        }
-    }
 
-    func storageBasePath() -> String
-    {
-        // choosing applicationSupportDirectory means the files will not be accessible from other apps,
-        // won't be removed by the system (unlike cache directories) and we can set flags to prevent
-        // the files being synced by iTunes or iCloud.
-        // https://developer.apple.com/library/archive/qa/qa1719/_index.html
-        let folderUrls = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask);
-        let p = folderUrls[0].standardizedFileURL.path;
-        assureFolderExists(p, doneName: "base");
-        return p;
-    }
 
-    func accountPath() -> String
-    {
-        let p = storageBasePath() + "/account";
-        assureFolderExists(p, doneName: "account");
-        return p;
-    }
 
-    func settingsPath() -> String
-    {
-        let p = storageBasePath() + "/settings";
-        assureFolderExists(p, doneName: "settings");
-        return p;
-    }
 
-    func cacheFilesPath() -> String
-    {
-        let p = storageBasePath() + "/cache";
-        assureFolderExists(p, doneName: "cache");
-        return p;
-    }
+//    func accountPath() -> String
+//    {
+//        let p = storageBasePath() + "/account";
+//        assureFolderExists(p, doneName: "account");
+//        return p;
+//    }
 
-    func songsFolderPath() -> String
-    {
-        let p = cacheFilesPath() + "/songs";
-        assureFolderExists(p, doneName: "songs")
-        return p;
-    }
 
-    func thumbnailsFolderPath() -> String
-    {
-        let p = cacheFilesPath() + "/thumbnails";
-        assureFolderExists(p, doneName: "thumbnails")
-        return p;
-    }
 
-    func playlistsFolderPath() -> String
-    {
-        let p = cacheFilesPath() + "/playlists";
-        assureFolderExists(p, doneName: "playlists")
-        return p;
-    }
+//    func songsFolderPath() -> String
+//    {
+//        let p = cacheFilesPath() + "/songs";
+//        assureFolderExists(p, doneName: "songs")
+//        return p;
+//    }
 
-    func importFolderPath() -> String
-    {
-        let p = cacheFilesPath() + "/import";
-        assureFolderExists(p, doneName: "import")
-        return p;
-    }
+//    func thumbnailsFolderPath() -> String
+//    {
+//        let p = cacheFilesPath() + "/thumbnails";
+//        assureFolderExists(p, doneName: "thumbnails")
+//        return p;
+//    }
+
+//    func playlistsFolderPath() -> String
+//    {
+//        let p = cacheFilesPath() + "/playlists";
+//        assureFolderExists(p, doneName: "playlists")
+//        return p;
+//    }
+
+
     
-    func tempFilesPath() -> String
-    {
-        // .cachesDirectory: Stores files in here that can be discarded when the space is low. This is a good location for any content that can be re-downloaded when needed.
-        // Contents of this directory is not included in the backups. When the device is low on disk space then iOS can help by clearing caches. Files will never be removed
-        // from your cache if your application is running and OS will start by clearing caches from apps that haven’t been used in a while.
-        let cacheUrls = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask);
-        assureFolderExists(cacheUrls[0].standardizedFileURL.path, doneName: "tempBase");
-        let tmpPath = cacheUrls[0].appendingPathComponent("tmp").standardizedFileURL.path;
-        assureFolderExists(tmpPath, doneName: "tmp")
-        return tmpPath;
-    }
+//    func tempFilesPath() -> String
+//    {
+//        // .cachesDirectory: Stores files in here that can be discarded when the space is low. This is a good location for any content that can be re-downloaded when needed.
+//        // Contents of this directory is not included in the backups. When the device is low on disk space then iOS can help by clearing caches. Files will never be removed
+//        // from your cache if your application is running and OS will start by clearing caches from apps that haven’t been used in a while.
+//        let cacheUrls = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask);
+//        assureFolderExists(cacheUrls[0].standardizedFileURL.path, doneName: "tempBase");
+//        let tmpPath = cacheUrls[0].appendingPathComponent("tmp").standardizedFileURL.path;
+//        assureFolderExists(tmpPath, doneName: "tmp")
+//        return tmpPath;
+//    }
     
-    func uploadFilesPath() -> String
-    {
-        let p = tempFilesPath() + "/uploads";
-        assureFolderExists(p, doneName: "uploads")
-        return p;
-    }
+//    func uploadFilesPath() -> String
+//    {
+//        let p = tempFilesPath() + "/uploads";
+//        assureFolderExists(p, doneName: "uploads")
+//        return p;
+//    }
 
 
 }
