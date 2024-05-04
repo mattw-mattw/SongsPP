@@ -11,7 +11,7 @@ import UIKit
 
 
 
-class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
+class MenuVC: UIViewController, UIDocumentPickerDelegate {
 
 //    @IBOutlet weak var loginButton : UIButton?
 //    @IBOutlet weak var logoutButton : UIButton?
@@ -36,34 +36,138 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate, FileManagerDelegate {
     @IBAction func SyncChangesWithNetworkFolder(_ sender: Any) {
     }
     
+    var securityURL : URL? = nil;
+    
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL])
     {
         //for u in urls {
         //    reportMessage(uic: self, message: u.absoluteString)
         //}
         
-        if (urls.count != 1) { return; }
-        let url = urls[0];
+        if (urls.count != 1) {
+            reportMessage(uic: self, message: "Multiple paths (\(urls.count)) selected, abandoning operation");
+            return;
+        }
+        securityURL = urls[0];
         
-        guard url.startAccessingSecurityScopedResource() else { return };
-        defer { url.stopAccessingSecurityScopedResource() }
+        guard securityURL!.startAccessingSecurityScopedResource() else
+        {
+            reportMessage(uic: self, message: "Cannot access security scope for that path");
+            return
+        };
             
-        do {
-            let fm = FileManager();
-            fm.delegate = self;
-            
-            var source = url.relativeString;
-            if (source.contains("file://"))
-            {
-                source.removeFirst(7);
-            }
-            
-            if (!SongsCPP.scanDoubleDirs(source, rhs: Path(rp: "", r: .SyncFolder, f: true).fullPath()))
-            {
-                reportMessage(uic: self, message: "Recursive copy failed");
-            }
+        var source = securityURL!.relativeString;
+        if (source.contains("file://"))
+        {
+            source.removeFirst(7);
+        }
+        
+        if (!SongsCPP.startScanDoubleDirs(source, rhs: Path(rp: "", r: .SyncFolder, f: true).fullPath()))
+        {
+            reportMessage(uic: self, message: "Recursive copy failed to start");
+            return;
+        }
+
+        displayScanPathCtrl = UIAlertAction(title: "<scan path>", style: .default, handler: { (UIAlertAction) -> () in  });
+        displayCopyPathCtrl = UIAlertAction(title: "<copy path>", style: .default, handler: { (UIAlertAction) -> () in  });
+
+        displayScanPathCtrl?.isEnabled = false;
+        displayCopyPathCtrl?.isEnabled = false;
+
+        scanCopyAlertCtrl = UIAlertController(title: "Syncing network folder music with App", message: "Scanning for files to copy, and copying them into the app", preferredStyle: .actionSheet)
+        //scanCopyAlertCtrl!.addTextField()
+        //scanCopyAlertCtrl.addTextField()
+        //scanCopyAlertCtrl.addTextField()
+        //scanCopyAlertCtrl!.addAction(displayScanPathCtrl!);
+        //scanCopyAlertCtrl!.addAction(displayCopyPathCtrl!);
+        scanCopyAlertCtrl!.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (UIAlertAction) -> () in self.stopScanCopy() }));
+
+        
+        UILabel.appearance(whenContainedInInstancesOf:[UIAlertController.self]).lineBreakMode = .byTruncatingMiddle
+        UITextView.appearance(whenContainedInInstancesOf:[UIAlertController.self]).tintColor = UIColor.red;
+        
+        self.present(scanCopyAlertCtrl!, animated: false, completion: nil)
+        
+        updateScanCopyTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateScanCopy), userInfo: nil, repeats: true)
+    }
+    
+    var scanCopyAlertCtrl : UIAlertController? = nil;
+    var updateScanCopyTimer : Timer? = nil;
+    
+    func stopScanCopy()
+    {
+        updateScanCopyTimer?.invalidate()
+        updateScanCopyTimer = nil;
+
+        scanCopyAlertCtrl?.dismiss(animated: false);
+        scanCopyAlertCtrl = nil;
+        
+        var finalErr : NSString? = nil;
+        SongsCPP.shutdownScanDoubleDirs(&finalErr);
+        
+        if (finalErr != nil && finalErr! != "" && finalErr! != "cancelled")
+        {
+            reportMessage(uic: self, message: String(finalErr!));
+        }
+        
+        displayScanPathCtrl = nil;
+        displayCopyPathCtrl = nil;
+        
+        if (securityURL != nil)
+        {
+            securityURL!.stopAccessingSecurityScopedResource();
+            securityURL = nil;
         }
     }
+    
+    @objc func updateScanCopy()
+    {
+        if (SongsCPP.isFinishedScanDoubleDirs())
+        {
+            stopScanCopy();
+            return;
+        }
+        
+        //var str1: NSString? = nil;
+        //var str2: NSString? = nil;
+
+        let sp = SongsCPP.currentScanPaths();
+        let cp = SongsCPP.currentCopyPaths();
+        var scanWaiting : NSInteger = 0;
+        var scanDone : NSInteger = 0;
+        var copyWaiting : NSInteger = 0;
+        var copyDone : NSInteger = 0;
+        SongsCPP.scanCopyCounts(&scanWaiting, &scanDone, &copyWaiting, &copyDone);
+
+        var m = "folders queued:\(scanWaiting) done:\(scanDone)\n";
+        m += "files queued:\(copyWaiting) done:\(copyDone)\n";
+        for s in sp! {
+            if let ss = s as? String {
+                var short = ss;
+                if (short.count > 45)
+                {
+                    short = ss.prefix(20) + " ... " + ss.suffix(20);
+                }
+                m += short + "\n";
+            }
+        }
+        for c in cp! {
+            if let cc = c as? String {
+                var short = cc;
+                if (short.count > 45)
+                {
+                    short = cc.prefix(20) + " ... " + cc.suffix(20);
+                }
+                m += short + "\n";
+            }
+        }
+        scanCopyAlertCtrl!.message = m;      
+    }
+    
+    var displayScanPathCtrl : UIAlertAction? = nil;
+    var displayCopyPathCtrl : UIAlertAction? = nil;
+    
+    
 //    var isImport = false;
 
     @IBAction func onImportFromSharedFolder(_ sender: Any) {

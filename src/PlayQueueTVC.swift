@@ -69,8 +69,10 @@ class PlayQueueTVC: UITableViewController {
         pauseButton.setTitle("", for: .application)
         pauseButton.setTitle("", for: .reserved)
 
-        Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateSlider), userInfo: nil, repeats: true)
+        updateSliterTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateSlider), userInfo: nil, repeats: true)
     }
+    
+    var updateSliterTimer : Timer? = nil;
     
     @objc func updateSlider()
     {

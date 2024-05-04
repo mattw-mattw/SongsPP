@@ -45,6 +45,18 @@ struct scanAction {
     scanActionType at;
 };
 
+class ScanDisplayPaths {
+    std::list<string> scanPath;
+    std::list<string> copyPath;
+    std::mutex m;
+public:
+    vector<string> scanPaths() { lock_guard<mutex> g(m); return vector<string>(scanPath.begin(), scanPath.end()); }
+    vector<string> copyPaths() { lock_guard<mutex> g(m); return vector<string>(copyPath.begin(), copyPath.end()); }
+    void addScan(string s) { lock_guard<mutex> g(m); scanPath.emplace_back(std::move(s)); }
+    void addCopy(string s) { lock_guard<mutex> g(m); copyPath.emplace_back(std::move(s)); }
+    void removeScan(const string& s) { lock_guard<mutex> g(m); for (auto i = scanPath.begin(); i != scanPath.end(); ++i)  if (*i == s) { scanPath.erase(i); return; } }
+    void removeCopy(const string& s) { lock_guard<mutex> g(m); for (auto i = copyPath.begin(); i != copyPath.end(); ++i)  if (*i == s) { copyPath.erase(i); return; } }
+} scanDisplayPaths;
 
 class scanQueue
 {
@@ -52,12 +64,25 @@ class scanQueue
     std::condition_variable v;
     std::list<scanAction> q;
     string finalErr;
-    size_t pushCount = 0;
-    size_t popCount = 0;
-    size_t completeCount = 0;
-    
+    size_t pushDirCount = 0;
+    size_t popDirCount = 0;
+    size_t completeDirCount = 0;
+    size_t pushFileCount = 0;
+    size_t popFileCount = 0;
+    size_t completeFileCount = 0;
+
 public:
     bool exit = false;
+    std::vector<std::thread> threadVec;
+    
+    void getCounts(size_t& scanWait, size_t& scanDone, size_t& copyWait, size_t& copyDone)
+    {
+        lock_guard<mutex> g(m);
+        scanWait = pushDirCount - popDirCount;
+        scanDone = completeDirCount;
+        copyWait = pushFileCount - popFileCount;
+        copyDone = completeFileCount;
+    }
     
     bool pop(scanAction& p)
     {
@@ -70,7 +95,7 @@ public:
                 p = q.front();
                 q.pop_front();
                 ret = true;
-                popCount += 1;
+                (p.lhsFolder ? popDirCount : popFileCount) += 1;
                 return true;
             });
         }
@@ -83,7 +108,7 @@ public:
         {
             std::unique_lock<mutex> g(m);
             q.push_back(std::move(p));
-            pushCount += 1;
+            (p.lhsFolder ? pushDirCount : pushFileCount) += 1;
         }
         v.notify_all();
     }
@@ -95,25 +120,36 @@ public:
         exit = true;
     }
     
-    void completedOne()
+    void completedOne(bool folder)
     {
         {
             std::unique_lock<mutex> g(m);
-            completeCount += 1;
+            (folder ? completeDirCount : completeFileCount) += 1;
         }
         v.notify_all();
     }
     
-    string waitFinish()
+    bool isFinished()
     {
         std::unique_lock<mutex> g(m);
-        v.wait(g, [this](){
-            if (exit) return true;
-            if (completeCount >= pushCount) return true;
-            return false;
-        });
+        if (exit) return true;
+        if (completeDirCount >= pushDirCount && completeFileCount >= pushFileCount) return true;
+        return false;
+    }
+
+    bool cancel()
+    {
+        std::unique_lock<mutex> g(m);
+        exit = true;
+        if (finalErr.empty()) finalErr = "cancelled";
+        return true;
+    }
+
+    string shutdown()
+    {
         exit = true;
         v.notify_all();
+        for (auto& t : threadVec) { t.join(); }
         return finalErr;
     }
 };
@@ -121,11 +157,13 @@ public:
 
 bool scanOneFolder(LocalPath path, std::vector<StrB>& leafs, string& err)
 {
+    errno = 0;
+    int n = 0;
     unique_ptr<DIR> dp(opendir(path.toPath().c_str()));
     if (!dp) 
     {
         auto e = errno;
-        err = "Error " + std::to_string(e) + " at " + path.toPath();
+        err = "Error " + std::to_string(e) + " opening folder to scan at: " + path.toPath();
         return false;
     }
     while (dirent* d = ::readdir(dp.get()))
@@ -146,70 +184,80 @@ bool scanOneFolder(LocalPath path, std::vector<StrB>& leafs, string& err)
                 leafs.emplace_back(string(d->d_name), false);
                 FileSystemAccess::normalize(&leafs.back().first);
             }
+            ++n;
         }
+    }
+    if (errno)
+    {
+        auto e = errno;
+        err = "Error " + std::to_string(e) + " during scan of: " + path.toPath();
+        if (n)
+        {
+            err += " after already scanning "+ std::to_string(n) + "entries";
+        }
+        return false;
     }
     return true;
 }
 
 bool scan(LocalPath lhsPath, LocalPath rhsPath, string& err, scanQueue& sq)
 {
+    bool ret = false;
     PosixFileSystemAccess fsa;
     
     std::vector<pair<string, bool>> leafs1;
     std::vector<pair<string, bool>> leafs2;
 
-    if (!scanOneFolder(lhsPath, leafs1, err)) return false;
-    if (!scanOneFolder(rhsPath, leafs2, err)) return false;
-
-    std::sort(leafs1.begin(), leafs1.end(), [](StrB& a, StrB& b){ return compareUtf(a.first, false, b.first, false, false) < 0; });
-    std::sort(leafs2.begin(), leafs2.end(), [](StrB& a, StrB& b){ return compareUtf(a.first, false, b.first, false, false) < 0; });
+    scanDisplayPaths.addScan(lhsPath.leafName().toPath());
     
-    size_t i = 0, j = 0;
-    
-    for (;;) {
-        StrB* ileaf = i < leafs1.size() ? &leafs1[i] : nullptr;
-        StrB* jleaf = j < leafs2.size() ? &leafs2[j] : nullptr;
-        int cmp = 0;
-        if (ileaf && jleaf) {
-            cmp = compareUtf(ileaf->first, false, jleaf->first, false, false);
-            if (cmp < 0) { jleaf = nullptr; }
-            else if (cmp > 0) { ileaf = nullptr; }
-        }
-        if (!ileaf && !jleaf) { break; }
+    if (scanOneFolder(lhsPath, leafs1, err) &&
+        scanOneFolder(rhsPath, leafs2, err))
+    {
+        ret = true;
+        std::sort(leafs1.begin(), leafs1.end(), [](StrB& a, StrB& b){ return compareUtf(a.first, false, b.first, false, false) < 0; });
+        std::sort(leafs2.begin(), leafs2.end(), [](StrB& a, StrB& b){ return compareUtf(a.first, false, b.first, false, false) < 0; });
         
-        ScopedLengthRestore restore1(lhsPath);
-        ScopedLengthRestore restore2(rhsPath);
+        size_t i = 0, j = 0;
         
-        lhsPath.appendWithSeparator(LocalPath::fromPath((ileaf ? ileaf->first : jleaf->first), fsa), true);
-        rhsPath.appendWithSeparator(LocalPath::fromPath((jleaf ? jleaf->first : ileaf->first), fsa), true);
-        
-        if (ileaf && jleaf) {
-
-            i += 1;
-            j += 1;
+        for (;;) {
+            StrB* ileaf = i < leafs1.size() ? &leafs1[i] : nullptr;
+            StrB* jleaf = j < leafs2.size() ? &leafs2[j] : nullptr;
+            int cmp = 0;
+            if (ileaf && jleaf) {
+                cmp = compareUtf(ileaf->first, false, jleaf->first, false, false);
+                if (cmp < 0) { jleaf = nullptr; }
+                else if (cmp > 0) { ileaf = nullptr; }
+            }
+            if (!ileaf && !jleaf) { break; }
             
-            sq.push(scanAction{lhsPath, rhsPath, ileaf->second, jleaf->second, BothPresent});
-        }
-        else if (ileaf) {
-            StrB* ileaf3 = i < leafs1.size() ? &leafs1[i] : nullptr;
-            StrB* jleaf3 = j < leafs2.size() ? &leafs2[j] : nullptr;
+            ScopedLengthRestore restore1(lhsPath);
+            ScopedLengthRestore restore2(rhsPath);
             
-            i += 1;
-            sq.push(scanAction{lhsPath, rhsPath, ileaf->second, false, LeftPresent});
-        }
-        else if (jleaf) {
+            lhsPath.appendWithSeparator(LocalPath::fromPath((ileaf ? ileaf->first : jleaf->first), fsa), true);
+            rhsPath.appendWithSeparator(LocalPath::fromPath((jleaf ? jleaf->first : ileaf->first), fsa), true);
             
-            StrB* ileaf2 = i < leafs1.size() ? &leafs1[i] : nullptr;
-            StrB* jleaf2 = j < leafs2.size() ? &leafs2[j] : nullptr;
-            
-            j += 1;
-            sq.push(scanAction{lhsPath, rhsPath, false, jleaf->second, RightPresent});
-        }
-        else {
-            break;
+            if (ileaf && jleaf) {
+                
+                i += 1;
+                j += 1;
+                
+                sq.push(scanAction{lhsPath, rhsPath, ileaf->second, jleaf->second, BothPresent});
+            }
+            else if (ileaf) {
+                i += 1;
+                sq.push(scanAction{lhsPath, rhsPath, ileaf->second, false, LeftPresent});
+            }
+            else if (jleaf) {
+                j += 1;
+                sq.push(scanAction{lhsPath, rhsPath, false, jleaf->second, RightPresent});
+            }
+            else {
+                break;
+            }
         }
     }
-    return true;
+    scanDisplayPaths.removeScan(lhsPath.leafName().toPath());
+    return ret;
 }
 
 @implementation SongsCPP
@@ -239,25 +287,24 @@ bool scan(LocalPath lhsPath, LocalPath rhsPath, string& err, scanQueue& sq)
     return false;
 }
 
+shared_ptr<scanQueue> curScan;
 
-
-+ (bool)ScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath {
-
++ (bool)StartScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath {
+    
     PosixFileSystemAccess fsa;
-
+    
     auto a = LocalPath::fromPath([lhsPath UTF8String], fsa);
     auto b = LocalPath::fromPath([rhsPath UTF8String], fsa);
     string err;
     
-    scanQueue sq;
-    sq.push(scanAction{a, b, true, true, BothPresent});
+    curScan.reset(new scanQueue);
+    curScan->push(scanAction{a, b, true, true, BothPresent});
     
-    std::vector<std::thread> threadVec;
-    for (int i = 0; i < 20; ++i)
+    for (int i = 0; i < 5; ++i)
     {
-        threadVec.emplace_back(std::thread([&sq](){
+        curScan->threadVec.emplace_back(std::thread([sq = curScan](){
             scanAction op;
-            while (sq.pop(op))
+            while (sq->pop(op))
             {
                 switch (op.at)
                 {
@@ -265,9 +312,9 @@ bool scan(LocalPath lhsPath, LocalPath rhsPath, string& err, scanQueue& sq)
                         if (op.lhsFolder && op.rhsFolder)
                         {
                             string err;
-                            if (!scan(op.lhsPath, op.rhsPath, err, sq))
+                            if (!scan(op.lhsPath, op.rhsPath, err, *sq))
                             {
-                                sq.fail(err);
+                                sq->fail(err);
                             }
                         }
                         else if (!op.lhsFolder && !op.rhsFolder)
@@ -275,7 +322,7 @@ bool scan(LocalPath lhsPath, LocalPath rhsPath, string& err, scanQueue& sq)
                             // skip existing files
                         }
                         else {
-                            sq.fail("File/Folder mismatch at " + op.lhsPath.toPath() + " " + op.rhsPath.toPath());
+                            sq->fail("File/Folder mismatch at " + op.lhsPath.toPath() + " " + op.rhsPath.toPath());
                         }
                         break;
                         
@@ -283,30 +330,34 @@ bool scan(LocalPath lhsPath, LocalPath rhsPath, string& err, scanQueue& sq)
                         if (op.lhsFolder)
                         {
                             string err;
-                            mode_t mode = umask(0);  // bits that would be auto-removed
-                            bool mkdir_success = !mkdir(op.rhsPath.toPath().c_str(), 0777);
+                            //mode_t _ = umask(0);  // bits that would be auto-removed
+                            bool mkdir_success = !mkdir(op.rhsPath.toPath().c_str(), 0x1FF);//0777);
                             //umask(mode);
                             
                             if (!mkdir_success)
                             {
                                 auto e = errno;
-                                sq.fail("Error " + std::to_string(e) + " creating folder  " + op.rhsPath.toPath());
+                                sq->fail("Error " + std::to_string(e) + " creating folder  " + op.rhsPath.toPath());
                             }
-                            else if (!scan(op.lhsPath, op.rhsPath, err, sq))
+                            else if (!scan(op.lhsPath, op.rhsPath, err, *sq))
                             {
-                                sq.fail(err);
+                                sq->fail(err);
                             }
                         }
                         else
                         {
+                            scanDisplayPaths.addCopy(op.lhsPath.leafName().toPath());
+                            
                             copyfile_state_t cfs = ::copyfile_state_alloc();
                             auto cfe = copyfile(op.lhsPath.toPath().c_str(), op.rhsPath.toPath().c_str(), cfs, COPYFILE_DATA | COPYFILE_STAT);
                             copyfile_state_free(cfs);
 
+                            scanDisplayPaths.removeCopy(op.lhsPath.leafName().toPath());
+
                             if (cfe)
                             {
                                 auto e = errno;
-                                sq.fail("Error " + std::to_string(cfe) + " " + std::to_string(e) + " copying  " + op.lhsPath.toPath() + " to " + op.rhsPath.toPath());
+                                sq->fail("Error " + std::to_string(cfe) + " " + std::to_string(e) + " copying  " + op.lhsPath.toPath() + " to " + op.rhsPath.toPath());
                             }
                         }
                         break;
@@ -315,19 +366,59 @@ bool scan(LocalPath lhsPath, LocalPath rhsPath, string& err, scanQueue& sq)
                         break;
                         
                 }
-                sq.completedOne();
+                sq->completedOne(op.lhsFolder);
             }
         }));
     }
-    
-    string finalErr = sq.waitFinish();
+    return true;
+}
 
-    for (auto& t : threadVec) { t.join(); }
++ (bool)isFinishedScanDoubleDirs {
+    return curScan->isFinished();
+}
 
++ (bool)ShutdownScanDoubleDirs:(NSString **)err {
+    if (!curScan->isFinished()) curScan->cancel();
+    string finalErr = curScan->shutdown();
+    *err = [[NSString alloc]initWithUTF8String:finalErr.c_str()];
     return finalErr.empty();
 }
     
++ (NSMutableArray*)currentScanPaths {
+    
+    NSMutableArray *fileNames = [NSMutableArray array];
+    
+    auto v = scanDisplayPaths.scanPaths();
+    for (auto& s : v)
+    {
+        [fileNames addObject: [NSString stringWithUTF8String:s.c_str()]];
+    }
+    return fileNames;
+}
 
++ (NSMutableArray*)currentCopyPaths {
+    
+    NSMutableArray *fileNames = [NSMutableArray array];
+    
+    auto v = scanDisplayPaths.copyPaths();
+    for (auto& s : v)
+    {
+        [fileNames addObject: [NSString stringWithUTF8String:s.c_str()]];
+    }
+    return fileNames;
+}
+
++ (void)scanCopyCounts:(NSInteger *)scanWaiting :(NSInteger *)scanDone :(NSInteger *)copyWaiting :(NSInteger *)copyDone {
+    if (curScan)
+    {
+        size_t a, b, c, d;
+        curScan->getCounts(a, b, c, d);
+        *scanWaiting = a;
+        *scanDone = b;
+        *copyWaiting = c;
+        *copyDone = d;
+    }
+}
 
 @end
 

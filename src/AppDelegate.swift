@@ -229,6 +229,23 @@ class FolderManager
     
     func syncFolderPath() -> String
     {
+
+//        do {
+//            //try FileManager.default.removeItem(atPath: storageBasePath() + "/sync1");
+//            //try FileManager.default.removeItem(atPath: storageBasePath() + "/sync2");
+//            //try FileManager.default.removeItem(atPath: storageBasePath() + "/sync3");
+//            //try FileManager.default.removeItem(atPath: storageBasePath() + "/sync4");
+////            try FileManager.default.removeItem(atPath: storageBasePath() + "/sync5");
+////            try FileManager.default.removeItem(atPath: storageBasePath() + "/sync6");
+////            try FileManager.default.removeItem(atPath: storageBasePath() + "/sync7");
+//            //try FileManager.default.removeItem(atPath: storageBasePath() + "/sync");
+//            
+//        }
+//        catch {
+//            var m = "\(error)";
+//            print(m);
+//        }
+        
         let p = storageBasePath() + "/sync5";
         assureFolderExists(p, doneName: "sync5")
         assureFolderExists(p + "/songs++index", doneName: "songs++index")
