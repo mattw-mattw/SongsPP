@@ -33,7 +33,8 @@ class ContextMenuCheckbox : NSObject, UITextFieldDelegate {
         
         flag = !flag;
         toggleCheckbox(newTextField);
-        
+        imageButton.addTarget(self, action: #selector(self.toggleCheckbox(_:)), for: .touchUpInside)
+
         newTextField.leftView = imageButton;
         newTextField.leftViewMode = .always;
         
@@ -44,7 +45,6 @@ class ContextMenuCheckbox : NSObject, UITextFieldDelegate {
         flag = !flag;
         imageButton.isEnabled = true;
         imageButton.isSelected = flag;
-        imageButton.addTarget(self, action: #selector(self.toggleCheckbox(_:)), for: .touchUpInside)
     }
     
     func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool

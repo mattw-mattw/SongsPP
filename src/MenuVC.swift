@@ -13,79 +13,169 @@ import UIKit
 
 class MenuVC: UIViewController, UIDocumentPickerDelegate {
 
-//    @IBOutlet weak var loginButton : UIButton?
-//    @IBOutlet weak var logoutButton : UIButton?
-//    @IBOutlet weak var forgetFolderLinkButton : UIButton?
-//    @IBOutlet weak var goOfflineButton : UIButton?
-//    @IBOutlet weak var goOnlineButton : UIButton?
-//    @IBOutlet var reloadAccountButton: UIButton!
-    
+   
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated);
+        
+        do
+        {
+            let contentData = try Data(contentsOf: URL(fileURLWithPath: Path(rp: "networkFolderBookmark", r: .Settings, f: false).fullPath()));
+            var stale : Bool = false;
+            securityURL = try URL(resolvingBookmarkData: contentData, bookmarkDataIsStale: &stale);
+            networkFolder.text = securityURL?.absoluteString;
+        }
+        catch {
+        }
+
         setEnabled();
     }
     
     
-    @IBAction func LoadFromNetworkFolder(_ sender: Any) {
-        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder]);
-        picker.delegate = self;
-        //picker.directoryURL = "/";
-        present(picker, animated: true, completion: nil)
-    }
-    
-    @IBAction func SyncChangesWithNetworkFolder(_ sender: Any) {
+    @IBAction func PickNetworkFolder(_ sender: Any) {
+        
+        let alert = UIAlertController(
+            title: "Pick music source Network Folder",
+            message: "First open the Files app and Connect to Server (from its top right '...' menu), for this app to be able to access the network folder on that server.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Open Files app", style: .default, handler: { (UIAlertAction) -> () in UIApplication.shared.open(URL(string: "shareddocuments://Connect%20to%20Server")!) }));
+        alert.addAction(UIAlertAction(title: "Pick Network Folder", style: .default, handler: { (UIAlertAction) -> () in self.pickDocument() }));
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (UIAlertAction) -> () in }));
+        self.present(alert, animated: false, completion: nil)
     }
     
     var securityURL : URL? = nil;
+
+    func pickDocument()
+    {
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder]);
+        picker.delegate = self;
+        present(picker, animated: true, completion: nil)
+    }
     
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL])
     {
-        //for u in urls {
-        //    reportMessage(uic: self, message: u.absoluteString)
-        //}
-        
         if (urls.count != 1) {
-            reportMessage(uic: self, message: "Multiple paths (\(urls.count)) selected, abandoning operation");
+            reportMessage(uic: self, message: "Multiple paths (\(urls.count)) selected, please choose just one.");
             return;
         }
         securityURL = urls[0];
+        networkFolder.text = securityURL?.absoluteString;
+        
+        do {
+            let _ = securityURL!.startAccessingSecurityScopedResource();
+            let s = try securityURL!.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil);
+            securityURL!.stopAccessingSecurityScopedResource();
+            
+            try s.write(to: URL(fileURLWithPath: Path(rp: "networkFolderBookmark", r: .Settings, f: false).fullPath()), options: .atomic)
+        }
+        catch {
+        }
+    }
+    
+    @IBAction func LoadFromNetworkFolder(_ sender: Any) {
+
+        guard securityURL != nil && securityURL!.absoluteString != "" else
+        {
+            reportMessage(uic: self, message: "Please select a Network Folder first");
+            return
+        };
         
         guard securityURL!.startAccessingSecurityScopedResource() else
         {
-            reportMessage(uic: self, message: "Cannot access security scope for that path");
+            reportMessage(uic: self, message: "The Network Folder is not accessible");
             return
         };
-            
+        
+        removeUnmatchedOption.flag = false;
+        skipCopyOnMatch.flag = false;
+        checkModifiedDate.flag = false;
+        checkFingerprint.flag = false;
+        
+        let optionsAlert = UIAlertController(title: "Load from Network Folder", message: "Select options for deciding whether to copy files that are already present, or remove files that are no longer present in the source folder", preferredStyle: .alert)
+        optionsAlert.addTextField( configurationHandler: { newTextField in self.skipCopyOnMatch.takeOverTextField(newTextField: newTextField)  });
+        optionsAlert.addTextField( configurationHandler: { newTextField in self.checkModifiedDate.takeOverTextField(newTextField: newTextField)  });
+        optionsAlert.addTextField( configurationHandler: { newTextField in self.removeUnmatchedOption.takeOverTextField(newTextField: newTextField)  });
+
+        optionsAlert.addAction(UIAlertAction(title: "Import from Network Folder", style: .default, handler: { (UIAlertAction) -> Void in
+            self.ImportFiles();
+        }));
+
+        optionsAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil));
+        self.present(optionsAlert, animated: false, completion: nil);
+    }
+
+    let removeUnmatchedOption = ContextMenuCheckbox("Remove unmatched files", false);
+    let skipCopyOnMatch = ContextMenuCheckbox("Skip matching name", false);
+    let checkModifiedDate = ContextMenuCheckbox("Copy if newer", false);
+    let checkFingerprint = ContextMenuCheckbox("Compare file fingerprint", false);
+    
+    @IBAction func ExportUpdatesToNetworkFolder(_ sender: Any) {
+
+        guard securityURL != nil && securityURL!.absoluteString != "" else
+        {
+            reportMessage(uic: self, message: "Please select a Network Folder first");
+            return
+        };
+        
+        guard securityURL!.startAccessingSecurityScopedResource() else
+        {
+            reportMessage(uic: self, message: "The Network Folder is not accessible");
+            return
+        };
+
+        removeUnmatchedOption.flag = false;
+        skipCopyOnMatch.flag = false;
+        checkModifiedDate.flag = false;
+        checkFingerprint.flag = false;
+        
+        let optionsAlert = UIAlertController(title: "Export updates to Network Folder", message: "Select options for deciding whether to copy files that are already present, or remove files that are no longer present in the source folder", preferredStyle: .alert)
+        optionsAlert.addTextField( configurationHandler: { newTextField in self.skipCopyOnMatch.takeOverTextField(newTextField: newTextField)  });
+        optionsAlert.addTextField( configurationHandler: { newTextField in self.checkModifiedDate.takeOverTextField(newTextField: newTextField)  });
+        
+        optionsAlert.addAction(UIAlertAction(title: "Export Updates", style: .default, handler: { (UIAlertAction) -> Void in
+            self.ExportUpdates();
+        }));
+
+        optionsAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil));
+        self.present(optionsAlert, animated: false, completion: nil);
+    }
+    
+    func ImportFiles()
+    {
         var source = securityURL!.relativeString;
         if (source.contains("file://"))
         {
             source.removeFirst(7);
         }
         
-        if (!SongsCPP.startScanDoubleDirs(source, rhs: Path(rp: "", r: .SyncFolder, f: true).fullPath()))
+        if (!SongsCPP.startScanDoubleDirs(source, rhs: Path(rp: "", r: .SyncFolder, f: true).fullPath(), removeUnmatchedOnRight: self.removeUnmatchedOption.flag))
         {
             reportMessage(uic: self, message: "Recursive copy failed to start");
             return;
         }
 
-        displayScanPathCtrl = UIAlertAction(title: "<scan path>", style: .default, handler: { (UIAlertAction) -> () in  });
-        displayCopyPathCtrl = UIAlertAction(title: "<copy path>", style: .default, handler: { (UIAlertAction) -> () in  });
-
-        displayScanPathCtrl?.isEnabled = false;
-        displayCopyPathCtrl?.isEnabled = false;
-
-        scanCopyAlertCtrl = UIAlertController(title: "Syncing network folder music with App", message: "Scanning for files to copy, and copying them into the app", preferredStyle: .actionSheet)
-        //scanCopyAlertCtrl!.addTextField()
-        //scanCopyAlertCtrl.addTextField()
-        //scanCopyAlertCtrl.addTextField()
-        //scanCopyAlertCtrl!.addAction(displayScanPathCtrl!);
-        //scanCopyAlertCtrl!.addAction(displayCopyPathCtrl!);
+        scanCopyAlertCtrl = UIAlertController(title: "Copying Network Folder music into App", message: "Scanning for files to copy, and copying them into the app", preferredStyle: .actionSheet)
         scanCopyAlertCtrl!.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (UIAlertAction) -> () in self.stopScanCopy() }));
+        self.present(scanCopyAlertCtrl!, animated: false, completion: nil)
+        
+        updateScanCopyTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateScanCopy), userInfo: nil, repeats: true)
+    }
+    
+    func ExportUpdates()
+    {
+        var target = securityURL!.relativeString;
+        if (target.contains("file://"))
+        {
+            target.removeFirst(7);
+        }
+        
+        if (!SongsCPP.startScanDoubleDirs(Path(rp: "", r: .SyncFolder, f: true).fullPath(), rhs: target, removeUnmatchedOnRight: false))
+        {
+            reportMessage(uic: self, message: "Recursive copy failed to start");
+            return;
+        }
 
-        
-        UILabel.appearance(whenContainedInInstancesOf:[UIAlertController.self]).lineBreakMode = .byTruncatingMiddle
-        UITextView.appearance(whenContainedInInstancesOf:[UIAlertController.self]).tintColor = UIColor.red;
-        
+        scanCopyAlertCtrl = UIAlertController(title: "Export updates to Network Folder", message: "Scanning for files to copy, and copying them into the app", preferredStyle: .actionSheet)
+        scanCopyAlertCtrl!.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (UIAlertAction) -> () in self.stopScanCopy() }));
         self.present(scanCopyAlertCtrl!, animated: false, completion: nil)
         
         updateScanCopyTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateScanCopy), userInfo: nil, repeats: true)
@@ -110,13 +200,9 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
             reportMessage(uic: self, message: String(finalErr!));
         }
         
-        displayScanPathCtrl = nil;
-        displayCopyPathCtrl = nil;
-        
         if (securityURL != nil)
         {
             securityURL!.stopAccessingSecurityScopedResource();
-            securityURL = nil;
         }
     }
     
@@ -139,8 +225,7 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         var copyDone : NSInteger = 0;
         SongsCPP.scanCopyCounts(&scanWaiting, &scanDone, &copyWaiting, &copyDone);
 
-        var m = "folders queued:\(scanWaiting) done:\(scanDone)\n";
-        m += "files queued:\(copyWaiting) done:\(copyDone)\n";
+        var m = "";
         for s in sp! {
             if let ss = s as? String {
                 var short = ss;
@@ -161,31 +246,14 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
                 m += short + "\n";
             }
         }
-        scanCopyAlertCtrl!.message = m;      
-    }
-    
-    var displayScanPathCtrl : UIAlertAction? = nil;
-    var displayCopyPathCtrl : UIAlertAction? = nil;
-    
-    
-//    var isImport = false;
+        m += "folders queued:\(scanWaiting) done:\(scanDone)\n";
+        m += "files queued:\(copyWaiting) done:\(copyDone)\n";
 
-    @IBAction func onImportFromSharedFolder(_ sender: Any) {
-//        isImport = true;
-//        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder]);
-//        picker.delegate = self;
-//        //picker.directoryURL = "/";
-//        present(picker, animated: true, completion: nil)
+        scanCopyAlertCtrl!.message = m;
     }
     
+    @IBOutlet var networkFolder: UILabel!
     
-    @IBAction func onExportMetadata(_ sender: Any) {
-//        //isImport = false;
-//        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder]);
-//        picker.delegate = self;
-//        //picker.directoryURL = "/";
-//        present(picker, animated: true, completion: nil)
-    }
     
     func createFolder(_ url : String) -> Void
     {
@@ -202,90 +270,6 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         {
         }
     }
-    
-//    actor scanQueue  // actor = thread safe
-//    {
-//        var q : [(URL?, URL?)] = [];
-//        
-//        func push(_ a : URL?, _ b : URL?)
-//        {
-//            q.append((a, b));
-//        }
-//        
-//        func pop() -> (URL?, URL?)?
-//        {
-//            if q.count == 0 { return nil; }
-//            let (a, b) = q[q.count-1];
-//            q.remove(at: q.count-1);
-//            return (a,b)
-//        }
-//    }
-//    
-//    var sc = scanQueue();
-    
- 
-    
-//    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL])
-//    {
-//        //for u in urls {
-//        //    reportMessage(uic: self, message: u.absoluteString)
-//        //}
-//        
-//        if (urls.count != 1) { return; }
-//        let url = urls[0];
-//        
-//        if isImport {
-//            guard url.startAccessingSecurityScopedResource() else { return };
-//            defer { url.stopAccessingSecurityScopedResource() }
-//            
-//            do {
-//                let fm = FileManager();
-//                fm.delegate = self;
-//                
-//                var source = url.relativeString;
-//                if (source.contains("file://"))
-//                {
-//                    source.removeFirst(7);
-//                }
-//                
-//                ScanDoubleDirs(source, Path(rp: "", r: .SyncFolder, f: true).fullPath());
-//
-//            }
-////            catch
-////            {
-////                reportMessage(uic: self, message: "copy failed: \(error)")
-////            }
-//        }
-//        else
-//        {
-////            let exportFolder = globals.storageModel.cacheFilesPath() + "/export";
-////            
-////            deleteOldExportFolder(exportFolder);
-////            createFolder(exportFolder);
-////            createFolder(exportFolder + "/thumb");
-////            createFolder(exportFolder + "/playlist");
-////            
-////  //          exportNodeAttribs(globals.musicBrowseFolder!, exportFolder);
-////            //exportPlaylists(globals.playlistBrowseFolder!, exportFolder + "/playlist")
-////            
-////            outputJsonAttrs(exportFolder)
-////            
-////            guard url.startAccessingSecurityScopedResource() else { return };
-////            defer { url.stopAccessingSecurityScopedResource() }
-////            
-////            do {
-////                let fm = FileManager();
-////                fm.delegate = self;
-////                
-////                try fm.copyItem(at: URL(fileURLWithPath: exportFolder, isDirectory: true),
-////                                                 to: url.appendingPathComponent("songs++index", isDirectory: true));
-////            }
-////            catch
-////            {
-////                reportMessage(uic: self, message: "copy failed: \(error)")
-////            }
-//        }
-//    }
     
     func fileManager(_ fileManager: FileManager, shouldCopyItemAtPath srcPath: String, toPath dstPath: String) -> Bool {
         let exists = fileManager.fileExists(atPath: dstPath);
@@ -822,41 +806,29 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
     let aboutText =
     """
     About Songs++
-    1.0
+    2.0
     	
-    A simple and reliable music file player with these great attributes:
-    * Play music files from your MEGA online storage account.
-    * Songs are cached as part of the app's storage.
-    * The next two songs to be played are downloaded and cached.
-    * Works offline (without an internet connection) to play already cached songs.
-    * Near-Zero Energy Impact in offline mode, Low Impact in online mode.
-    * Download and cache as many songs as you want ahead of time.
-    * Browse your songs in the folder and file structure of your MEGA account, online or offline.
-    * UI design avoids accidentally changing the playing song.
-    * Just one simple list of the upcoming queued songs
-    * Create or update playlists which are simple JSON files.
-    * Save your new and updated playlists back to your MEGA account.
-    * View by filename or by Track and Artist names
-    * Extract Track and Artist names from music files (functionality from libtag)
-    * Make and save short notes on your music tracks, along with BPM
-    * File types considered playable (can be queued, iOS actually plays them): mp3, flac, m4a, aac, wav, aiff, au, pcm, ac3, aa, aax
-    * Starts offline to minimise network use, go online easily anytime.
-    * Choose your music and playlist folders, and browsing outside those folders won't be possible
-    * An option to log into one folder of your MEGA account, for privacy and minimal RAM use.
+    A simple and reliable music file player:
+    * Play your own music files
+    * Load songs from a network folder
+    * Songs play offline
+    * Avoids accidentally changing playing song
+    * Simple single play queue
+    * Make and update playlists
+    * Copy playlists back to the network folder
+    * View Track and Artist or Filename
+    * Record BPM and notes per song
+    * Songs use app storage
+    * No iCloud storage used
+    * Your network folder is your backup
     """;
     
     let versionText =
     """
     Version history
     
-    1.0.2
-    * Fixed deletion of single items from Play Queue History
-    
-    1.0.1
-    * Created a free/Lite version of the app, limited to adding 25 items to the play queue at once.
-    
-    1.0
-    * Initial version
+    2.0
+    * Swap to using network folder instead of MEGA
     """
     
     let howtoText =

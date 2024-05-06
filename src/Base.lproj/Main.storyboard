@@ -1536,86 +1536,53 @@
                         <rect key="frame" x="0.0" y="0.0" width="430" height="932"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Tr8-wN-7cq">
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Tr8-wN-7cq">
                                 <rect key="frame" x="0.0" y="103" width="430" height="697"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="zxj-iJ-WZB">
-                                        <rect key="frame" x="10" y="10" width="430" height="360"/>
+                                        <rect key="frame" x="0.0" y="10" width="430" height="170.66666666666666"/>
                                         <subviews>
-                                            <button opaque="NO" tag="99" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wRn-O1-P0l">
-                                                <rect key="frame" x="0.0" y="0.0" width="430" height="82.333333333333329"/>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3ge-PO-31r">
+                                                <rect key="frame" x="0.0" y="0.0" width="430" height="34.333333333333336"/>
+                                                <state key="normal" title="Button"/>
+                                                <buttonConfiguration key="configuration" style="plain" title="Pick music source Network Folder"/>
+                                                <connections>
+                                                    <action selector="PickNetworkFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="rEQ-DG-xe9"/>
+                                                </connections>
+                                            </button>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="&lt;Folder not chosen yet&gt;" textAlignment="center" lineBreakMode="characterWrap" numberOfLines="3" baselineAdjustment="alignBaselines" enabled="NO" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aAa-bz-nuV">
+                                                <rect key="frame" x="0.0" y="34.333333333333343" width="430" height="14.333333333333336"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uS7-mG-qPC">
+                                                <rect key="frame" x="0.0" y="48.666666666666657" width="430" height="34.333333333333343"/>
+                                                <state key="normal" title="Button"/>
+                                                <buttonConfiguration key="configuration" style="plain" title="Load from Network Folder"/>
+                                                <connections>
+                                                    <action selector="LoadFromNetworkFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="zGT-x3-boc"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2l5-cx-a4J">
+                                                <rect key="frame" x="0.0" y="83" width="430" height="34.333333333333343"/>
+                                                <state key="normal" title="Button"/>
+                                                <buttonConfiguration key="configuration" style="plain" title="Export updates to Network Folder"/>
+                                                <connections>
+                                                    <action selector="ExportUpdatesToNetworkFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="b69-Ug-gxR"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" tag="99" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wRn-O1-P0l">
+                                                <rect key="frame" x="0.0" y="117.33333333333334" width="430" height="33"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                 <state key="normal" title="About"/>
                                                 <connections>
                                                     <segue destination="woN-P9-xVM" kind="push" id="2OH-Ib-MJF"/>
                                                 </connections>
                                             </button>
-                                            <button opaque="NO" tag="98" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Pzo-Og-v7H">
-                                                <rect key="frame" x="0.0" y="82.333333333333343" width="430" height="30"/>
-                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                                <state key="normal" title="Version History"/>
-                                                <connections>
-                                                    <segue destination="woN-P9-xVM" kind="push" id="FRN-tT-wfg"/>
-                                                </connections>
-                                            </button>
-                                            <button opaque="NO" tag="97" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="RBK-S4-lLN">
-                                                <rect key="frame" x="0.0" y="112.33333333333334" width="430" height="30"/>
-                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                                <state key="normal" title="How the App works"/>
-                                                <connections>
-                                                    <segue destination="woN-P9-xVM" kind="push" id="QhH-eg-gF4"/>
-                                                </connections>
-                                            </button>
-                                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2X6-ym-ho0">
-                                                <rect key="frame" x="0.0" y="142.33333333333334" width="430" height="30"/>
-                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                                <state key="normal" title="Clear File Cache..."/>
-                                                <connections>
-                                                    <action selector="OnClearFileCacheClicked:" destination="m7B-uG-kn7" eventType="touchUpInside" id="luf-ux-S8j"/>
-                                                </connections>
-                                            </button>
-                                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MB5-xC-qmh">
-                                                <rect key="frame" x="0.0" y="172.33333333333331" width="430" height="30"/>
-                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                                <state key="normal" title="Acknowledgements"/>
-                                                <connections>
-                                                    <segue destination="Tcc-1w-9D5" kind="push" id="wLb-qr-vRz"/>
-                                                </connections>
-                                            </button>
-                                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VUG-e4-UzH">
-                                                <rect key="frame" x="0.0" y="202.33333333333331" width="430" height="34.333333333333343"/>
-                                                <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="plain" title="Export Metadata"/>
-                                                <connections>
-                                                    <action selector="onExportMetadata:" destination="m7B-uG-kn7" eventType="touchUpInside" id="yEl-WQ-s8t"/>
-                                                </connections>
-                                            </button>
-                                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="pIS-ad-pDJ">
-                                                <rect key="frame" x="0.0" y="236.66666666666669" width="430" height="34.333333333333314"/>
-                                                <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="plain" title="Import from Shared Folder"/>
-                                                <connections>
-                                                    <action selector="onImportFromSharedFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="zg3-BA-sZO"/>
-                                                </connections>
-                                            </button>
-                                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uS7-mG-qPC">
-                                                <rect key="frame" x="0.0" y="271" width="430" height="34.333333333333314"/>
-                                                <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="plain" title="Load from Network Folder"/>
-                                                <connections>
-                                                    <action selector="LoadFromNetworkFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="kvk-0F-QRz"/>
-                                                </connections>
-                                            </button>
-                                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Pzl-YB-6ih">
-                                                <rect key="frame" x="0.0" y="305.33333333333331" width="430" height="34.333333333333314"/>
-                                                <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="plain" title="Sync changes with Network Folder"/>
-                                                <connections>
-                                                    <action selector="SyncChangesWithNetworkFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="Sgr-35-yaF"/>
-                                                </connections>
-                                            </button>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="~ - ~ - ~ - ~ - ~ - ~ - ~" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oIY-nW-Ldz">
-                                                <rect key="frame" x="0.0" y="339.66666666666669" width="430" height="20.333333333333314"/>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="253" verticalHuggingPriority="253" verticalCompressionResistancePriority="250" text="~ - ~ - ~ - ~ - ~ - ~ - ~" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oIY-nW-Ldz">
+                                                <rect key="frame" x="0.0" y="150.33333333333331" width="430" height="20.333333333333343"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
@@ -1626,12 +1593,10 @@
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <constraints>
                                     <constraint firstItem="zxj-iJ-WZB" firstAttribute="leading" secondItem="rk2-Bz-2RJ" secondAttribute="leading" constant="10" id="5IV-cb-tde"/>
-                                    <constraint firstItem="zxj-iJ-WZB" firstAttribute="leading" secondItem="ca5-BH-Do3" secondAttribute="leading" constant="10" id="7M8-fw-sVx"/>
-                                    <constraint firstItem="zxj-iJ-WZB" firstAttribute="trailing" secondItem="ca5-BH-Do3" secondAttribute="trailing" constant="10" id="INC-Nq-5al"/>
+                                    <constraint firstItem="zxj-iJ-WZB" firstAttribute="leading" secondItem="ca5-BH-Do3" secondAttribute="leading" id="7M8-fw-sVx"/>
+                                    <constraint firstItem="zxj-iJ-WZB" firstAttribute="trailing" secondItem="ca5-BH-Do3" secondAttribute="trailing" id="INC-Nq-5al"/>
                                     <constraint firstItem="zxj-iJ-WZB" firstAttribute="top" secondItem="ca5-BH-Do3" secondAttribute="top" constant="10" id="YWf-cE-QKE"/>
-                                    <constraint firstItem="zxj-iJ-WZB" firstAttribute="trailing" secondItem="rk2-Bz-2RJ" secondAttribute="trailing" constant="438" id="s9P-QL-CEh"/>
                                     <constraint firstItem="zxj-iJ-WZB" firstAttribute="top" secondItem="rk2-Bz-2RJ" secondAttribute="top" constant="10" id="uGw-az-mZn"/>
-                                    <constraint firstItem="zxj-iJ-WZB" firstAttribute="bottom" secondItem="rk2-Bz-2RJ" secondAttribute="bottom" constant="370" id="xzR-WH-8GO"/>
                                 </constraints>
                                 <viewLayoutGuide key="contentLayoutGuide" id="rk2-Bz-2RJ"/>
                                 <viewLayoutGuide key="frameLayoutGuide" id="ca5-BH-Do3"/>
@@ -1650,6 +1615,9 @@
                     <toolbarItems/>
                     <navigationItem key="navigationItem" title="Menu" id="aNv-C9-32d"/>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
+                    <connections>
+                        <outlet property="networkFolder" destination="aAa-bz-nuV" id="OnQ-XV-mmS"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="hi8-xj-igx" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -1724,14 +1692,14 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="y9Y-cV-pLd">
-                                <rect key="frame" x="8" y="111.00000000000001" width="414" height="142.33333333333337"/>
+                                <rect key="frame" x="8" y="67.000000000000014" width="414" height="142.33333333333337"/>
                                 <string key="text">Many thanks to the C++ libraries that made this project possible.  Below the libraries are named, and the button will show the licence or copyright notice for that library.  Most of them are dependendies of the MEGA SDK of course.  And thanks to vcpkg which makes these libaries easy to build, and gather the licences.</string>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="cg6-9L-u8C">
-                                <rect key="frame" x="166.66666666666666" y="279" width="96.999999999999972" height="258"/>
+                                <rect key="frame" x="166.66666666666666" y="235" width="96.999999999999972" height="258"/>
                                 <subviews>
                                     <button opaque="NO" tag="1" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OMK-5J-P1v">
                                         <rect key="frame" x="0.0" y="0.0" width="97" height="30"/>
@@ -1878,7 +1846,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="QhH-eg-gF4"/>
+        <segue reference="2OH-Ib-MJF"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="book.circle" catalog="system" width="128" height="123"/>

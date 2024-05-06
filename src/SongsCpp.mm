@@ -21,6 +21,7 @@
 #include "/Users/matt/repos/sdk/include/mega/posix/megafs.h"
 
 #include <copyfile.h>	
+#include <fts.h>
 
 #pragma clang diagnostic pop
 
@@ -154,6 +155,10 @@ public:
     }
 };
 
+string errText(int e)
+{
+    return to_string(e) + " (" + strerror(e) + ")";
+}
 
 bool scanOneFolder(LocalPath path, std::vector<StrB>& leafs, string& err)
 {
@@ -162,8 +167,8 @@ bool scanOneFolder(LocalPath path, std::vector<StrB>& leafs, string& err)
     unique_ptr<DIR> dp(opendir(path.toPath().c_str()));
     if (!dp) 
     {
-        auto e = errno;
-        err = "Error " + std::to_string(e) + " opening folder to scan at: " + path.toPath();
+        auto e = errText(errno);
+        err = "Error " + e + " opening folder to scan at: " + path.toPath();
         return false;
     }
     while (dirent* d = ::readdir(dp.get()))
@@ -189,8 +194,8 @@ bool scanOneFolder(LocalPath path, std::vector<StrB>& leafs, string& err)
     }
     if (errno)
     {
-        auto e = errno;
-        err = "Error " + std::to_string(e) + " during scan of: " + path.toPath();
+        auto e = errText(errno);
+        err = "Error " + e + " during scan of: " + path.toPath();
         if (n)
         {
             err += " after already scanning "+ std::to_string(n) + "entries";
@@ -287,9 +292,62 @@ bool scan(LocalPath lhsPath, LocalPath rhsPath, string& err, scanQueue& sq)
     return false;
 }
 
+int recursive_delete(const char *dir)
+{
+    int ret = 0;
+
+    char *files[] = { (char*)dir, NULL };
+
+    // FTS_NOCHDIR  - Avoid changing cwd, which could cause unexpected behavior
+    //                in multithreaded programs
+    // FTS_PHYSICAL - Don't follow symlinks. Prevents deletion of files outside
+    //                of the specified directory
+    // FTS_XDEV     - Don't cross filesystem boundaries
+    FTS *ftsp = fts_open(files, FTS_NOCHDIR | FTS_PHYSICAL | FTS_XDEV, NULL);
+    if (!ftsp) {
+        return errno;
+    }
+
+    FTSENT *curr;
+    while ((curr = fts_read(ftsp))) {
+        switch (curr->fts_info) {
+        case FTS_NS:
+        case FTS_DNR:
+        case FTS_ERR:
+             fts_close(ftsp);
+             return curr->fts_errno;
+
+        case FTS_DC:
+        case FTS_DOT:
+        case FTS_NSOK:
+            // Not reached unless FTS_LOGICAL, FTS_SEEDOT, or FTS_NOSTAT were passed to fts_open()
+            break;
+
+        case FTS_D:
+            // wait for post-order
+            break;
+
+        case FTS_DP:
+        case FTS_F:
+        case FTS_SL:
+        case FTS_SLNONE:
+        case FTS_DEFAULT:
+            if (remove(curr->fts_accpath) < 0) {
+                int e = errno;
+                fts_close(ftsp);
+                return e;
+            }
+            break;
+        }
+    }
+    
+    fts_close(ftsp);
+    return 0;
+}
+
 shared_ptr<scanQueue> curScan;
 
-+ (bool)StartScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath {
++ (bool)StartScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath removeUnmatchedOnRight:(bool)removeUnmatchedOnRight {
     
     PosixFileSystemAccess fsa;
     
@@ -302,7 +360,7 @@ shared_ptr<scanQueue> curScan;
     
     for (int i = 0; i < 5; ++i)
     {
-        curScan->threadVec.emplace_back(std::thread([sq = curScan](){
+        curScan->threadVec.emplace_back(std::thread([sq = curScan, removeUnmatchedOnRight](){
             scanAction op;
             while (sq->pop(op))
             {
@@ -322,7 +380,7 @@ shared_ptr<scanQueue> curScan;
                             // skip existing files
                         }
                         else {
-                            sq->fail("File/Folder mismatch at " + op.lhsPath.toPath() + " " + op.rhsPath.toPath());
+                            sq->fail("File/Folder mismatch at " + op.lhsPath.leafName().toPath());
                         }
                         break;
                         
@@ -336,8 +394,8 @@ shared_ptr<scanQueue> curScan;
                             
                             if (!mkdir_success)
                             {
-                                auto e = errno;
-                                sq->fail("Error " + std::to_string(e) + " creating folder  " + op.rhsPath.toPath());
+                                auto e = errText(errno);
+                                sq->fail("Error " + e + " creating folder  " + op.rhsPath.leafName().toPath());
                             }
                             else if (!scan(op.lhsPath, op.rhsPath, err, *sq))
                             {
@@ -356,13 +414,30 @@ shared_ptr<scanQueue> curScan;
 
                             if (cfe)
                             {
-                                auto e = errno;
-                                sq->fail("Error " + std::to_string(cfe) + " " + std::to_string(e) + " copying  " + op.lhsPath.toPath() + " to " + op.rhsPath.toPath());
+                                if (cfe == -1) cfe = errno;
+                                
+                                sq->fail("Error " + errText(cfe) + " copying  " + op.lhsPath.leafName().toPath());
                             }
                         }
                         break;
                         
                     case RightPresent:
+                        if (removeUnmatchedOnRight)
+                        {
+                            if (op.rhsFolder)
+                            {
+                                int err = recursive_delete(op.rhsPath.toPath().c_str());
+                                if (err)
+                                {
+                                    sq->fail("Error " + errText(err) + " removing folder " + op.rhsPath.leafName().toPath());
+                                }
+                            }
+                            else if (0 != unlink(op.rhsPath.toPath().c_str()))
+                            {
+                                auto e = errText(errno);
+                                sq->fail("Error " + e + " removing " + op.rhsPath.leafName().toPath());
+                            }
+                        }
                         break;
                         
                 }
