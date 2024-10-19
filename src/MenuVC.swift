@@ -86,14 +86,22 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         };
         
         removeUnmatchedOption.flag = false;
-        skipCopyOnMatch.flag = false;
+        skipCopyOnMatch.flag = true;
         checkModifiedDate.flag = false;
         checkFingerprint.flag = false;
+        onlyCheckIndex.flag = false;
         
         let optionsAlert = UIAlertController(title: "Load from Network Folder", message: "Select options for deciding whether to copy files that are already present, or remove files that are no longer present in the source folder", preferredStyle: .alert)
-        optionsAlert.addTextField( configurationHandler: { newTextField in self.skipCopyOnMatch.takeOverTextField(newTextField: newTextField)  });
-        optionsAlert.addTextField( configurationHandler: { newTextField in self.checkModifiedDate.takeOverTextField(newTextField: newTextField)  });
-        optionsAlert.addTextField( configurationHandler: { newTextField in self.removeUnmatchedOption.takeOverTextField(newTextField: newTextField)  });
+        optionsAlert.addTextField( configurationHandler: { newTextField in 
+            self.skipCopyOnMatch.takeOverTextField(
+                newTextField: newTextField,
+                notifyChange: {(b)->Void in self.checkModifiedDate.setCheckbox(!b, notify: false)})});
+        optionsAlert.addTextField( configurationHandler: { newTextField in
+            self.checkModifiedDate.takeOverTextField(
+                newTextField: newTextField,
+                notifyChange: {(b)->Void in self.skipCopyOnMatch.setCheckbox(!b, notify: false)})});
+        optionsAlert.addTextField( configurationHandler: { newTextField in 
+            self.removeUnmatchedOption.takeOverTextField(newTextField: newTextField, notifyChange: nil)});
 
         optionsAlert.addAction(UIAlertAction(title: "Import from Network Folder", style: .default, handler: { (UIAlertAction) -> Void in
             self.ImportFiles();
@@ -104,10 +112,11 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
     }
 
     let removeUnmatchedOption = ContextMenuCheckbox("Remove unmatched files", false);
-    let skipCopyOnMatch = ContextMenuCheckbox("Skip matching name", false);
-    let checkModifiedDate = ContextMenuCheckbox("Copy if newer", false);
+    let skipCopyOnMatch = ContextMenuCheckbox("Skip already existing", false);
+    let checkModifiedDate = ContextMenuCheckbox("Copy only if newer", false);
     let checkFingerprint = ContextMenuCheckbox("Compare file fingerprint", false);
-    
+    let onlyCheckIndex = ContextMenuCheckbox("Just index/playlists", false);
+
     @IBAction func ExportUpdatesToNetworkFolder(_ sender: Any) {
 
         guard securityURL != nil && securityURL!.absoluteString != "" else
@@ -124,12 +133,26 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
 
         removeUnmatchedOption.flag = false;
         skipCopyOnMatch.flag = false;
-        checkModifiedDate.flag = false;
+        checkModifiedDate.flag = true;
         checkFingerprint.flag = false;
+        onlyCheckIndex.flag = true;
         
-        let optionsAlert = UIAlertController(title: "Export updates to Network Folder", message: "Select options for deciding whether to copy files that are already present, or remove files that are no longer present in the source folder", preferredStyle: .alert)
-        optionsAlert.addTextField( configurationHandler: { newTextField in self.skipCopyOnMatch.takeOverTextField(newTextField: newTextField)  });
-        optionsAlert.addTextField( configurationHandler: { newTextField in self.checkModifiedDate.takeOverTextField(newTextField: newTextField)  });
+        let optionsAlert = UIAlertController(
+            title: "Export updates to Network Folder",
+            message: "You can update just those that are newer, or skip all that are already present. Just checking index and playlists is faster if that is all that has changed.", preferredStyle: .alert)
+        optionsAlert.addTextField( configurationHandler: { newTextField in
+            self.skipCopyOnMatch.takeOverTextField(
+                newTextField: newTextField,
+                notifyChange: {(b)->Void in self.checkModifiedDate.setCheckbox(!b, notify: false)})});
+        optionsAlert.addTextField( configurationHandler: { newTextField in
+            self.checkModifiedDate.takeOverTextField(
+                newTextField: newTextField,
+                notifyChange: {(b)->Void in self.skipCopyOnMatch.setCheckbox(!b, notify: false)})  });
+        
+        optionsAlert.addTextField( configurationHandler: { newTextField in
+            self.onlyCheckIndex.takeOverTextField(
+                newTextField: newTextField,
+                notifyChange: nil)  });
         
         optionsAlert.addAction(UIAlertAction(title: "Export Updates", style: .default, handler: { (UIAlertAction) -> Void in
             self.ExportUpdates();
@@ -147,7 +170,7 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
             source.removeFirst(7);
         }
         
-        if (!SongsCPP.startScanDoubleDirs(source, rhs: Path(rp: "", r: .SyncFolder, f: true).fullPath(), removeUnmatchedOnRight: self.removeUnmatchedOption.flag))
+        if (!SongsCPP.startScanDoubleDirs(source, rhs: Path(rp: "", r: .MusicSyncFolder, f: true).fullPath(), removeUnmatchedOnRight: self.removeUnmatchedOption.flag, compareMtimeForCopy: self.checkModifiedDate.flag))
         {
             reportMessage(uic: self, message: "Recursive copy failed to start");
             return;
@@ -168,7 +191,15 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
             target.removeFirst(7);
         }
         
-        if (!SongsCPP.startScanDoubleDirs(Path(rp: "", r: .SyncFolder, f: true).fullPath(), rhs: target, removeUnmatchedOnRight: false))
+        var source = Path(rp: "", r: .MusicSyncFolder, f: true).fullPath();
+        
+        if (onlyCheckIndex.flag)
+        {
+            source = Path(rp: "", r: .IndexFolder, f: true).fullPath();
+            target += "/songs++index";
+        }
+        
+        if (!SongsCPP.startScanDoubleDirs(source, rhs: target, removeUnmatchedOnRight: false, compareMtimeForCopy: self.checkModifiedDate.flag))
         {
             reportMessage(uic: self, message: "Recursive copy failed to start");
             return;
@@ -195,9 +226,18 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         var finalErr : NSString? = nil;
         SongsCPP.shutdownScanDoubleDirs(&finalErr);
         
-        if (finalErr != nil && finalErr! != "" && finalErr! != "cancelled")
+        if (finalErr != nil && finalErr! != "")
         {
-            reportMessage(uic: self, message: String(finalErr!));
+            if (finalErr! != "cancelled") {
+                reportMessage(uic: self, message: String(finalErr!));
+            }
+        }
+        else
+        {
+            scanCopyAlertCtrl = UIAlertController(title: "Task complete", message: "", preferredStyle: .actionSheet)
+            scanCopyAlertCtrl!.addAction(UIAlertAction(title: "Close", style: .cancel, handler: nil));
+            self.present(scanCopyAlertCtrl!, animated: false, completion: nil)
+            updateScanCopyMessage();
         }
         
         if (securityURL != nil)
@@ -214,16 +254,19 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
             return;
         }
         
-        //var str1: NSString? = nil;
-        //var str2: NSString? = nil;
-
+        updateScanCopyMessage();
+    }
+    
+    func updateScanCopyMessage()
+    {
         let sp = SongsCPP.currentScanPaths();
         let cp = SongsCPP.currentCopyPaths();
         var scanWaiting : NSInteger = 0;
         var scanDone : NSInteger = 0;
         var copyWaiting : NSInteger = 0;
+        var copySkipped : NSInteger = 0;
         var copyDone : NSInteger = 0;
-        SongsCPP.scanCopyCounts(&scanWaiting, &scanDone, &copyWaiting, &copyDone);
+        SongsCPP.scanCopyCounts(&scanWaiting, &scanDone, &copyWaiting, &copySkipped, &copyDone);
 
         var m = "";
         for s in sp! {
@@ -246,8 +289,8 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
                 m += short + "\n";
             }
         }
-        m += "folders queued:\(scanWaiting) done:\(scanDone)\n";
-        m += "files queued:\(copyWaiting) done:\(copyDone)\n";
+        m += "folders queued:\(scanWaiting) scanned:\(scanDone)\n";
+        m += "files queued:\(copyWaiting) skipped:\(copySkipped) copied:\(copyDone)\n";
 
         scanCopyAlertCtrl!.message = m;
     }

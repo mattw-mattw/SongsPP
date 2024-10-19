@@ -76,7 +76,7 @@ func loadSongsFromPlaylistRecursive(json: Any, _ v : inout [Path], recurse: Bool
         for object in array {
             if let attribs = object as? [String : String] {
                 if let p = attribs["npath"] {
-                    v.append(Path(rp: p, r: Path.RootType.MusicRoot, f: false))
+                    v.append(Path(rp: p, r: Path.RootType.MusicSyncFolder, f: false))
                 }
             }
 //                if let attribs = object as? [String : Any] {
@@ -263,24 +263,24 @@ class Path
     static var folderManager = FolderManager()
     
     enum RootType {
-        case MusicRoot
+        case MusicSyncFolder
         case PlaylistRoot
         case ThumbRoot
         case IndexFile
-        case SyncFolder
+        case IndexFolder
         case Settings
     }
     
-    var rt : RootType = RootType.MusicRoot;
+    var rt : RootType = RootType.MusicSyncFolder;
     
     func fullPath() -> String
     {
         switch (rt) {
-        case .MusicRoot : return Path.folderManager.syncFolderPath() + "/" + relativePath;
+        case .MusicSyncFolder : return Path.folderManager.syncFolderPath() + "/" + relativePath;
         case .PlaylistRoot : return Path.folderManager.syncFolderPath() + "/songs++index/playlist/" + relativePath;
         case .ThumbRoot : return Path.folderManager.syncFolderPath() + "/songs++index/thumb/" + relativePath + ".jpg";
         case .IndexFile: return  Path.folderManager.syncFolderPath() + "/songs++index/songs++index.json";
-        case .SyncFolder: return  Path.folderManager.syncFolderPath();
+        case .IndexFolder: return  Path.folderManager.syncFolderPath() + "/songs++index";
         case .Settings: return  Path.folderManager.settingsPath() + "/" + relativePath;
         }
     }
@@ -316,9 +316,9 @@ class Path
     func edited() -> Path
     {
         let p = Path(rp: relativePath, r: rt, f: isFolder);
-        if !p.hasSuffix(".edited") {
-            p.relativePath.append(".edited");
-        }
+//        if !p.hasSuffix(".edited") {
+//            p.relativePath.append(".edited");
+//        }
         return p;
     }
 
@@ -482,7 +482,7 @@ class IntentHandler: NSObject, INPlayMediaIntentHandling {
 
         let searchLocation = intent.mediaSearch!.mediaType == .playlist ?
             Path(rp: "", r: Path.RootType.PlaylistRoot, f: true) :
-            Path(rp: "", r: Path.RootType.MusicRoot, f: true);
+            Path(rp: "", r: Path.RootType.MusicSyncFolder, f: true);
         
 //        if (searchLocation == nil)
 //        {
@@ -1087,7 +1087,7 @@ func menuAction_addToPlaylistExact(playlistPath : Path, songToAdd: Path, viewCon
             let s = globals.playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: songs);
             
             let url = URL(fileURLWithPath: playlistPath.edited().fullPath());
-            try! s.write(to: url, atomically: true, encoding: .ascii)
+            try! s.write(to: url, atomically: true, encoding: .utf8)
             
             for i in 0..<app().recentPlaylists.count {
                 if (app().recentPlaylists[i] == playlistPath) {

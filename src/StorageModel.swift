@@ -181,7 +181,7 @@ class StorageModel {
 //    
     func lookupSong(_ n: Path) -> [String : String]?
     {
-        assert(n.rt == Path.RootType.MusicRoot);
+        assert(n.rt == Path.RootType.MusicSyncFolder);
         
         var result = index[n.relativePath];
         if result != nil && result!["title"] == nil {

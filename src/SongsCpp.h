@@ -11,11 +11,11 @@
 @interface SongsCPP : NSObject {}
 
 + (bool)GetSongProperties:(NSString *)filePath title:(NSString **)title artist:(NSString **)artist bpm:(NSString **)bpm ;
-+ (bool)StartScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath removeUnmatchedOnRight:(bool)removeUnmatchedOnRight;
++ (bool)StartScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath removeUnmatchedOnRight:(bool)removeUnmatchedOnRight compareMtimeForCopy:(bool)compareMtimeForCopy;
 + (bool)isFinishedScanDoubleDirs;
 + (bool)ShutdownScanDoubleDirs:(NSString **)err;
 + (NSMutableArray*)currentScanPaths;
 + (NSMutableArray*)currentCopyPaths;
-+ (void)scanCopyCounts:(NSInteger *)scanWaiting :(NSInteger *)scanDone :(NSInteger *)copyWaiting :(NSInteger *)copyDone;
++ (void)scanCopyCounts:(NSInteger *)scanWaiting :(NSInteger *)scanDone :(NSInteger *)copyWaiting :(NSInteger *)copySkipped :(NSInteger *)copyDone;
 
 @end

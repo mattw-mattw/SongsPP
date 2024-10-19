@@ -238,11 +238,11 @@ class PlayQueueTVC: UITableViewController {
         let alert = UIAlertController(title: nil, message: "Mode", preferredStyle: .alert)
         
         alert.addTextField( configurationHandler: { newTextField in
-            self.rearrangeModeCheckbox.takeOverTextField(newTextField: newTextField)
+            self.rearrangeModeCheckbox.takeOverTextField(newTextField: newTextField, notifyChange: nil)
         });
 
         alert.addTextField( configurationHandler: { newTextField in
-            self.noHistoryModeCheckbox.takeOverTextField(newTextField: newTextField)
+            self.noHistoryModeCheckbox.takeOverTextField(newTextField: newTextField, notifyChange: nil)
         });
         
         alert.addAction(UIAlertAction(title: "Done", style: .cancel, handler: { (UIAlertAction) -> Void in

@@ -13,6 +13,7 @@ class ContextMenuCheckbox : NSObject, UITextFieldDelegate {
     
     var flag : Bool = false;
     var imageButton : UIButton = UIButton(frame: CGRect(x: 0, y: 0, width: 50, height: 50));
+    var notifyChangeFunc: ((Bool) -> Void)? = nil;
 
     init(_ text: String, _ initial : Bool)
     {
@@ -26,13 +27,13 @@ class ContextMenuCheckbox : NSObject, UITextFieldDelegate {
         imageButton.setTitleColor(.label, for: .selected)
     }
     
-    func takeOverTextField(newTextField : UITextField)
+    func takeOverTextField(newTextField : UITextField, notifyChange: ((Bool) -> Void)?)
     {
+        notifyChangeFunc = notifyChange;
         newTextField.text = ""
         newTextField.isEnabled = true;
         
-        flag = !flag;
-        toggleCheckbox(newTextField);
+        setCheckbox(flag, notify: false);
         imageButton.addTarget(self, action: #selector(self.toggleCheckbox(_:)), for: .touchUpInside)
 
         newTextField.leftView = imageButton;
@@ -42,9 +43,14 @@ class ContextMenuCheckbox : NSObject, UITextFieldDelegate {
     }
     
     @objc func toggleCheckbox(_ textField: UITextField) {
-        flag = !flag;
+        setCheckbox(!flag, notify: true);
+    }
+    
+    func setCheckbox(_ value : Bool, notify : Bool) {
+        flag = value;
         imageButton.isEnabled = true;
-        imageButton.isSelected = flag;
+        imageButton.isSelected = value;
+        if (notify && notifyChangeFunc != nil) { notifyChangeFunc!(value); }
     }
     
     func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool
@@ -271,10 +277,10 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         let alert = UIAlertController(title: nil, message: "Filter on cached or not", preferredStyle: .alert)
         
         alert.addTextField( configurationHandler: { newTextField in
-            self.filterIncludeDownloaded.takeOverTextField(newTextField: newTextField)
+            self.filterIncludeDownloaded.takeOverTextField(newTextField: newTextField, notifyChange: nil)
         });
         alert.addTextField( configurationHandler: { newTextField in
-            self.filterIncludeNonDownloaded.takeOverTextField(newTextField: newTextField)
+            self.filterIncludeNonDownloaded.takeOverTextField(newTextField: newTextField, notifyChange: nil)
         });
         
         alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (UIAlertAction) -> () in
@@ -392,10 +398,14 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
 //        alert.view.addSubview(imageButton)
 
         alert.addTextField( configurationHandler: { newTextField in
-            self.extractTagsOverwritesExistingTagsCheckbox.takeOverTextField(newTextField: newTextField)
+            self.extractTagsOverwritesExistingTagsCheckbox.takeOverTextField(
+                newTextField: newTextField,
+                notifyChange: nil); //{(b)->Void in self.extractTagsProcessSubfolders.setCheckbox(!b, notify: false)})
         });
         alert.addTextField( configurationHandler: { newTextField in
-            self.extractTagsProcessSubfolders.takeOverTextField(newTextField: newTextField)
+            self.extractTagsProcessSubfolders.takeOverTextField(
+                newTextField: newTextField,
+                notifyChange: nil); //{(b)->Void in self.extractTagsOverwritesExistingTagsCheckbox.setCheckbox(!b, notify: false)})
         });
 //todo
 //        alert.addAction(UIAlertAction(title: "Extract now", style: .default, handler: {
@@ -664,7 +674,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         if isPlaylists() {
             return Path(rp: "", r: Path.RootType.PlaylistRoot, f: true);
         } else {
-            return Path(rp: "", r: Path.RootType.MusicRoot, f: true);
+            return Path(rp: "", r: Path.RootType.MusicSyncFolder, f: true);
         }
     }
     

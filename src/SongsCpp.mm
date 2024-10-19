@@ -70,19 +70,21 @@ class scanQueue
     size_t completeDirCount = 0;
     size_t pushFileCount = 0;
     size_t popFileCount = 0;
-    size_t completeFileCount = 0;
+    size_t skippedCopyCount = 0;
+    size_t completeCopyCount = 0;
 
 public:
     bool exit = false;
     std::vector<std::thread> threadVec;
     
-    void getCounts(size_t& scanWait, size_t& scanDone, size_t& copyWait, size_t& copyDone)
+    void getCounts(size_t& scanWait, size_t& scanDone, size_t& copyWait, size_t& copySkipped, size_t& copyDone)
     {
         lock_guard<mutex> g(m);
         scanWait = pushDirCount - popDirCount;
         scanDone = completeDirCount;
         copyWait = pushFileCount - popFileCount;
-        copyDone = completeFileCount;
+        copySkipped = skippedCopyCount;
+        copyDone = completeCopyCount;
     }
     
     bool pop(scanAction& p)
@@ -121,11 +123,11 @@ public:
         exit = true;
     }
     
-    void completedOne(bool folder)
+    void completedOne(bool folder, bool skipped)
     {
         {
             std::unique_lock<mutex> g(m);
-            (folder ? completeDirCount : completeFileCount) += 1;
+            (folder ? completeDirCount : (skipped ? skippedCopyCount : completeCopyCount)) += 1;
         }
         v.notify_all();
     }
@@ -134,7 +136,7 @@ public:
     {
         std::unique_lock<mutex> g(m);
         if (exit) return true;
-        if (completeDirCount >= pushDirCount && completeFileCount >= pushFileCount) return true;
+        if (completeDirCount >= pushDirCount && (skippedCopyCount + completeCopyCount) >= pushFileCount) return true;
         return false;
     }
 
@@ -151,6 +153,7 @@ public:
         exit = true;
         v.notify_all();
         for (auto& t : threadVec) { t.join(); }
+        threadVec.clear();
         return finalErr;
     }
 };
@@ -347,7 +350,25 @@ int recursive_delete(const char *dir)
 
 shared_ptr<scanQueue> curScan;
 
-+ (bool)StartScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath removeUnmatchedOnRight:(bool)removeUnmatchedOnRight {
+void doCopyFile(const scanAction& op, scanQueue& sq)
+{
+    scanDisplayPaths.addCopy(op.lhsPath.leafName().toPath());
+    
+    copyfile_state_t cfs = ::copyfile_state_alloc();
+    auto cfe = copyfile(op.lhsPath.toPath().c_str(), op.rhsPath.toPath().c_str(), cfs, COPYFILE_DATA | COPYFILE_STAT);
+    copyfile_state_free(cfs);
+
+    scanDisplayPaths.removeCopy(op.lhsPath.leafName().toPath());
+
+    if (cfe)
+    {
+        if (cfe == -1) cfe = errno;
+        
+        sq.fail("Error " + errText(cfe) + " copying  " + op.lhsPath.leafName().toPath());
+    }
+}
+
++ (bool)StartScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath removeUnmatchedOnRight:(bool)removeUnmatchedOnRight compareMtimeForCopy:(bool)compareMtimeForCopy {
     
     PosixFileSystemAccess fsa;
     
@@ -360,10 +381,11 @@ shared_ptr<scanQueue> curScan;
     
     for (int i = 0; i < 5; ++i)
     {
-        curScan->threadVec.emplace_back(std::thread([sq = curScan, removeUnmatchedOnRight](){
+        curScan->threadVec.emplace_back(std::thread([sq = curScan, removeUnmatchedOnRight, compareMtimeForCopy](){
             scanAction op;
             while (sq->pop(op))
             {
+                bool copied = false;
                 switch (op.at)
                 {
                     case BothPresent:
@@ -377,7 +399,25 @@ shared_ptr<scanQueue> curScan;
                         }
                         else if (!op.lhsFolder && !op.rhsFolder)
                         {
-                            // skip existing files
+                            if (compareMtimeForCopy)
+                            {
+                                struct stat lhs_stat, rhs_stat;
+                                if (0 != stat(op.lhsPath.toPath().c_str(), &lhs_stat) ||
+                                    0 != stat(op.rhsPath.toPath().c_str(), &rhs_stat))
+                                {
+                                    auto e = errText(errno);
+                                    sq->fail("Error " + e + " getting modified time for  " + op.rhsPath.leafName().toPath());
+                                }
+                                else if (lhs_stat.st_mtimespec.tv_sec > rhs_stat.st_mtimespec.tv_sec)
+                                {
+                                    doCopyFile(op, *sq);
+                                    copied = true;
+                                }
+                            }
+                            else
+                            {
+                                // skip existing files without checking anything
+                            }
                         }
                         else {
                             sq->fail("File/Folder mismatch at " + op.lhsPath.leafName().toPath());
@@ -404,20 +444,8 @@ shared_ptr<scanQueue> curScan;
                         }
                         else
                         {
-                            scanDisplayPaths.addCopy(op.lhsPath.leafName().toPath());
-                            
-                            copyfile_state_t cfs = ::copyfile_state_alloc();
-                            auto cfe = copyfile(op.lhsPath.toPath().c_str(), op.rhsPath.toPath().c_str(), cfs, COPYFILE_DATA | COPYFILE_STAT);
-                            copyfile_state_free(cfs);
-
-                            scanDisplayPaths.removeCopy(op.lhsPath.leafName().toPath());
-
-                            if (cfe)
-                            {
-                                if (cfe == -1) cfe = errno;
-                                
-                                sq->fail("Error " + errText(cfe) + " copying  " + op.lhsPath.leafName().toPath());
-                            }
+                            doCopyFile(op, *sq);
+                            copied = true;
                         }
                         break;
                         
@@ -441,7 +469,7 @@ shared_ptr<scanQueue> curScan;
                         break;
                         
                 }
-                sq->completedOne(op.lhsFolder);
+                sq->completedOne(op.lhsFolder, !copied);
             }
         }));
     }
@@ -449,12 +477,13 @@ shared_ptr<scanQueue> curScan;
 }
 
 + (bool)isFinishedScanDoubleDirs {
-    return curScan->isFinished();
+    return curScan ? curScan->isFinished() : true;
 }
 
 + (bool)ShutdownScanDoubleDirs:(NSString **)err {
-    if (!curScan->isFinished()) curScan->cancel();
-    string finalErr = curScan->shutdown();
+    if (curScan && !curScan->isFinished()) curScan->cancel();
+    string finalErr = curScan ? curScan->shutdown() : "";
+    //curScan.reset();
     *err = [[NSString alloc]initWithUTF8String:finalErr.c_str()];
     return finalErr.empty();
 }
@@ -483,15 +512,16 @@ shared_ptr<scanQueue> curScan;
     return fileNames;
 }
 
-+ (void)scanCopyCounts:(NSInteger *)scanWaiting :(NSInteger *)scanDone :(NSInteger *)copyWaiting :(NSInteger *)copyDone {
++ (void)scanCopyCounts:(NSInteger *)scanWaiting :(NSInteger *)scanDone :(NSInteger *)copyWaiting :(NSInteger *)copySkipped :(NSInteger *)copyDone {
     if (curScan)
     {
-        size_t a, b, c, d;
-        curScan->getCounts(a, b, c, d);
+        size_t a, b, c, d, e;
+        curScan->getCounts(a, b, c, d, e);
         *scanWaiting = a;
         *scanDone = b;
         *copyWaiting = c;
-        *copyDone = d;
+        *copySkipped = d;
+        *copyDone = e;
     }
 }
 
