@@ -30,13 +30,59 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         setEnabled();
     }
     
+    @IBAction func FactoryReset(_ sender: Any) {
+        
+        let alert = UIAlertController(
+            title: "Factory Reset",
+            message: "This will erase all songs, playlists, and metadata from the app, to clean up app storage and return it to a just-installed state.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Erase all app data", style: .default, handler: { (UIAlertAction) -> () in self.EraseAllAppData() }));
+        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel, handler: { (UIAlertAction) -> () in }));
+        self.present(alert, animated: false, completion: nil)
+    }
     
+    func EraseAllAppData()
+    {
+        var result : Bool = true;
+        do
+        {
+            try FileManager.default.removeItem(at: URL(fileURLWithPath: Path(rp: "", r: .MusicSyncFolder, f: true).fullPath()));
+            try FileManager.default.removeItem(at: URL(fileURLWithPath: Path(rp: "", r: .Settings, f: true).fullPath()));
+            globals.playQueue.nextSongs = [];
+            globals.playQueue.playedSongs = [];
+            globals.storageModel.index = [:];
+            Path.folderManager.alreadyCreatedFolders = [];
+            _ = Path.folderManager.settingsPath();
+            _ = Path.folderManager.syncFolderPath();
+        }
+        catch {
+            result = false;
+        }
+        if (!result) { reportMessage(uic: self, message: "Error removing files", continuation: nil) }
+    }
+    
+    @IBAction func ConnectNetworkFolder(_ sender: Any) {
+        
+        let alert = UIAlertController(
+            title: "Connect to Network Folder",
+            message: "Use the Files app to connect a Network Folder.   In the Files app, use the '...' menu in the top right.  In that menu, choose 'Connect to Server'.  " +
+            "You will need to have turned on file/folder sharing on your computer, and know its IP or network name.  " +
+            "\nTo get the IP on Mac, click the wifi icon on your menu bar, at top right, and then 'Wifi Settings'. In the dialog that opens, on the connected wifi network, click `Details` and read off the IP Address." +
+            "\nTo get the IP on Windows, click the wifi icon on your task bar, at bottom right, and then the chevron '>' for Wifi.  On the connected wifi network, click the circled 'i' icon and read off the 'IPv4 Address'." +
+            "\nIn the Files app, type that IP into the Server field, prefixed by smb:// (and substiute your computer's IP).  Eg.  smb://192.168.20.20" +
+            "\nEnter your computer Username and Password to connect as a Registered User.  Username is case sensitive." +
+            "\nOnce connected, you will see the IP listed under 'Shared' of the Files App's Browse tab.  Then return to this Songs++ app.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Open Files app", style: .default, handler: { (UIAlertAction) -> () in UIApplication.shared.open(URL(string: "shareddocuments://Connect%20to%20Server")!) }));
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (UIAlertAction) -> () in }));
+        self.present(alert, animated: false, completion: nil)
+    }
+
     @IBAction func PickNetworkFolder(_ sender: Any) {
         
         let alert = UIAlertController(
-            title: "Pick music source Network Folder",
-            message: "First open the Files app and Connect to Server (from its top right '...' menu), for this app to be able to access the network folder on that server.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Open Files app", style: .default, handler: { (UIAlertAction) -> () in UIApplication.shared.open(URL(string: "shareddocuments://Connect%20to%20Server")!) }));
+            title: "Pick Music Folder in Network Folder",
+            message: "Navigate to the connected Network Folder under Shared in the Browse tab, and tap the IP you connected to in the prior step.  You will see the shared folders from your computer.  Navigate to the one that has your music files, and tap 'Open'. " +
+            "Files++ will use the music files in that folder and its subfolders, and will also create a subfolder 'files++index' to keep all the info about those, in JSON format files.  You have the option to edit those directly to set images, update song names, and so on in bulk. " +
+            "The path to the music folder, as known in the app, will be displayed in the main Menu.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Pick Network Folder", style: .default, handler: { (UIAlertAction) -> () in self.pickDocument() }));
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (UIAlertAction) -> () in }));
         self.present(alert, animated: false, completion: nil)
@@ -91,8 +137,14 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         checkFingerprint.flag = false;
         onlyCheckIndex.flag = false;
         
-        let optionsAlert = UIAlertController(title: "Load from Network Folder", message: "Select options for deciding whether to copy files that are already present, or remove files that are no longer present in the source folder", preferredStyle: .alert)
-        optionsAlert.addTextField( configurationHandler: { newTextField in 
+        let optionsAlert = UIAlertController(title: "Load from Network Folder", 
+            message: "This operation loads your music folders and files into the app, copying them from the Network Folder into this app's private storage " +
+                     "(This private storage is not backed up to iCloud, saving you space.  Your network folder is your backup. " +
+                     "If you buy a new phone, you can recopy the files from there).  " +
+                     "\nYou can add or remove or rearrange your music files and folders in the Network Folder, and Load it again later, " +
+                     "which will copy those new and moved files, and optionally remove the ones that are no longer where they were. "
+                     , preferredStyle: .alert)
+        optionsAlert.addTextField( configurationHandler: { newTextField in
             self.skipCopyOnMatch.takeOverTextField(
                 newTextField: newTextField,
                 notifyChange: {(b)->Void in self.checkModifiedDate.setCheckbox(!b, notify: false)})});
@@ -103,7 +155,7 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         optionsAlert.addTextField( configurationHandler: { newTextField in 
             self.removeUnmatchedOption.takeOverTextField(newTextField: newTextField, notifyChange: nil)});
 
-        optionsAlert.addAction(UIAlertAction(title: "Import from Network Folder", style: .default, handler: { (UIAlertAction) -> Void in
+        optionsAlert.addAction(UIAlertAction(title: "Load from Network Folder", style: .default, handler: { (UIAlertAction) -> Void in
             self.ImportFiles();
         }));
 
@@ -170,7 +222,10 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
             source.removeFirst(7);
         }
         
-        if (!SongsCPP.startScanDoubleDirs(source, rhs: Path(rp: "", r: .MusicSyncFolder, f: true).fullPath(), removeUnmatchedOnRight: self.removeUnmatchedOption.flag, compareMtimeForCopy: self.checkModifiedDate.flag))
+        // import known info about songs, know in advance if we need to scan for tags/images
+        globals.storageModel.load(indexFile: Path(rp: source + "/songs++index/songs++index.json", r: .ExternalPath, f: false), updatesFile: nil, uic:self);
+
+        if (!SongsCPP.startScanDoubleDirs(source, rhs: Path(rp: "", r: .MusicSyncFolder, f: true).fullPath(), removeUnmatchedOnRight: self.removeUnmatchedOption.flag, compareMtimeForCopy: self.checkModifiedDate.flag, extractTags: true))
         {
             reportMessage(uic: self, message: "Recursive copy failed to start");
             return;
@@ -191,25 +246,29 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
             target.removeFirst(7);
         }
         
-        var source = Path(rp: "", r: .MusicSyncFolder, f: true).fullPath();
-        
-        if (onlyCheckIndex.flag)
+        if (globals.storageModel.consolidateIndexFileUpdates(uic: self))
         {
-            source = Path(rp: "", r: .IndexFolder, f: true).fullPath();
-            target += "/songs++index";
+            var source = Path(rp: "", r: .MusicSyncFolder, f: true).fullPath();
+            
+            if (onlyCheckIndex.flag)
+            {
+                source = Path(rp: "", r: .IndexFolder, f: true).fullPath();
+                target += "/songs++index";
+                Path.folderManager.assureFolderExists(target, doneName: "")
+            }
+            
+            if (!SongsCPP.startScanDoubleDirs(source, rhs: target, removeUnmatchedOnRight: false, compareMtimeForCopy: self.checkModifiedDate.flag, extractTags: false))
+            {
+                reportMessage(uic: self, message: "Recursive copy failed to start");
+                return;
+            }
+            
+            scanCopyAlertCtrl = UIAlertController(title: "Export updates to Network Folder", message: "Scanning for files to copy, and copying them into the app", preferredStyle: .actionSheet)
+            scanCopyAlertCtrl!.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (UIAlertAction) -> () in self.stopScanCopy() }));
+            self.present(scanCopyAlertCtrl!, animated: false, completion: nil)
+            
+            updateScanCopyTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateScanCopy), userInfo: nil, repeats: true)
         }
-        
-        if (!SongsCPP.startScanDoubleDirs(source, rhs: target, removeUnmatchedOnRight: false, compareMtimeForCopy: self.checkModifiedDate.flag))
-        {
-            reportMessage(uic: self, message: "Recursive copy failed to start");
-            return;
-        }
-
-        scanCopyAlertCtrl = UIAlertController(title: "Export updates to Network Folder", message: "Scanning for files to copy, and copying them into the app", preferredStyle: .actionSheet)
-        scanCopyAlertCtrl!.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (UIAlertAction) -> () in self.stopScanCopy() }));
-        self.present(scanCopyAlertCtrl!, animated: false, completion: nil)
-        
-        updateScanCopyTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateScanCopy), userInfo: nil, repeats: true)
     }
     
     var scanCopyAlertCtrl : UIAlertController? = nil;
@@ -220,9 +279,53 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         updateScanCopyTimer?.invalidate()
         updateScanCopyTimer = nil;
 
+        var path : NSString? = nil;
+        var title : NSString? = nil;
+        var artist : NSString? = nil;
+        var bpm : NSString? = nil;
+        var thumb : NSString? = nil;
+        var duration : NSString? = nil;
+        while (SongsCPP.getNextTagSet(&path, &title, &artist, &bpm, &thumb, &duration))
+        {
+            if (path == nil) { continue; }
+            var p = path! as String;
+            let basePath = Path(rp: "", r: .MusicSyncFolder, f: true).fullPath();
+            p = String(p.dropFirst(basePath.count));
+            var s : [String : String] = [:];
+            s["npath"] = p;
+            if (title != nil && title! != "") { s["title"] = title! as String}
+            if (artist != nil && artist! != "") { s["artist"] = artist! as String}
+            if (bpm != nil && bpm! != "") { s["bpm"] = bpm! as String}
+            if (thumb != nil && thumb! != "") { s["thumb"] = thumb! as String}
+            if (duration != nil && duration! != "") { s["durat"] = duration! as String}
+            globals.storageModel.setSongAttr(Path(rp: p, r: .ExternalPath, f: false), s);
+        }
+        while (SongsCPP.getNextFolderThumb(&path, &thumb))
+        {
+            var p = path! as String;
+            let basePath = Path(rp: "", r: .MusicSyncFolder, f: true).fullPath();
+            p = String(p.dropFirst(basePath.count));
+            do
+            {
+                let parent = Path(rp: p, r: .MusicSyncFolder, f: true);
+                let leafs = try parent.contentsOfDirectory();
+                for l in leafs {
+                    if var attrs = globals.storageModel.lookupSong(l) {
+                        if (attrs["thumb"] != nil) { continue; }
+                        attrs["thumb"] = String(thumb!);
+                        globals.storageModel.setSongAttr(l, attrs);
+                    }
+                }
+            }
+            catch {
+            }
+        }
+        
+        _ = globals.storageModel.store(indexFile: Path(rp: "", r: .IndexFile, f: false), songs: &globals.storageModel.index, uic: self);
+
         scanCopyAlertCtrl?.dismiss(animated: false);
         scanCopyAlertCtrl = nil;
-        
+
         var finalErr : NSString? = nil;
         SongsCPP.shutdownScanDoubleDirs(&finalErr);
         
@@ -848,13 +951,13 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
     
     let aboutText =
     """
-    About Songs++
+    Songs++
     2.0
     	
     A simple and reliable music file player:
     * Play your own music files
     * Load songs from a network folder
-    * Songs play offline
+    * Songs can play offline
     * Avoids accidentally changing playing song
     * Simple single play queue
     * Make and update playlists

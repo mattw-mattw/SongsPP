@@ -184,7 +184,7 @@ class FolderManager
 
     func assureFolderExists(_ url : String, doneName : String) -> Void
     {
-        if (alreadyCreatedFolders.contains(doneName)) { return; }
+        if (doneName != "" && alreadyCreatedFolders.contains(doneName)) { return; }
         do {
             if !FileManager.default.fileExists(atPath: url) {
                 try FileManager.default.createDirectory(atPath: url, withIntermediateDirectories: true, attributes: nil);
@@ -220,34 +220,18 @@ class FolderManager
         return p;
     }
 
-//    func cacheFilesPath() -> String
-//    {
-//        let p = storageBasePath() + "/cache";
-//        assureFolderExists(p, doneName: "cache");
-//        return p;
-//    }
-    
+    func tmpFolderPath() -> String
+    {
+        let p = storageBasePath() + "/tmp";
+        assureFolderExists(p, doneName: "tmp");
+        return p;
+    }
+
     func syncFolderPath() -> String
     {
-
-//        do {
-//            //try FileManager.default.removeItem(atPath: storageBasePath() + "/sync1");
-//            //try FileManager.default.removeItem(atPath: storageBasePath() + "/sync2");
-//            //try FileManager.default.removeItem(atPath: storageBasePath() + "/sync3");
-//            //try FileManager.default.removeItem(atPath: storageBasePath() + "/sync4");
-////            try FileManager.default.removeItem(atPath: storageBasePath() + "/sync5");
-////            try FileManager.default.removeItem(atPath: storageBasePath() + "/sync6");
-////            try FileManager.default.removeItem(atPath: storageBasePath() + "/sync7");
-//            //try FileManager.default.removeItem(atPath: storageBasePath() + "/sync");
-//            
-//        }
-//        catch {
-//            var m = "\(error)";
-//            print(m);
-//        }
-        
-        let p = storageBasePath() + "/sync5";
-        assureFolderExists(p, doneName: "sync5")
+       
+        let p = storageBasePath() + "/sync";
+        assureFolderExists(p, doneName: "sync")
         assureFolderExists(p + "/songs++index", doneName: "songs++index")
         assureFolderExists(p + "/songs++index/thumb", doneName: "thumb")
         assureFolderExists(p + "/songs++index/playlist", doneName: "playlist")
@@ -265,10 +249,14 @@ class Path
     enum RootType {
         case MusicSyncFolder
         case PlaylistRoot
-        case ThumbRoot
+        case ThumbFile
+        case ThumbFolderRoot
         case IndexFile
+        case IndexFileUpdates
         case IndexFolder
         case Settings
+        case ExternalPath
+        case TmpFolder
     }
     
     var rt : RootType = RootType.MusicSyncFolder;
@@ -278,10 +266,14 @@ class Path
         switch (rt) {
         case .MusicSyncFolder : return Path.folderManager.syncFolderPath() + "/" + relativePath;
         case .PlaylistRoot : return Path.folderManager.syncFolderPath() + "/songs++index/playlist/" + relativePath;
-        case .ThumbRoot : return Path.folderManager.syncFolderPath() + "/songs++index/thumb/" + relativePath + ".jpg";
+        case .ThumbFile : return Path.folderManager.syncFolderPath() + "/songs++index/thumb/" + relativePath + ".jpg";
+        case .ThumbFolderRoot : return Path.folderManager.syncFolderPath() + "/songs++index/thumb";
         case .IndexFile: return  Path.folderManager.syncFolderPath() + "/songs++index/songs++index.json";
+        case .IndexFileUpdates: return  Path.folderManager.syncFolderPath() + "/songs++index/songs++index.updates.json";
         case .IndexFolder: return  Path.folderManager.syncFolderPath() + "/songs++index";
         case .Settings: return  Path.folderManager.settingsPath() + "/" + relativePath;
+        case .ExternalPath: return relativePath;
+        case .TmpFolder: return Path.folderManager.tmpFolderPath();
         }
     }
     
@@ -612,20 +604,20 @@ class Globals
 
     func clear()
     {
-        // get back to on-start state
-        //loginState.clear();
         playQueue.clear();
-        storageModel.clear();
-
-//        musicBrowseFolder = nil;
-//        playlistBrowseFolder = nil;
     }
-
+    
     init()
     {
-        storageModel.load();
-        playQueue.restoreOnStartup();
+        var tmpPath : String = "";
+        tmpPath = Path(rp: "", r: .IndexFolder, f: true).fullPath();
+        SongsCPP.setTmpPath(tmpPath);
+
+        var thumbPath : String = "";
+        thumbPath = Path(rp: "", r: .ThumbFolderRoot, f: true).fullPath();
+        SongsCPP.setThumbPath(thumbPath);
     }
+
 }
 
 var globals = Globals();
@@ -683,7 +675,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             var image : UIImage? = nil;
             if let thumb = attr!["thumb"]
             {
-                image = UIImage(contentsOfFile: Path(rp: thumb, r: .ThumbRoot, f: false).fullPath());
+                image = UIImage(contentsOfFile: Path(rp: thumb, r: .ThumbFile, f: false).fullPath());
 //                if (globals.storageModel.thumbnailDownloaded(node)) {
 //                    if let path = 	thumbnailPath(node: node) {
 //                        image = UIImage(contentsOfFile: path);
@@ -963,16 +955,6 @@ func reportMessage(uic : UIViewController, message : String, continuation : (() 
     }
 }
 
-//func CheckOnlineOrWarn(_ warnMessage: String, uic : UIViewController) -> Bool
-//{
-//    if globals.loginState.online { return true; }
-//    let alert = UIAlertController(title: "Not Online", message: warnMessage, preferredStyle: .alert)
-//    alert.addAction(UIAlertAction(title: "OK", style: .cancel));
-//    uic.present(alert, animated: false, completion: nil)
-//    return false;
-//}
-
-
 func menuAction_playRightNow(_ n : Path) -> UIAlertAction
 {
     return UIAlertAction(title: "Play right now", style: .default, handler:
@@ -1084,7 +1066,7 @@ func menuAction_addToPlaylistExact(playlistPath : Path, songToAdd: Path, viewCon
             loadSongsFromPlaylistRecursive(json: json, &songs, recurse: true, filterIntent: nil);
             songs.append(songToAdd);
             
-            let s = globals.playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: songs);
+            let s = globals.playQueue.songArrayToJSON(optionalExtraFirstNode: nil, array: songs);
             
             let url = URL(fileURLWithPath: playlistPath.edited().fullPath());
             try! s.write(to: url, atomically: true, encoding: .utf8)

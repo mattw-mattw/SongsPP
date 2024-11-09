@@ -83,17 +83,16 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
     
     @IBAction func SaveAllHit(_ sender: Any) {
         if node == nil { return; }
-  //      if !globals.loginState.online { goOnline(); }
-  //      if !globals.loginState.online { return; }
-        
-        saveAllSpinner = ProgressSpinner(uic: self, title: "Saving song data", message: "");
 
         setAttrError = nil;
-        pending += 4;
-//        mega().setCustomNodeAttribute(node!, name: "title", value: titleText.text!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in self.setAttrDone(e) }));
-//        mega().setCustomNodeAttribute(node!, name: "artist", value: artistText.text!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in self.setAttrDone(e) }));
-//        mega().setCustomNodeAttribute(node!, name: "BPM", value: bpmText.text!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in self.setAttrDone(e) }));
-//        mega().setCustomNodeAttribute(node!, name: "notes", value: notesText.text!, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in self.setAttrDone(e) }));
+   
+        if var attr = globals.storageModel.lookupSong(node!) {
+            attr["title"] = titleText.text!
+            attr["artist"] = artistText.text!
+            attr["bpm"] = bpmText.text!
+            attr["notes"] = notesText.text!
+            globals.storageModel.setSongAttr(node!, attr);
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -119,7 +118,7 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
                 image.image = nil;
                 if let thumb = attr["thumb"]
                 {
-                    if let imagefile = UIImage(contentsOfFile: Path(rp: thumb, r: Path.RootType.ThumbRoot, f: false).fullPath()) {
+                    if let imagefile = UIImage(contentsOfFile: Path(rp: thumb, r: Path.RootType.ThumbFile, f: false).fullPath()) {
                         image.image = imagefile;
                     }
                 }

@@ -28,6 +28,11 @@ class PlayQueueTVC: UITableViewController {
     }
     
     override func viewDidLoad() {
+        
+        // app data load kicks off here
+        globals.storageModel.load(indexFile: Path(rp: "", r: .IndexFile, f: false), updatesFile: Path(rp: "", r: .IndexFileUpdates, f: false), uic: self);
+        globals.playQueue.restoreOnStartup();
+        
         super.viewDidLoad()
 
         // Uncomment the following line to preserve selection between presentations
@@ -395,7 +400,7 @@ class PlayQueueTVC: UITableViewController {
                 
                 if let thumb = attr["thumb"]
                 {
-                    if let image = UIImage(contentsOfFile: Path(rp: thumb, r: Path.RootType.ThumbRoot, f: false).fullPath()) {
+                    if let image = UIImage(contentsOfFile: Path(rp: thumb, r: Path.RootType.ThumbFile, f: false).fullPath()) {
                         playingSongImage.image = image;
                     }
                 }

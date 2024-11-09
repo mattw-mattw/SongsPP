@@ -44,8 +44,6 @@ import AVKit
 class PlaylistTVC: UITableViewController {
 
     @IBOutlet weak var folderPathLabelCtrl: UILabel!
-    @IBOutlet weak var saveButton: UIButton!
-    @IBOutlet weak var revertButton: UIButton!
 
     var playlistNode : Path? = nil;
     var playlistSongs : [Path] = [];
@@ -120,111 +118,111 @@ class PlaylistTVC: UITableViewController {
         self.present(alert, animated: false, completion: nil)
     }
     
-    @IBAction func onSaveButton() {
-        
-//        if (CheckOnlineOrWarn("Please go online before uploading the changed playlist", uic: self))
-//        {
-            if (playlistNode == nil) { return; }
-            
-            do {
-                try savePlaylist(editing : false);
-            } catch {
-                reportMessage(uic: self, message: "Error while saving: \(error)")
-            }
-            
-//            if let parentFolder = megaGetContainingFolder(playlistNode!) {
+//    @IBAction func onSaveButton() {
+//        
+////        if (CheckOnlineOrWarn("Please go online before uploading the changed playlist", uic: self))
+////        {
+//            if (playlistNode == nil) { return; }
 //            
-//                saveAsEditing();
+//            do {
+//                try savePlaylist(editing : false);
+//            } catch {
+//                reportMessage(uic: self, message: "Error while saving: \(error)")
+//            }
 //            
-//                if let updateFilePath = globals.storageModel.playlistPath(node: playlistNode!, forEditing: true) {
-//                    
-//                    if (globals.loginState.accountByFolderLink && globals.playlistBrowseFolder != nil)
-//                    {
-//                        if let oldPlaylistsFolder = globals.storageModel.getOldPlaylistsFolder() {
-//                        // folder links don't link versions yet
-//                            let formatter = DateFormatter()
-//                            formatter.dateFormat = "yyyyMMdd-HHmmss"
-//                            var newname = playlistNode!.name;
-//                            if (newname == nil) { newname = "playlist.playlist"; }
-//                            if newname!.hasSuffix(".playlist") {
-//                                newname!.removeSubrange((newname?.lastIndex(where: {$0 == "."})! ?? newname!.endIndex) ..< newname!.endIndex);
-//                            }
-//                            newname! += ".old." + formatter.string(from: Date()) + ".playlist";
-//                            
-//                            mega().move(playlistNode!, newParent: oldPlaylistsFolder, newName: newname!)
-//                        }
-//                        else
-//                        {
-//                            reportMessage(uic: self, message: "Creating old-versions folder, as creating file versions through writable folder links doesn't work yet.  Until that works, the old version of the playlist will be put in that folder with a timestamp from when it was replaced.  Please retry, the folder should be created by now.");
-//                            return;
-//                        }
-//                    }
-//
-//                    let spinner = ProgressSpinner(uic: self, title: "Uploading Playlist", message: "");
-//                    
-//                    mega().startUploadToFile(withLocalPath: updateFilePath, parent: parentFolder, filename:playlistNode!.name!,
-//                                             delegate: TransferOnFinishDelegate(onFinish: { (e: MEGAError, h: MEGAHandle) -> Void in
-//
-//                        var success = e.type == .apiOk;
-//                        if (success) {
-//                            do {
-//                                try FileManager.default.removeItem(atPath: updateFilePath);
-//                                
-//                                if let newNode = mega().node(forHandle: h) {
-//                                    for i in 0..<app().recentPlaylists.count {
-//                                        if (app().recentPlaylists[i].handle == self.playlistNode!.handle)
-//                                        {
-//                                            app().recentPlaylists[i] = newNode;
-//                                        }
-//                                    }
-//                                }
-//                                
-//                                // go back to list of playlists, the new one should be replaced there now
-//                                self.navigationController?.popViewController(animated: true);
-//                                
-//                            } catch {
-//                                success = false;
-//                                spinner.setErrorMessage("Could not remove the upload file afterward");
-//                            }
-//                        } else {
-//                            success = false;
-//                            spinner.setErrorMessage("Error uploading: " + e.nameWithErrorCode(e.type.rawValue));
-//                        }
-//
-//                        spinner.dismissOrReportError(success: success)
-//
-//                    }));
-//                }
- //           }
-        
-            adjustControls();
-//        }
-    }
+////            if let parentFolder = megaGetContainingFolder(playlistNode!) {
+////            
+////                saveAsEditing();
+////            
+////                if let updateFilePath = globals.storageModel.playlistPath(node: playlistNode!, forEditing: true) {
+////                    
+////                    if (globals.loginState.accountByFolderLink && globals.playlistBrowseFolder != nil)
+////                    {
+////                        if let oldPlaylistsFolder = globals.storageModel.getOldPlaylistsFolder() {
+////                        // folder links don't link versions yet
+////                            let formatter = DateFormatter()
+////                            formatter.dateFormat = "yyyyMMdd-HHmmss"
+////                            var newname = playlistNode!.name;
+////                            if (newname == nil) { newname = "playlist.playlist"; }
+////                            if newname!.hasSuffix(".playlist") {
+////                                newname!.removeSubrange((newname?.lastIndex(where: {$0 == "."})! ?? newname!.endIndex) ..< newname!.endIndex);
+////                            }
+////                            newname! += ".old." + formatter.string(from: Date()) + ".playlist";
+////                            
+////                            mega().move(playlistNode!, newParent: oldPlaylistsFolder, newName: newname!)
+////                        }
+////                        else
+////                        {
+////                            reportMessage(uic: self, message: "Creating old-versions folder, as creating file versions through writable folder links doesn't work yet.  Until that works, the old version of the playlist will be put in that folder with a timestamp from when it was replaced.  Please retry, the folder should be created by now.");
+////                            return;
+////                        }
+////                    }
+////
+////                    let spinner = ProgressSpinner(uic: self, title: "Uploading Playlist", message: "");
+////                    
+////                    mega().startUploadToFile(withLocalPath: updateFilePath, parent: parentFolder, filename:playlistNode!.name!,
+////                                             delegate: TransferOnFinishDelegate(onFinish: { (e: MEGAError, h: MEGAHandle) -> Void in
+////
+////                        var success = e.type == .apiOk;
+////                        if (success) {
+////                            do {
+////                                try FileManager.default.removeItem(atPath: updateFilePath);
+////                                
+////                                if let newNode = mega().node(forHandle: h) {
+////                                    for i in 0..<app().recentPlaylists.count {
+////                                        if (app().recentPlaylists[i].handle == self.playlistNode!.handle)
+////                                        {
+////                                            app().recentPlaylists[i] = newNode;
+////                                        }
+////                                    }
+////                                }
+////                                
+////                                // go back to list of playlists, the new one should be replaced there now
+////                                self.navigationController?.popViewController(animated: true);
+////                                
+////                            } catch {
+////                                success = false;
+////                                spinner.setErrorMessage("Could not remove the upload file afterward");
+////                            }
+////                        } else {
+////                            success = false;
+////                            spinner.setErrorMessage("Error uploading: " + e.nameWithErrorCode(e.type.rawValue));
+////                        }
+////
+////                        spinner.dismissOrReportError(success: success)
+////
+////                    }));
+////                }
+// //           }
+//        
+//            adjustControls();
+////        }
+//    }
     
-    @IBAction func onRevertButton() {
-        if (playlistNode == nil) { return; }
-        do {
-            try FileManager.default.removeItem(atPath: playlistNode!.edited().fullPath());
-        } catch {
-            // etc
-        }
-        loadPlaylist(n: playlistNode!)
-        adjustControls();
-    }
+//    @IBAction func onRevertButton() {
+//        if (playlistNode == nil) { return; }
+//        do {
+//            try FileManager.default.removeItem(atPath: playlistNode!.edited().fullPath());
+//        } catch {
+//            // etc
+//        }
+//        loadPlaylist(n: playlistNode!)
+//        adjustControls();
+//    }
 
     func adjustControls() {
         folderPathLabelCtrl.text = playlistNode == nil ? "<playlist>" : leafName(playlistNode!);
         
         let edited = playlistNode == nil ? false : FileManager.default.fileExists(atPath: playlistNode!.edited().fullPath());
-
-        saveButton.isEnabled = edited;
-        revertButton.isEnabled = edited;
+//
+//        saveButton.isEnabled = edited;
+//        revertButton.isEnabled = edited;
     }
     
     func savePlaylist(editing: Bool) throws
     {
         if (playlistNode == nil) { return; }
-        let s = globals.playQueue.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: playlistSongs);
+        let s = globals.playQueue.songArrayToJSON(optionalExtraFirstNode: nil, array: playlistSongs);
         
         let url = editing ?
                     URL(fileURLWithPath: playlistNode!.edited().fullPath())

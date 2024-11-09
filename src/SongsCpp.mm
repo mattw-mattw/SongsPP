@@ -20,14 +20,39 @@
 #include "/Users/matt/repos/sdk/include/mega/filesystem.h"
 #include "/Users/matt/repos/sdk/include/mega/posix/megafs.h"
 
-#include <copyfile.h>	
+#include "megaapi.h"
+
+#include <copyfile.h>
 #include <fts.h>
+#include <stdio.h>
 
 #pragma clang diagnostic pop
 
 using namespace std;
 using namespace mega;
 
+const std::vector<std::string> playableExtensions { ".mp3", ".m4a", ".aac", ".wav", ".flac", ".aiff", ".au", ".pcm", ".ac3", ".aa", ".aax" };
+const std::vector<std::string> artworkExtensions= { ".jpg", ".jpeg", ".png", ".bmp" };
+
+bool isPlayable(const string& s)
+{
+    for (auto& pe : playableExtensions)
+    {
+        if (s.size() < pe.size()) continue;
+        if (0 == strcasecmp(s.c_str() + s.size() - pe.size(), pe.c_str())) { return true; }
+    }
+    return false;
+}
+
+bool isArtwork(const string& s)
+{
+    for (auto& pe : artworkExtensions)
+    {
+        if (s.size() < pe.size()) continue;
+        if (0 == strcasecmp(s.c_str() + s.size() - pe.size(), pe.c_str())) { return true; }
+    }
+    return false;
+}
 
 template <>
 std::unique_ptr<DIR>::~unique_ptr()
@@ -156,6 +181,14 @@ public:
         threadVec.clear();
         return finalErr;
     }
+    
+    struct SongTags {
+        std::string path, title, artist, bpm, thumb, duration;
+    };
+    
+    std::mutex songTagsMutex;
+    std::vector<SongTags> songTags;
+    std::map<string, string> newJpegFileThumbsByPath;
 };
 
 string errText(int e)
@@ -270,6 +303,16 @@ bool scan(LocalPath lhsPath, LocalPath rhsPath, string& err, scanQueue& sq)
 
 @implementation SongsCPP
 
+std::string tmpPath;
++ (void)SetTmpPath:(NSString *)filePath {
+    tmpPath = [filePath UTF8String];
+}
+    
+std::string thumbPath;
++ (void)SetThumbPath:(NSString *)filePath {
+    thumbPath = [filePath UTF8String];
+}
+    
 + (bool)GetSongProperties:(NSString *)filePath title:(NSString **)title artist:(NSString **)artist bpm:(NSString **)bpm {
 
     try {
@@ -297,8 +340,6 @@ bool scan(LocalPath lhsPath, LocalPath rhsPath, string& err, scanQueue& sq)
 
 int recursive_delete(const char *dir)
 {
-    int ret = 0;
-
     char *files[] = { (char*)dir, NULL };
 
     // FTS_NOCHDIR  - Avoid changing cwd, which could cause unexpected behavior
@@ -350,7 +391,40 @@ int recursive_delete(const char *dir)
 
 shared_ptr<scanQueue> curScan;
 
-void doCopyFile(const scanAction& op, scanQueue& sq)
+::mega::MegaApi thumbnailSdk("appKey");
+static atomic<int> tmpJpg {0};
+
+bool generateThumbnailAndFingerprint(const std::string& pictureFile, std::string& fp_str)
+{
+    std::string thumbnailJpg = tmpPath + "/" + std::to_string(++tmpJpg) + "-thumb.jpg";
+    if (!thumbnailSdk.createThumbnail(pictureFile.c_str(), thumbnailJpg.c_str()))
+    {
+        return false;
+    }
+    const char * fp = thumbnailSdk.getFingerprint(thumbnailJpg.c_str());
+    if (fp)
+    {
+        std::string fpJpg = thumbPath + "/" + fp + ".jpg";
+        rename(thumbnailJpg.c_str(), fpJpg.c_str());
+        fp_str = fp;
+        return true;
+    }
+    unlink(thumbnailJpg.c_str());
+    return false;
+}
+
++ (bool)genImageThumbnailAndFingerprint:(NSString *)path :(NSString **)thumb
+{
+    string fp_str;
+    bool b = generateThumbnailAndFingerprint([path UTF8String], fp_str);
+    if (b)
+    {
+        *thumb = [[NSString alloc]initWithUTF8String:fp_str.c_str()];
+    }
+    return b;
+}
+
+void doCopyFile(const scanAction& op, scanQueue& sq, bool extractTags)
 {
     scanDisplayPaths.addCopy(op.lhsPath.leafName().toPath());
     
@@ -366,9 +440,107 @@ void doCopyFile(const scanAction& op, scanQueue& sq)
         
         sq.fail("Error " + errText(cfe) + " copying  " + op.lhsPath.leafName().toPath());
     }
+    else if (extractTags && isPlayable(op.rhsPath.toPath()))
+    {
+        try {
+            TagLib::FileRef f(op.rhsPath.toPath().c_str());
+            
+            if (!f.isNull() && f.tag()) {
+                
+                TagLib::Tag* tag = f.tag();
+                
+                
+                scanQueue::SongTags t;
+                
+                t.path = op.rhsPath.toPath().c_str();
+                t.title = tag->title().toCString(true);
+                t.artist = tag->artist().toCString(true);
+                
+                TagLib::PropertyMap tags = f.file()->properties();
+                auto it = tags.find("BPM");
+                if (it != tags.end()) {
+                    for (auto& s : it->second) {
+                        t.bpm = s.toCString(true);
+                    }
+                }
+                
+                if (auto ap = f.file()->audioProperties())
+                {
+                    if (auto sec = ap->lengthInSeconds())
+                    {
+                        t.duration = to_string(sec/60) + ":";
+                        sec = sec - (sec/60)*60;
+                        if (sec < 10) t.duration += "0";
+                        t.duration += to_string(sec);
+                    }
+                }
+                
+                auto imageList = tag->complexProperties("PICTURE");
+                
+                for (auto i = imageList.begin(); i != imageList.end(); ++i)
+                {
+                    auto it1 = i->find("mimeType");
+                    auto it2 = i->find("pictureType");
+                    auto it3 = i->find("data");
+                    if (it1 != i->end() && it2 != i->end() && it3 != i->end() &&
+                        it1->second.toString().toCString() == string("image/jpeg") &&
+                        it2->second.toString().toCString() == string("Front Cover"))
+                    {
+                        bool ok = true;
+                        auto v = it3->second.toByteVector(&ok);
+                        
+                        if (ok)
+                        {
+                            std::string tempName = tmpPath + "/" + std::to_string(++tmpJpg) + ".jpg";
+                            std::ofstream f(tempName, ios::binary);
+                            f.write(v.data(), v.size());
+                            f.close();
+                            
+                            string fp;
+                            if (generateThumbnailAndFingerprint(tempName, fp))
+                            {
+                                t.thumb = string(fp);
+                            }
+                            unlink(tempName.c_str());
+                        }
+                    }
+                }
+                std::lock_guard<std::mutex> g(sq.songTagsMutex);
+                sq.songTags.push_back(t);
+            }
+        } catch (...) {
+            
+        }
+    }
+    else if (extractTags && isArtwork(op.rhsPath.toPath()))
+    {
+        std::string thumbnailJpg = tmpPath + "/" + std::to_string(++tmpJpg) + "-thumb.jpg";
+        thumbnailSdk.createThumbnail(op.rhsPath.toPath().c_str(), thumbnailJpg.c_str());
+        const char * fp = thumbnailSdk.getFingerprint(thumbnailJpg.c_str());
+        if (fp)
+        {
+            std::string fpJpg = thumbPath + "/" + fp + ".jpg";
+            rename(thumbnailJpg.c_str(), fpJpg.c_str());
+
+            std::lock_guard<std::mutex> g(sq.songTagsMutex);
+            
+            auto parent = op.rhsPath;
+            PosixFileSystemAccess fsa;
+            if (auto index = parent.getLeafnameByteIndex(fsa))
+            {
+                parent.truncate(index);
+                parent.trimNonDriveTrailingSeparator();
+                sq.newJpegFileThumbsByPath[parent.toPath()] = string(fp);
+            }
+        }
+        else
+        {
+            unlink(thumbnailJpg.c_str());
+        }
+    }
 }
 
-+ (bool)StartScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath removeUnmatchedOnRight:(bool)removeUnmatchedOnRight compareMtimeForCopy:(bool)compareMtimeForCopy {
++ (bool)StartScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath removeUnmatchedOnRight:(bool)removeUnmatchedOnRight compareMtimeForCopy:(bool)compareMtimeForCopy extractTags:(bool)extractTags {
     
     PosixFileSystemAccess fsa;
     
@@ -381,7 +553,7 @@ void doCopyFile(const scanAction& op, scanQueue& sq)
     
     for (int i = 0; i < 5; ++i)
     {
-        curScan->threadVec.emplace_back(std::thread([sq = curScan, removeUnmatchedOnRight, compareMtimeForCopy](){
+        curScan->threadVec.emplace_back(std::thread([sq = curScan, removeUnmatchedOnRight, compareMtimeForCopy, extractTags](){
             scanAction op;
             while (sq->pop(op))
             {
@@ -410,7 +582,7 @@ void doCopyFile(const scanAction& op, scanQueue& sq)
                                 }
                                 else if (lhs_stat.st_mtimespec.tv_sec > rhs_stat.st_mtimespec.tv_sec)
                                 {
-                                    doCopyFile(op, *sq);
+                                    doCopyFile(op, *sq, extractTags);
                                     copied = true;
                                 }
                             }
@@ -444,7 +616,7 @@ void doCopyFile(const scanAction& op, scanQueue& sq)
                         }
                         else
                         {
-                            doCopyFile(op, *sq);
+                            doCopyFile(op, *sq, extractTags);
                             copied = true;
                         }
                         break;
@@ -523,6 +695,29 @@ void doCopyFile(const scanAction& op, scanQueue& sq)
         *copySkipped = d;
         *copyDone = e;
     }
+}
+
++ (bool)getNextTagSet:(NSString **)path :(NSString **)title :(NSString **)artist :(NSString **)bpm :(NSString **)thumb :(NSString **)duration {
+    if (!curScan || curScan->songTags.empty()) return false;
+    auto& t = curScan->songTags.back();
+    *path = [[NSString alloc]initWithUTF8String:t.path.c_str()];
+    *title = [[NSString alloc]initWithUTF8String:t.title.c_str()];
+    *artist = [[NSString alloc]initWithUTF8String:t.artist.c_str()];
+    *bpm = [[NSString alloc]initWithUTF8String:t.bpm.c_str()];
+    *thumb = [[NSString alloc]initWithUTF8String:t.thumb.c_str()];
+    *duration = [[NSString alloc]initWithUTF8String:t.duration.c_str()];
+    curScan->songTags.pop_back();
+    return true;
+}
+
++ (bool)getNextFolderThumb:(NSString **)path :(NSString **)thumb
+{
+    if (!curScan || curScan->newJpegFileThumbsByPath.empty()) return false;
+    auto it = curScan->newJpegFileThumbsByPath.begin();
+    *path = [[NSString alloc]initWithUTF8String:it->first.c_str()];
+    *thumb = [[NSString alloc]initWithUTF8String:it->second.c_str()];
+    curScan->newJpegFileThumbsByPath.erase(it);
+    return true;
 }
 
 @end

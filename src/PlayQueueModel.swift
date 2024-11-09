@@ -651,7 +651,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
 //        return jn;
 //    }
     
-    func nodeHandleArrayToJSON(optionalExtraFirstNode : Path?, array : [Path] ) -> String
+    func songArrayToJSON(optionalExtraFirstNode : Path?, array : [Path] ) -> String
     {
         var ja : [[String: String]] = [];
         
@@ -730,7 +730,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
                     }
                 }
             // todo: update locally only
-//                let s = self.nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: self.nextSongs);
+//                let s = self.songArrayToJSON(optionalExtraFirstNode: nil, array: self.nextSongs);
 //                let uploadpath = globals.storageModel.uploadFilesPath() + "/" + inputName + ".playlist";
 //                let url = URL(fileURLWithPath: uploadpath);
 //                try! s.write(to: url, atomically: true, encoding: .ascii)
@@ -750,8 +750,8 @@ class PlayQueue : NSObject, UITextFieldDelegate {
     func saveQueueAndHistory(shuttingDown : Bool)
     {
         if (shuttingDown && !playerSongIsEphemeral()) { pushToHistory() };
-        let s1 = nodeHandleArrayToJSON(optionalExtraFirstNode: noHistoryMode || playerSongIsEphemeral() ? nil : nodeInPlayer, array: nextSongs);
-        let s2 = nodeHandleArrayToJSON(optionalExtraFirstNode: nil, array: playedSongs);
+        let s1 = songArrayToJSON(optionalExtraFirstNode: noHistoryMode || playerSongIsEphemeral() ? nil : nodeInPlayer, array: nextSongs);
+        let s2 = songArrayToJSON(optionalExtraFirstNode: nil, array: playedSongs);
         do {
             try s1.write(toFile: Path(rp: "nextSongs", r: .Settings, f: false).fullPath(), atomically: true, encoding: String.Encoding.utf8);
             try s2.write(toFile: Path(rp: "playedSongs", r: .Settings, f: false).fullPath(), atomically: true, encoding: String.Encoding.utf8);

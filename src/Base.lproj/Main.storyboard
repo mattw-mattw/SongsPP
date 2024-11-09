@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="xjS-cL-gcQ">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23094" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="xjS-cL-gcQ">
     <device id="retina6_72" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22684"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23084"/>
         <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
@@ -625,23 +625,10 @@
                                             <nil key="highlightedColor"/>
                                         </label>
                                         <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Filter text" textAlignment="natural" minimumFontSize="17" clearButtonMode="always" translatesAutoresizingMaskIntoConstraints="NO" id="fIP-CH-NkK">
-                                            <rect key="frame" x="135.33333333333337" y="0.0" width="204.66666666666663" height="42"/>
+                                            <rect key="frame" x="135.33333333333337" y="0.0" width="234.66666666666663" height="42"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                             <textInputTraits key="textInputTraits"/>
                                         </textField>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2qq-C5-iLP">
-                                            <rect key="frame" x="342" y="0.0" width="28" height="42"/>
-                                            <constraints>
-                                                <constraint firstAttribute="height" constant="42" id="Hsj-cD-rfG"/>
-                                                <constraint firstAttribute="width" constant="28" id="xGX-7E-htY"/>
-                                            </constraints>
-                                            <state key="normal">
-                                                <imageReference key="image" image="cloud.heavyrain" catalog="system" symbolScale="large"/>
-                                            </state>
-                                            <connections>
-                                                <action selector="onFilterDownloadedButton:" destination="e9C-Td-deu" eventType="touchUpInside" id="cLD-UW-3z3"/>
-                                            </connections>
-                                        </button>
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="plH-t3-bvh">
                                             <rect key="frame" x="372" y="0.0" width="28" height="42"/>
                                             <constraints>
@@ -894,7 +881,6 @@
                     <tabBarItem key="tabBarItem" title="Playlists" image="book.circle" catalog="system" selectedImage="book.circle" id="41H-oe-QcX"/>
                     <navigationItem key="navigationItem" title="Playlists" id="NP9-ve-lr2"/>
                     <connections>
-                        <outlet property="filterDownloadedButton" destination="2qq-C5-iLP" id="8sk-K1-Pdm"/>
                         <outlet property="filterEnableButton" destination="8YN-xd-5Yy" id="TCS-NL-ZgK"/>
                         <outlet property="filterTextCtrl" destination="fIP-CH-NkK" id="ugA-F3-yGd"/>
                         <outlet property="folderNamesIcon" destination="plH-t3-bvh" id="bd1-zp-d7u"/>
@@ -920,7 +906,7 @@
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="&lt;folder path&gt;" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="1uo-jN-ek7">
-                                    <rect key="frame" x="163.66666666666666" y="0.0" width="103.33333333333334" height="20.333333333333332"/>
+                                    <rect key="frame" x="163.33333333333334" y="0.0" width="103.33333333333334" height="84"/>
                                     <constraints>
                                         <constraint firstAttribute="height" constant="30" id="vlq-NZ-IiA"/>
                                     </constraints>
@@ -928,34 +914,8 @@
                                     <color key="textColor" systemColor="linkColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
-                                <stackView opaque="NO" contentMode="center" distribution="fillProportionally" alignment="center" spacing="20" id="INf-QF-vrc">
-                                    <rect key="frame" x="165.66666666666666" y="24.333333333333329" width="98.999999999999972" height="30"/>
-                                    <autoresizingMask key="autoresizingMask"/>
-                                    <subviews>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LsK-u5-2Pf">
-                                            <rect key="frame" x="0.0" y="0.0" width="34" height="30"/>
-                                            <constraints>
-                                                <constraint firstAttribute="height" constant="30" id="fON-8J-CMb"/>
-                                            </constraints>
-                                            <state key="normal" title="Save"/>
-                                            <connections>
-                                                <action selector="onSaveButton" destination="02i-OG-kQt" eventType="touchUpInside" id="ycN-GV-eND"/>
-                                            </connections>
-                                        </button>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="aCz-3k-7JS">
-                                            <rect key="frame" x="54" y="0.0" width="45" height="30"/>
-                                            <constraints>
-                                                <constraint firstAttribute="height" constant="30" id="pMB-Sn-JyN"/>
-                                            </constraints>
-                                            <state key="normal" title="Revert"/>
-                                            <connections>
-                                                <action selector="onRevertButton" destination="02i-OG-kQt" eventType="touchUpInside" id="zrN-xy-VjK"/>
-                                            </connections>
-                                        </button>
-                                    </subviews>
-                                </stackView>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="BbG-cB-x39">
-                                    <rect key="frame" x="0.0" y="58.333333333333336" width="430" height="31.666666666666664"/>
+                                    <rect key="frame" x="0.0" y="88" width="430" height="2"/>
                                     <color key="backgroundColor" systemColor="labelColor"/>
                                     <constraints>
                                         <constraint firstAttribute="height" constant="2" id="lLr-gr-gy5"/>
@@ -1180,8 +1140,6 @@
                     <navigationItem key="navigationItem" id="q8x-wj-Q9z"/>
                     <connections>
                         <outlet property="folderPathLabelCtrl" destination="1uo-jN-ek7" id="mXG-OY-INs"/>
-                        <outlet property="revertButton" destination="aCz-3k-7JS" id="d8e-S2-IJk"/>
-                        <outlet property="saveButton" destination="LsK-u5-2Pf" id="oIz-UR-65q"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="HRl-xj-h0O" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1223,23 +1181,10 @@
                                             <nil key="highlightedColor"/>
                                         </label>
                                         <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Filter text" textAlignment="natural" minimumFontSize="17" clearButtonMode="always" translatesAutoresizingMaskIntoConstraints="NO" id="i6U-K4-a51">
-                                            <rect key="frame" x="135.33333333333337" y="0.0" width="204.66666666666663" height="42"/>
+                                            <rect key="frame" x="135.33333333333337" y="0.0" width="234.66666666666663" height="42"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                             <textInputTraits key="textInputTraits"/>
                                         </textField>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="pSX-oi-ziC">
-                                            <rect key="frame" x="342" y="0.0" width="28" height="42"/>
-                                            <constraints>
-                                                <constraint firstAttribute="width" constant="28" id="gm9-CI-AJb"/>
-                                                <constraint firstAttribute="height" constant="42" id="qTQ-CN-uPN"/>
-                                            </constraints>
-                                            <state key="normal">
-                                                <imageReference key="image" image="cloud.heavyrain" catalog="system" symbolScale="large"/>
-                                            </state>
-                                            <connections>
-                                                <action selector="onFilterDownloadedButton:" destination="jow-OS-RDo" eventType="touchUpInside" id="NcN-Ne-Bc2"/>
-                                            </connections>
-                                        </button>
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="cpd-h7-uT9">
                                             <rect key="frame" x="372" y="0.0" width="28" height="42"/>
                                             <constraints>
@@ -1495,7 +1440,6 @@
                     <tabBarItem key="tabBarItem" title="Browse Music " image="folder" catalog="system" selectedImage="folder" id="nbn-hU-aLW"/>
                     <navigationItem key="navigationItem" title="Browse Music" id="Iet-CB-aiC"/>
                     <connections>
-                        <outlet property="filterDownloadedButton" destination="pSX-oi-ziC" id="2oQ-cI-9e5"/>
                         <outlet property="filterEnableButton" destination="1ly-eM-xbp" id="twp-4N-cek"/>
                         <outlet property="filterTextCtrl" destination="i6U-K4-a51" id="4wy-WQ-G1X"/>
                         <outlet property="folderNamesIcon" destination="cpd-h7-uT9" id="QvA-Ty-IkI"/>
@@ -1540,24 +1484,38 @@
                                 <rect key="frame" x="0.0" y="103" width="430" height="697"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="zxj-iJ-WZB">
-                                        <rect key="frame" x="0.0" y="10" width="430" height="170.66666666666666"/>
+                                        <rect key="frame" x="0.0" y="10" width="430" height="278.66666666666669"/>
                                         <subviews>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3ge-PO-31r">
                                                 <rect key="frame" x="0.0" y="0.0" width="430" height="34.333333333333336"/>
                                                 <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="plain" title="Pick music source Network Folder"/>
+                                                <buttonConfiguration key="configuration" style="plain" title="Step 1: Connect to Network Folder"/>
                                                 <connections>
-                                                    <action selector="PickNetworkFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="rEQ-DG-xe9"/>
+                                                    <action selector="ConnectNetworkFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="e1O-eS-zSs"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ZV3-Lf-5BV">
+                                                <rect key="frame" x="0.0" y="34.333333333333343" width="430" height="34.333333333333343"/>
+                                                <state key="normal" title="Button"/>
+                                                <buttonConfiguration key="configuration" style="plain" title="Step 2: Pick Music Folder in Network Folder"/>
+                                                <connections>
+                                                    <action selector="PickNetworkFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="JEQ-ka-7ih"/>
                                                 </connections>
                                             </button>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="&lt;Folder not chosen yet&gt;" textAlignment="center" lineBreakMode="characterWrap" numberOfLines="3" baselineAdjustment="alignBaselines" enabled="NO" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aAa-bz-nuV">
-                                                <rect key="frame" x="0.0" y="34.333333333333343" width="430" height="14.333333333333336"/>
+                                                <rect key="frame" x="0.0" y="68.666666666666657" width="430" height="14.333333333333329"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="253" verticalHuggingPriority="253" verticalCompressionResistancePriority="250" text="~ - ~ - ~ - ~ - ~ - ~ - ~" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="HvB-mj-RrS">
+                                                <rect key="frame" x="0.0" y="83" width="430" height="20.333333333333329"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uS7-mG-qPC">
-                                                <rect key="frame" x="0.0" y="48.666666666666657" width="430" height="34.333333333333343"/>
+                                                <rect key="frame" x="0.0" y="103.33333333333334" width="430" height="34.333333333333343"/>
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="plain" title="Load from Network Folder"/>
                                                 <connections>
@@ -1565,15 +1523,21 @@
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2l5-cx-a4J">
-                                                <rect key="frame" x="0.0" y="83" width="430" height="34.333333333333343"/>
+                                                <rect key="frame" x="0.0" y="137.66666666666666" width="430" height="34.333333333333343"/>
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="plain" title="Export updates to Network Folder"/>
                                                 <connections>
                                                     <action selector="ExportUpdatesToNetworkFolder:" destination="m7B-uG-kn7" eventType="touchUpInside" id="b69-Ug-gxR"/>
                                                 </connections>
                                             </button>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="253" verticalHuggingPriority="253" verticalCompressionResistancePriority="250" text="~ - ~ - ~ - ~ - ~ - ~ - ~" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fcD-A8-KsX">
+                                                <rect key="frame" x="0.0" y="172" width="430" height="20.333333333333343"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
                                             <button opaque="NO" tag="99" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wRn-O1-P0l">
-                                                <rect key="frame" x="0.0" y="117.33333333333334" width="430" height="33"/>
+                                                <rect key="frame" x="0.0" y="192.33333333333331" width="430" height="33"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                 <state key="normal" title="About"/>
@@ -1581,8 +1545,17 @@
                                                     <segue destination="woN-P9-xVM" kind="push" id="2OH-Ib-MJF"/>
                                                 </connections>
                                             </button>
+                                            <button opaque="NO" tag="99" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8qc-of-1Yt">
+                                                <rect key="frame" x="0.0" y="225.33333333333331" width="430" height="33"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                                                <state key="normal" title="Factory Reset"/>
+                                                <connections>
+                                                    <action selector="FactoryReset:" destination="m7B-uG-kn7" eventType="touchUpInside" id="1IM-9u-xrZ"/>
+                                                </connections>
+                                            </button>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="253" verticalHuggingPriority="253" verticalCompressionResistancePriority="250" text="~ - ~ - ~ - ~ - ~ - ~ - ~" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oIY-nW-Ldz">
-                                                <rect key="frame" x="0.0" y="150.33333333333331" width="430" height="20.333333333333343"/>
+                                                <rect key="frame" x="0.0" y="258.33333333333331" width="430" height="20.333333333333314"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
@@ -1850,7 +1823,6 @@
     </inferredMetricsTieBreakers>
     <resources>
         <image name="book.circle" catalog="system" width="128" height="123"/>
-        <image name="cloud.heavyrain" catalog="system" width="126" height="128"/>
         <image name="ellipsis.circle" catalog="system" width="128" height="123"/>
         <image name="folder" catalog="system" width="128" height="96"/>
         <image name="folder.circle" catalog="system" width="128" height="123"/>

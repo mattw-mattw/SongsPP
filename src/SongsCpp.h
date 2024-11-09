@@ -11,11 +11,18 @@
 @interface SongsCPP : NSObject {}
 
 + (bool)GetSongProperties:(NSString *)filePath title:(NSString **)title artist:(NSString **)artist bpm:(NSString **)bpm ;
-+ (bool)StartScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath removeUnmatchedOnRight:(bool)removeUnmatchedOnRight compareMtimeForCopy:(bool)compareMtimeForCopy;
++ (bool)StartScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath removeUnmatchedOnRight:(bool)removeUnmatchedOnRight compareMtimeForCopy:(bool)compareMtimeForCopy extractTags:(bool)extractTags;
 + (bool)isFinishedScanDoubleDirs;
 + (bool)ShutdownScanDoubleDirs:(NSString **)err;
 + (NSMutableArray*)currentScanPaths;
 + (NSMutableArray*)currentCopyPaths;
 + (void)scanCopyCounts:(NSInteger *)scanWaiting :(NSInteger *)scanDone :(NSInteger *)copyWaiting :(NSInteger *)copySkipped :(NSInteger *)copyDone;
++ (bool)getNextTagSet:(NSString **)path :(NSString **)title :(NSString **)artist :(NSString **)bpm :(NSString **)thumb :(NSString **)duration;
++ (bool)getNextFolderThumb:(NSString **)path :(NSString **)thumb;
++ (void)SetTmpPath:(NSString *)filePath;
++ (void)SetThumbPath:(NSString *)filePath;
 
++ (bool)genImageThumbnailAndFingerprint:(NSString *)path :(NSString **)thumb;
+
+    
 @end

@@ -69,7 +69,6 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     var topRightButton : UIButton? = nil;
     
     @IBOutlet weak var filterEnableButton: UIButton!
-    @IBOutlet weak var filterDownloadedButton: UIButton!
     @IBOutlet weak var folderPathLabelCtrl: UILabel!
     @IBOutlet weak var filterTextCtrl: UITextField!
     @IBOutlet weak var folderNamesIcon: UIButton!
@@ -170,29 +169,13 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         alert.addAction(UIAlertAction(title: "Shuffle queue all", style: .default, handler:
             { (UIAlertAction) -> () in self.ShuffleQueueAll() }));
 
-        if (currentFolder != nil)
-        {
+        if isPlaylists() {
+            alert.addAction(UIAlertAction(title: "New Playlist", style: .default, handler:
+                { (UIAlertAction) -> () in self.AddNewPlaylist() }));
 
-//            if globals.loginState.accountBySession && !isPlaylists() && globals.musicBrowseFolder == nil
-//                && mega().rootNode != nil && currentFolder! != globals.storageModel.musicFolder
-//            {
-//                alert.addAction(UIAlertAction(title: "Set as the top available folder...", style: .default, handler:
-//                    { (UIAlertAction) -> () in self.CheckSetAsWritableFolderLink() }));
-//            }
-//
-//            if !isPlaylists() && globals.musicBrowseFolder == nil {
-//                alert.addAction(UIAlertAction(title: "Set as the Music Folder...", style: .default, handler:
-//                    { (UIAlertAction) -> () in self.CheckSetAsMusicFolder() }));
-//            }
-//            if isPlaylists() && globals.playlistBrowseFolder == nil {
-//                alert.addAction(UIAlertAction(title: "Set as the Playlist Folder...", style: .default, handler:
-//                    { (UIAlertAction) -> () in self.CheckSetAsPlaylistFolder() }));
-//            }
-        
-            if !isPlaylists() {
-                alert.addAction(UIAlertAction(title: "Extract Title/Artist/BPM...", style: .default, handler:
-                    { (UIAlertAction) -> () in self.ExtractTitleArtistBPM() }));
-            }
+        } else {
+            alert.addAction(UIAlertAction(title: "Extract Title/Artist/BPM...", style: .default, handler:
+                { (UIAlertAction) -> () in self.ExtractTitleArtistBPM() }));
         }
 
         alert.addAction(menuAction_neverMind());
@@ -211,7 +194,6 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         }
         folderPathLabelCtrl.isHidden = filtering;
         filterTextCtrl.isHidden = !filtering;
-        filterDownloadedButton.isHidden = !filtering;
         filterTextCtrl.resignFirstResponder();
     }
     
@@ -273,21 +255,21 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     }
     
 
-    @IBAction func onFilterDownloadedButton(_ sender: UIButton) {
-        let alert = UIAlertController(title: nil, message: "Filter on cached or not", preferredStyle: .alert)
-        
-        alert.addTextField( configurationHandler: { newTextField in
-            self.filterIncludeDownloaded.takeOverTextField(newTextField: newTextField, notifyChange: nil)
-        });
-        alert.addTextField( configurationHandler: { newTextField in
-            self.filterIncludeNonDownloaded.takeOverTextField(newTextField: newTextField, notifyChange: nil)
-        });
-        
-        alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (UIAlertAction) -> () in
-            self.reFilter();
-        }));
-        self.present(alert, animated: false, completion: nil)
-    }
+//    @IBAction func onFilterDownloadedButton(_ sender: UIButton) {
+//        let alert = UIAlertController(title: nil, message: "Filter on cached or not", preferredStyle: .alert)
+//        
+//        alert.addTextField( configurationHandler: { newTextField in
+//            self.filterIncludeDownloaded.takeOverTextField(newTextField: newTextField, notifyChange: nil)
+//        });
+//        alert.addTextField( configurationHandler: { newTextField in
+//            self.filterIncludeNonDownloaded.takeOverTextField(newTextField: newTextField, notifyChange: nil)
+//        });
+//        
+//        alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (UIAlertAction) -> () in
+//            self.reFilter();
+//        }));
+//        self.present(alert, animated: false, completion: nil)
+//    }
     
 //    func CheckSetAsWritableFolderLink()
 //    {
@@ -386,6 +368,45 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     let extractTagsOverwritesExistingTagsCheckbox = ContextMenuCheckbox("Overwrite existing tags", false);
     let extractTagsProcessSubfolders = ContextMenuCheckbox("Process all subfolders", true);
 
+    func AddNewPlaylist()
+    {
+        var inputName = "";
+        
+        let textInput = UIAlertController(title: "New playlist name", message: "The .playlist filename extension will be added automatically.", preferredStyle: .alert)
+        
+        textInput.addTextField( configurationHandler: { newTextField in
+            newTextField.text = inputName;
+            newTextField.returnKeyType = .go
+            newTextField.delegate = self
+        });
+
+        textInput.addAction(UIAlertAction(title: "Create playlist", style: .default, handler:
+            { (UIAlertAction) -> () in
+                if (textInput.textFields != nil) {
+                    if textInput.textFields!.first != nil {
+                        if (textInput.textFields!.first!.text != nil) {
+                            inputName = textInput.textFields!.first!.text!;
+                            
+                            let s = globals.playQueue.songArrayToJSON(optionalExtraFirstNode: nil, array: []);
+                            let newPlaylistPath = self.currentFolder!.fullPath() + "/" + inputName + ".playlist";
+                            
+                            if FileManager.default.fileExists(atPath: newPlaylistPath) {
+                                reportMessage(uic: self, message: "Playlist already exists");
+                                return;
+                            }
+                            
+                            let url = URL(fileURLWithPath: newPlaylistPath);
+                            try! s.write(to: url, atomically: true, encoding: .ascii)
+                            self.reFilter()
+                        }
+                    }
+                }
+            }));
+        
+        textInput.addAction(menuAction_neverMind());
+        present(textInput, animated: false, completion: nil)
+    }
+    
     func ExtractTitleArtistBPM()
     {
 
@@ -503,25 +524,6 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                 nodeArray.append(l)
             }
         }
-//        let list = mega().children(forParent: parent, order: 1);
-//        for i in 0..<list.size.intValue {
-//            let n = list.node(at: i);
-//            if (filtering && n?.type != MEGANodeType.file)
-//            {
-//                AddFilteredNodes(parent: n!);
-//            }
-//            else if (!filtering || checkFiltered(n!))
-//            {
-//                nodeArray.append(n!)
-//
-////                if (isPlaylists() &&
-////                    n!.name != nil &&
-////                    n!.name!.hasSuffix(".playlist")) {
-////                    _ = globals.storageModel.startDownloadIfAbsent(node: n!);
-////                }
-//
-//            }
-//        }
     }
     
     func browseToFolder(_ n : Path)
@@ -594,19 +596,6 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             text = currentFolder?.relativePath;
         }
         
-//        if (currentFolder == nil && globals.loginState.accountBySession) {
-//            if (mega().rootNode != nil) {
-//                text = "<Your Account>";
-//                nodeArray.append(mega().rootNode!);
-//                let shares = mega().inSharesList(.defaultAsc)
-//                for i in 0..<shares.size.intValue {
-//                    if let n = mega().node(forHandle: shares.share(at: i).nodeHandle) {
-//                        nodeArray.append(n);
-//                    }
-//                }
-//            }
-//        }
-
         if (folderPathLabelCtrl != nil)
         {
             folderPathLabelCtrl.text = text == nil ? "" : text;
@@ -822,34 +811,29 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         tableView.reloadData();
     }
 
- // todo
     func setArtworkForSongsInFolder(_ node : Path)
     {
-//        if (!globals.loginState.online)
-//        {
-//            let alert = UIAlertController(title: "Please go online first", message: "Setting artwork for files requires being online", preferredStyle: .alert)
-//            alert.addAction(UIAlertAction(title: "OK", style: .cancel));
-//            self.present(alert, animated: false, completion: nil)
-//            return;
-//        }
-//        
-//        if let parent = mega().parentNode(for: node) {
-//        
-//            if let thumbnailFile = globals.storageModel.thumbnailPath(node: node) {
-//                let list = mega().children(forParent: parent, order: 1);
-//                for i in 0..<list.size.intValue {
-//                    if let n = list.node(at: i) {
-//                        if (isPlayable(n, orMightContainPlayable: false))
-//                        {
-//                            mega().setThumbnailNode(n, sourceFilePath: thumbnailFile, delegate: MEGARequestOneShot(onFinish: { (e: MEGAError) -> Void in
-//                                globals.storageModel.megaDelegate.onThumbnailUpdate(node: node)
-//                            } ));
-//                        }
-//                    }
-//                }
-//            }
-//        }
+        if (currentFolder == nil) { return; }
+        
+        var thumb_fp: NSString? = nil;
+        if (SongsCPP.genImageThumbnailAndFingerprint(node.fullPath(), &thumb_fp))
+        {
+            do {
+                let parent = currentFolder!;
+                let leafs = try parent.contentsOfDirectory();
+                for l in leafs {
+                    if var attrs = globals.storageModel.lookupSong(l) {
+                        attrs["thumb"] = String(thumb_fp!);
+                        globals.storageModel.setSongAttr(l, attrs);
+                    }
+                }
+            }
+            catch {
+                
+            }
+        }
     }
+
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {

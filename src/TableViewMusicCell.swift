@@ -56,7 +56,7 @@ class TableViewMusicCell: UITableViewCell {
         thumbnailView.image = nil;
 
         if let thumb = attr["thumb"] {
-            let path = Path(rp: thumb, r: .ThumbRoot, f: false);
+            let path = Path(rp: thumb, r: .ThumbFile, f: false);
             if let image = UIImage(contentsOfFile: path.fullPath()) {
                 thumbnailView.image = image;
             }

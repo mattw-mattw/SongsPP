@@ -8,6 +8,7 @@
 
 import Foundation
 import Intents
+import UIKit
 
 //class TransferHandler: NSObject, MEGATransferDelegate {
 //    
@@ -118,37 +119,10 @@ class StorageModel {
     
     var index : [String : [String : String]] = [:];
     
-//    var downloadingFP : Set<String> = [];
-//    var downloadedFP : Set<String> = [];
-//    
-//    var downloadingNH : Set<UInt64> = [];
-//    var downloadedNH : Set<UInt64> = [];
-//
-//    var downloadingThumbnail : Set<String> = [];
-//    var downloadedThumbnail : Set<String> = [];
 
-    //var transferDelegate = TransferHandler();
-    //var megaDelegate = MEGAHandler();
-    
-
-    func clear()
+    func load(indexFile : Path, updatesFile : Path?, uic : UIViewController)
     {
-//        downloadingFP = [];
-//        downloadedFP = [];
-//        
-//        downloadingNH = [];
-//        downloadedNH = [];
-//
-//        downloadingThumbnail = [];
-//        downloadedThumbnail = [];
-    }
-    
-    func load()
-    {
-        //_ exportFolder : String
-        let attrsFile = Path(rp: "", r: .IndexFile, f: false);
-        
-        let attrsJson = loadFileAsJSON(filename: attrsFile.fullPath())
+        let attrsJson = loadFileAsJSON(filename: indexFile.fullPath())
         
         if let array = attrsJson as? [Any] {
             for object in array {
@@ -163,6 +137,90 @@ class StorageModel {
                 }
             }
         }
+        
+        if (updatesFile != nil)
+        {
+            _  = loadUpdates(updateFile: updatesFile!, uic: uic);
+        }
+    }
+    
+    func loadUpdates(updateFile : Path, uic : UIViewController) -> Bool
+    {
+        if !FileManager.default.fileExists(atPath: updateFile.fullPath())
+        {
+            return true;
+        }
+        
+        do
+        {
+            var content = try String(contentsOf: URL(fileURLWithPath: updateFile.fullPath()), encoding: .utf8);
+            while (true)
+            {
+                let i = content.firstIndex(of: "\r")
+                if i == nil { return true; }
+                    
+                let line = content[..<i!];
+                if (line.count > 0)
+                {
+                    let contentData = line.data(using: .utf8);
+                    let dict = try JSONSerialization.jsonObject(with: contentData!, options: []);
+                    
+                    if let attribs = dict as? [String : String] {
+                        if let p = attribs["npath"] {
+                            index[p] = attribs;
+                        }
+                    }
+                }
+                content = String(content[i!...]);
+                content.removeFirst();
+            }
+        }
+        catch {
+            reportMessage(uic: uic, message: "While loading updates: \(error)")
+            return false;
+        }
+    }
+    
+    func store(indexFile : Path, songs : inout [String : [String : String]], uic : UIViewController) -> Bool
+    {
+        var ja : [[String: String]] = [];
+
+        for (_, song) in songs {
+            ja.append(song);
+        }
+        
+        do {
+            //Convert to Data
+            let jsonData = try JSONSerialization.data(withJSONObject: ja, options: JSONSerialization.WritingOptions.sortedKeys)
+            let str = String(data: jsonData, encoding: .utf8);
+            try str?.write(toFile: indexFile.fullPath(), atomically: true, encoding: .utf8)
+            return true;
+        } catch {
+            reportMessage(uic: uic, message: error.localizedDescription);
+            return false;
+        }
+    }
+    
+    func consolidateIndexFileUpdates(uic : UIViewController) -> Bool
+    {
+        // write updated index and erase updates file
+        if (globals.storageModel.store(indexFile: Path(rp: "", r: .IndexFile, f: false), songs: &globals.storageModel.index, uic: uic))
+        {
+            do {
+                try FileManager.default.removeItem(atPath: Path(rp: "", r: .IndexFileUpdates, f: false).fullPath());
+                
+                
+                if FileManager.default.fileExists(atPath: Path(rp: "", r: .IndexFileUpdates, f: false).fullPath())
+                {
+                    return false;
+                }
+                
+                return true;
+            } catch {
+                reportMessage(uic: uic, message: "\(error)")
+            }
+        }
+        return false;
     }
     
 //    func attrs_of_node(mega_node : MEGANode) -> [String : String]?
@@ -188,6 +246,41 @@ class StorageModel {
             result!["title"] = URL(fileURLWithPath: n.relativePath).lastPathComponent;
         }
         return result;
+    }
+    
+    func setSongAttr(_ n: Path, _ attr : [String : String])
+    {
+        if (index[n.relativePath] == nil) {index[n.relativePath] = [:]; }
+        for (a,b) in attr
+        {
+            index[n.relativePath]![a] = b;
+        }
+        
+        // write to diff file
+        do
+        {
+            let jsonData = try JSONSerialization.data(withJSONObject: attr, options: JSONSerialization.WritingOptions.sortedKeys)
+            if let str = String(data: jsonData, encoding: .utf8)
+            {
+                if let os = OutputStream(toFileAtPath: Path(rp: "", r: .IndexFileUpdates, f: false).fullPath(), append: true)
+                {
+                    os.open();
+                    let encodedDataArray = [UInt8](str.utf8);
+                    os.write("\r", maxLength: 1);
+                    os.write(encodedDataArray, maxLength: encodedDataArray.count);
+                    os.write("\r", maxLength: 1);
+                    os.close();
+                }
+            }
+            
+            var content = try String(contentsOf: URL(fileURLWithPath: Path(rp: "", r: .IndexFileUpdates, f: false).fullPath()), encoding: .utf8);
+            content.append("");
+        }
+        catch {
+            var err = "\(error)";
+            err += "err";
+        }
+        
     }
     
 //    func deleteCachedFiles(includingAccountAndSettings : Bool) -> Bool
@@ -477,62 +570,6 @@ class StorageModel {
             }
         }
     }
-    
-
-
-
-
-//    func accountPath() -> String
-//    {
-//        let p = storageBasePath() + "/account";
-//        assureFolderExists(p, doneName: "account");
-//        return p;
-//    }
-
-
-
-//    func songsFolderPath() -> String
-//    {
-//        let p = cacheFilesPath() + "/songs";
-//        assureFolderExists(p, doneName: "songs")
-//        return p;
-//    }
-
-//    func thumbnailsFolderPath() -> String
-//    {
-//        let p = cacheFilesPath() + "/thumbnails";
-//        assureFolderExists(p, doneName: "thumbnails")
-//        return p;
-//    }
-
-//    func playlistsFolderPath() -> String
-//    {
-//        let p = cacheFilesPath() + "/playlists";
-//        assureFolderExists(p, doneName: "playlists")
-//        return p;
-//    }
-
-
-    
-//    func tempFilesPath() -> String
-//    {
-//        // .cachesDirectory: Stores files in here that can be discarded when the space is low. This is a good location for any content that can be re-downloaded when needed.
-//        // Contents of this directory is not included in the backups. When the device is low on disk space then iOS can help by clearing caches. Files will never be removed
-//        // from your cache if your application is running and OS will start by clearing caches from apps that haven’t been used in a while.
-//        let cacheUrls = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask);
-//        assureFolderExists(cacheUrls[0].standardizedFileURL.path, doneName: "tempBase");
-//        let tmpPath = cacheUrls[0].appendingPathComponent("tmp").standardizedFileURL.path;
-//        assureFolderExists(tmpPath, doneName: "tmp")
-//        return tmpPath;
-//    }
-    
-//    func uploadFilesPath() -> String
-//    {
-//        let p = tempFilesPath() + "/uploads";
-//        assureFolderExists(p, doneName: "uploads")
-//        return p;
-//    }
-
 
 }
 
