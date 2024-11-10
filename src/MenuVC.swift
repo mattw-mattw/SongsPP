@@ -53,6 +53,17 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
             Path.folderManager.alreadyCreatedFolders = [];
             _ = Path.folderManager.settingsPath();
             _ = Path.folderManager.syncFolderPath();
+            app().browsePlaylistsTVC?.currentFolder = Path(rp: "", r: .PlaylistRoot, f: true);
+            app().browsePlaylistsTVC?.nodeArray = [];
+            app().browsePlaylistsTVC?.reloadOnAppear = true;
+            app().browseMusicTVC?.currentFolder = Path(rp: "", r: .MusicSyncFolder, f: true);
+            app().browseMusicTVC?.nodeArray = [];
+            app().browseMusicTVC?.reloadOnAppear = true;
+            if (app().playlistTVC != nil)
+            {
+                app().playlistTVC?.playlistToLoad = nil;
+                app().playlistTVC?.popVC();
+            }
         }
         catch {
             result = false;
@@ -221,6 +232,10 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         {
             source.removeFirst(7);
         }
+        if (source.contains("%20"))
+        {
+            source = source.replacingOccurrences(of: "%20", with: " ")
+        }
         
         // import known info about songs, know in advance if we need to scan for tags/images
         globals.storageModel.load(indexFile: Path(rp: source + "/songs++index/songs++index.json", r: .ExternalPath, f: false), updatesFile: nil, uic:self);
@@ -245,7 +260,11 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         {
             target.removeFirst(7);
         }
-        
+        if (target.contains("%20"))
+        {
+            target = target.replacingOccurrences(of: "%20", with: " ")
+        }
+
         if (globals.storageModel.consolidateIndexFileUpdates(uic: self))
         {
             var source = Path(rp: "", r: .MusicSyncFolder, f: true).fullPath();
@@ -254,7 +273,10 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
             {
                 source = Path(rp: "", r: .IndexFolder, f: true).fullPath();
                 target += "/songs++index";
-                Path.folderManager.assureFolderExists(target, doneName: "")
+                if (!Path.folderManager.assureFolderExists(target, doneName: "")) {
+                    reportMessage(uic: self, message: "The index folder could not be created on the Network Folder.  Please check it's not read only.")
+                    return;
+                }
             }
             
             if (!SongsCPP.startScanDoubleDirs(source, rhs: target, removeUnmatchedOnRight: false, compareMtimeForCopy: self.checkModifiedDate.flag, extractTags: false))
@@ -298,7 +320,7 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
             if (bpm != nil && bpm! != "") { s["bpm"] = bpm! as String}
             if (thumb != nil && thumb! != "") { s["thumb"] = thumb! as String}
             if (duration != nil && duration! != "") { s["durat"] = duration! as String}
-            globals.storageModel.setSongAttr(Path(rp: p, r: .ExternalPath, f: false), s);
+            _ = globals.storageModel.setSongAttr(Path(rp: p, r: .ExternalPath, f: false), s, uic: nil);
         }
         while (SongsCPP.getNextFolderThumb(&path, &thumb))
         {
@@ -313,7 +335,7 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
                     if var attrs = globals.storageModel.lookupSong(l) {
                         if (attrs["thumb"] != nil) { continue; }
                         attrs["thumb"] = String(thumb!);
-                        globals.storageModel.setSongAttr(l, attrs);
+                        _ = globals.storageModel.setSongAttr(l, attrs, uic: nil);
                     }
                 }
             }
@@ -322,6 +344,8 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         }
         
         _ = globals.storageModel.store(indexFile: Path(rp: "", r: .IndexFile, f: false), songs: &globals.storageModel.index, uic: self);
+        app().browsePlaylistsTVC?.reloadOnAppear = true;
+        app().browseMusicTVC?.reloadOnAppear = true;
 
         scanCopyAlertCtrl?.dismiss(animated: false);
         scanCopyAlertCtrl = nil;
@@ -964,9 +988,14 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
     * Copy playlists back to the network folder
     * View Track and Artist or Filename
     * Record BPM and notes per song
+    * Track image extracted from file, or jpg in the same folder
     * Songs use app storage
-    * No iCloud storage used
+    * iCloud storage not used for songs
     * Your network folder is your backup
+    
+    Acknowlegements
+    * taglib 2.0, under MPL licence  (extracts song titles, artists, images, and other tags)
+    * MEGA SDK, under MIT licence    (for thumbnails and file fingerprints)
     """;
     
     let versionText =

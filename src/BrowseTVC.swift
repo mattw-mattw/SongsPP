@@ -132,6 +132,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     }
     
     var selectRowOnAppear = -1;
+    var reloadOnAppear = false;
     
     override func viewDidAppear(_ animated: Bool) {
         navigationItem.rightBarButtonItem =
@@ -143,17 +144,11 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         }
         selectRowOnAppear = -1;
         
-//        // in case cache was wiped
-//        if (isPlaylists())
-//        {
-//            for n in nodeArray {
-//                if n.name != nil &&
-//                   n.name!.hasSuffix(".playlist")
-//                {
-//                    _ = globals.storageModel.startDownloadIfAbsent(node: n);
-//                }
-//            }
-//        }
+        if (reloadOnAppear)
+        {
+            load(currentFolder);
+            reloadOnAppear = false;
+        }
     }
     
     @objc func onParentTap(sender : UITapGestureRecognizer) {
@@ -172,6 +167,9 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         if isPlaylists() {
             alert.addAction(UIAlertAction(title: "New Playlist", style: .default, handler:
                 { (UIAlertAction) -> () in self.AddNewPlaylist() }));
+
+            alert.addAction(UIAlertAction(title: "New Folder", style: .default, handler:
+                { (UIAlertAction) -> () in self.AddNewPlaylistFolder() }));
 
         } else {
             alert.addAction(UIAlertAction(title: "Extract Title/Artist/BPM...", style: .default, handler:
@@ -407,6 +405,46 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         present(textInput, animated: false, completion: nil)
     }
     
+    func AddNewPlaylistFolder()
+    {
+        var inputName = "";
+        
+        let textInput = UIAlertController(title: "New folder name", message: "Adds a new folder for playlists.", preferredStyle: .alert)
+        
+        textInput.addTextField( configurationHandler: { newTextField in
+            newTextField.text = inputName;
+            newTextField.returnKeyType = .go
+            newTextField.delegate = self
+        });
+
+        textInput.addAction(UIAlertAction(title: "Create folder", style: .default, handler:
+            { (UIAlertAction) -> () in
+                if (textInput.textFields != nil) {
+                    if textInput.textFields!.first != nil {
+                        if (textInput.textFields!.first!.text != nil) {
+                            inputName = textInput.textFields!.first!.text!;
+                            
+                            let newPlaylistPath = self.currentFolder!.fullPath() + "/" + inputName;
+                            
+                            if FileManager.default.fileExists(atPath: newPlaylistPath) {
+                                reportMessage(uic: self, message: "Folder path already exists");
+                                return;
+                            }
+                            do {
+                                try FileManager.default.createDirectory(atPath: newPlaylistPath, withIntermediateDirectories: false)
+                            } catch {
+                                reportMessage(uic: self, message: "Folder creation failed: \(error)");
+                            }
+                            self.reFilter()
+                        }
+                    }
+                }
+            }));
+        
+        textInput.addAction(menuAction_neverMind());
+        present(textInput, animated: false, completion: nil)
+    }
+    
     func ExtractTitleArtistBPM()
     {
 
@@ -460,13 +498,13 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         var v : [Path] = [];
         do {
             for n in nodeArray {
-                try loadSongsFromPathRecursive(n: n, &v, recurse: true, filterIntent: nil);
+                try loadSongsFromPathRecursive(n: n, &v, recurse: true, filterIntent: nil, loadPlaylists: isPlaylists());
             }
         }
         catch {
             reportMessage(uic: self, message: "Error getting all: \(error)")
         }
-        globals.playQueue.queueSongs(front: false, songs: v, uic: self, reportQueueLimit: true)
+        globals.playQueue.queueSongs(front: false, songs: v, uic: self, reportQueueLimit: true, loadPlaylists: isPlaylists())
     }
 
     func ShuffleQueueAll()
@@ -475,13 +513,13 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         do
         {
             for n in nodeArray {
-                try loadSongsFromPathRecursive(n: n, &v, recurse: true, filterIntent: nil);
+                try loadSongsFromPathRecursive(n: n, &v, recurse: true, filterIntent: nil, loadPlaylists: isPlaylists());
             }
         }
         catch {
             reportMessage(uic: self, message: "Error getting all: \(error)")
         }
-        globals.playQueue.queueSongs(front: false, songs: shuffleArray(&v), uic: self, reportQueueLimit: true);
+        globals.playQueue.queueSongs(front: false, songs: shuffleArray(&v), uic: self, reportQueueLimit: true, loadPlaylists: isPlaylists());
     }
 
     func checkFiltered(_ n : Path) -> Bool
@@ -500,11 +538,8 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             if let t = attr["notes"] {
                 if t.lowercased().contains(filterSearchString.lowercased()) { return true; }
             }
-            if let t = attr["title"] {
-                if t.lowercased().contains(filterSearchString.lowercased()) { return true; }
-            }
-            if let t = attr["title"] {
-                if t.lowercased().contains(filterSearchString.lowercased()) { return true; }
+            if let t = attr["npath"] {
+                if leafName(t.lowercased()).contains(filterSearchString.lowercased()) { return true; }
             }
         }
         return false;
@@ -708,14 +743,19 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             cell = tableView.dequeueReusableCell(withIdentifier: filtering ? "MusicCellWithNotes" : "MusicCell", for: indexPath)
             if (n != nil)
             {
-                let songAttr = globals.storageModel.lookupSong(n!);
+                var songAttr = globals.storageModel.lookupSong(n!);
+                if (songAttr == nil)
+                {
+                    songAttr = [:];
+                    songAttr!["npath"] = n?.relativePath;
+                }
                 
                 if let mCell = cell as? TableViewMusicCellWithNotes {
-                    mCell.populateFromSongAttr(songAttr ?? [:]);
+                    mCell.populateFromSongAttr(songAttr!);
                     mCell.notesLabel?.text = n!.parentFolder().relativePath;
                 }
                 else if let mCell = cell as? TableViewMusicCell {
-                    mCell.populateFromSongAttr(songAttr ?? [:]);
+                    mCell.populateFromSongAttr(songAttr!);
                 }
             }
         }
@@ -782,8 +822,8 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
             
             if isPlayable(node, orMightContainPlayable: true) {
-                alert.addAction(menuAction_playNext(node, uic: self));
-                alert.addAction(menuAction_playLast(node, uic: self));
+                alert.addAction(menuAction_playNext(node, uic: self, loadPlaylists: isPlaylists()));
+                alert.addAction(menuAction_playLast(node, uic: self, loadPlaylists: isPlaylists()));
             }
             if isPlayable(node, orMightContainPlayable: false) {
                 alert.addAction(menuAction_songInfo(node, viewController: self));
@@ -811,9 +851,9 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         tableView.reloadData();
     }
 
-    func setArtworkForSongsInFolder(_ node : Path)
+    func setArtworkForSongsInFolder(_ node : Path) -> Bool
     {
-        if (currentFolder == nil) { return; }
+        if (currentFolder == nil) { return true; }
         
         var thumb_fp: NSString? = nil;
         if (SongsCPP.genImageThumbnailAndFingerprint(node.fullPath(), &thumb_fp))
@@ -824,14 +864,19 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
                 for l in leafs {
                     if var attrs = globals.storageModel.lookupSong(l) {
                         attrs["thumb"] = String(thumb_fp!);
-                        globals.storageModel.setSongAttr(l, attrs);
+                        if (!globals.storageModel.setSongAttr(l, attrs, uic:self))
+                        {
+                            return false;
+                        }
                     }
                 }
             }
             catch {
-                
+                reportMessage(uic: self, message: "\(error)")
+                return false;
             }
         }
+        return true;
     }
 
     /*

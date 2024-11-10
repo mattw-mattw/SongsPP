@@ -114,37 +114,20 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         return String(format: "%d:%02d", mins, secs)
     }
 
-    func queueSong(front: Bool, song : Path, uic : UIViewController)
+    func queueSong(front: Bool, song : Path, uic : UIViewController, loadPlaylists: Bool)
     {
-        queueSongs(front: front, songs: [song], uic: uic, reportQueueLimit: false);
+        queueSongs(front: front, songs: [song], uic: uic, reportQueueLimit: false, loadPlaylists: loadPlaylists);
     }
     
-    func queueSongs(front: Bool, songs : [Path], uic : UIViewController, reportQueueLimit : Bool)
+    func queueSongs(front: Bool, songs : [Path], uic : UIViewController, reportQueueLimit : Bool, loadPlaylists: Bool)
     {
-//        if (timeObservation == nil)
-//        {
-//            timeObservation = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.5, preferredTimescale: 600), queue: nil) { [weak self] time in
-//                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(1)) {
-//                    guard let self = self else { return }
-//                    if let ci = self.player.currentItem {
-//  //                      self.currentTime = ci.currentTime()
-//  //                      self.duration = ci.duration
-//  //                      self.sliderPos = self.duration.seconds == 0 ? 0 : self.currentTime.seconds / self.duration.seconds
-//                        self.currentTimeString = self.StringTime(ci.currentTime().seconds)
-//  //                      self.durationString = self.StringTime(self.duration.seconds)
-//                    }
-//                }
-//            }
-//        }
-
-        
         let replaceable = playerSongIsEphemeral();
         var playableNodes : [Path] = [];
         for n in songs {
             if isPlayable(n, orMightContainPlayable: true) {
                 var v : [Path] = [];
                 do {
-                    try loadSongsFromPathRecursive(n: n, &v, recurse: true, filterIntent: nil);
+                    try loadSongsFromPathRecursive(n: n, &v, recurse: true, filterIntent: nil, loadPlaylists: loadPlaylists);
                 } catch {
                 }
                 playableNodes.append(contentsOf: v);
@@ -202,7 +185,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         {
             let n = nextSongs[row];
             nextSongs.remove(at: row);
-            queueSong(front: true, song: n, uic: uic);
+            queueSong(front: true, song: n, uic: uic, loadPlaylists: false);
         }
     }
     
@@ -223,7 +206,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         {
             let n = nextSongs[row];
             nextSongs.remove(at: row);
-            queueSong(front: false, song: n, uic: uic);
+            queueSong(front: false, song: n, uic: uic, loadPlaylists: false);
         }
     }
     
@@ -698,16 +681,6 @@ class PlayQueue : NSObject, UITextFieldDelegate {
     
     func saveAsPlaylist(uic : UIViewController)
     {
-//        if globals.playlistBrowseFolder == nil {
-//            reportMessage(uic: uic, message: "Please choose the playlist folder first. (Navigate to it and use the Option menu)");
-//            return;
-//        }
-//        if (!globals.loginState.online)
-//        {
-//            reportMessage(uic: uic, message: "Please go online to upload the playlist.");
-//            return;
-//        }
-
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyyMMdd-HHmmss"
         var inputName = formatter.string(from: Date());
@@ -721,7 +694,7 @@ class PlayQueue : NSObject, UITextFieldDelegate {
         });
 
         textInput.addAction(UIAlertAction(title: "Create playlist", style: .default, handler:
-            { (UIAlertAction) -> () in
+                                            { (UIAlertAction) -> () in
                 if (textInput.textFields != nil) {
                     if textInput.textFields!.first != nil {
                         if (textInput.textFields!.first!.text != nil) {
@@ -729,13 +702,16 @@ class PlayQueue : NSObject, UITextFieldDelegate {
                         }
                     }
                 }
-            // todo: update locally only
-//                let s = self.songArrayToJSON(optionalExtraFirstNode: nil, array: self.nextSongs);
-//                let uploadpath = globals.storageModel.uploadFilesPath() + "/" + inputName + ".playlist";
-//                let url = URL(fileURLWithPath: uploadpath);
-//                try! s.write(to: url, atomically: true, encoding: .ascii)
-//                mega().startUpload(withLocalPath:uploadpath, parent: globals.playlistBrowseFolder!)
-            }));
+                let s = self.songArrayToJSON(optionalExtraFirstNode: nil, array: self.nextSongs);
+                let savepath = Path(rp: inputName + ".playlist", r: .PlaylistRoot, f: false);
+                do {
+                    try s.write(toFile: savepath.fullPath(), atomically: true, encoding: .utf8);
+                    app().browsePlaylistsTVC?.reloadOnAppear = true;
+                } catch {
+                    reportMessage(uic: uic, message: "\(error)")
+                }
+            }
+            ));
         
         textInput.addAction(menuAction_neverMind());
         uic.present(textInput, animated: false, completion: nil)

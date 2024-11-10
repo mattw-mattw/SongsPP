@@ -181,7 +181,7 @@ class StorageModel {
         }
     }
     
-    func store(indexFile : Path, songs : inout [String : [String : String]], uic : UIViewController) -> Bool
+    func store(indexFile : Path, songs : inout [String : [String : String]], uic : UIViewController?) -> Bool
     {
         var ja : [[String: String]] = [];
 
@@ -196,19 +196,23 @@ class StorageModel {
             try str?.write(toFile: indexFile.fullPath(), atomically: true, encoding: .utf8)
             return true;
         } catch {
-            reportMessage(uic: uic, message: error.localizedDescription);
+            if (uic != nil) {
+                reportMessage(uic: uic!, message: error.localizedDescription);
+            }
             return false;
         }
     }
     
-    func consolidateIndexFileUpdates(uic : UIViewController) -> Bool
+    func consolidateIndexFileUpdates(uic : UIViewController?) -> Bool
     {
         // write updated index and erase updates file
         if (globals.storageModel.store(indexFile: Path(rp: "", r: .IndexFile, f: false), songs: &globals.storageModel.index, uic: uic))
         {
             do {
-                try FileManager.default.removeItem(atPath: Path(rp: "", r: .IndexFileUpdates, f: false).fullPath());
-                
+                if FileManager.default.fileExists(atPath: Path(rp: "", r: .IndexFileUpdates, f: false).fullPath())
+                {
+                    try FileManager.default.removeItem(atPath: Path(rp: "", r: .IndexFileUpdates, f: false).fullPath());
+                }
                 
                 if FileManager.default.fileExists(atPath: Path(rp: "", r: .IndexFileUpdates, f: false).fullPath())
                 {
@@ -217,7 +221,9 @@ class StorageModel {
                 
                 return true;
             } catch {
-                reportMessage(uic: uic, message: "\(error)")
+                if (uic != nil) {
+                    reportMessage(uic: uic!, message: "\(error)")
+                }
             }
         }
         return false;
@@ -242,13 +248,16 @@ class StorageModel {
         assert(n.rt == Path.RootType.MusicSyncFolder);
         
         var result = index[n.relativePath];
-        if result != nil && result!["title"] == nil {
+        if result == nil {
+            result = [:];
+        }
+        if result!["title"] == nil {
             result!["title"] = URL(fileURLWithPath: n.relativePath).lastPathComponent;
         }
         return result;
     }
     
-    func setSongAttr(_ n: Path, _ attr : [String : String])
+    func setSongAttr(_ n: Path, _ attr : [String : String], uic: UIViewController?) -> Bool
     {
         if (index[n.relativePath] == nil) {index[n.relativePath] = [:]; }
         for (a,b) in attr
@@ -259,10 +268,27 @@ class StorageModel {
         // write to diff file
         do
         {
+            let updatesPath = Path(rp: "", r: .IndexFileUpdates, f: false).fullPath();
+            if FileManager.default.fileExists(atPath: updatesPath) {
+                do {
+                    let fileSize = (try! FileManager.default.attributesOfItem(atPath: updatesPath)[FileAttributeKey.size] as! NSNumber).uint64Value;
+                    if (fileSize > 10000)
+                    {
+                        if (!consolidateIndexFileUpdates(uic: uic))
+                        {
+                            if (uic != nil)
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+
             let jsonData = try JSONSerialization.data(withJSONObject: attr, options: JSONSerialization.WritingOptions.sortedKeys)
             if let str = String(data: jsonData, encoding: .utf8)
             {
-                if let os = OutputStream(toFileAtPath: Path(rp: "", r: .IndexFileUpdates, f: false).fullPath(), append: true)
+                if let os = OutputStream(toFileAtPath: updatesPath, append: true)
                 {
                     os.open();
                     let encodedDataArray = [UInt8](str.utf8);
@@ -272,15 +298,14 @@ class StorageModel {
                     os.close();
                 }
             }
-            
-            var content = try String(contentsOf: URL(fileURLWithPath: Path(rp: "", r: .IndexFileUpdates, f: false).fullPath()), encoding: .utf8);
-            content.append("");
+
         }
         catch {
             var err = "\(error)";
             err += "err";
+            return false;
         }
-        
+        return true;
     }
     
 //    func deleteCachedFiles(includingAccountAndSettings : Bool) -> Bool

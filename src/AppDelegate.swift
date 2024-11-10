@@ -98,7 +98,7 @@ func loadSongsFromPlaylistRecursive(json: Any, _ v : inout [Path], recurse: Bool
     }
 }
 
-func loadSongsFromPathRecursive(n: Path, _ v : inout [Path], recurse: Bool, filterIntent: INPlayMediaIntent?) throws
+func loadSongsFromPathRecursive(n: Path, _ v : inout [Path], recurse: Bool, filterIntent: INPlayMediaIntent?, loadPlaylists: Bool) throws
 {
     if (filterIntent != nil)
     {
@@ -118,13 +118,13 @@ func loadSongsFromPathRecursive(n: Path, _ v : inout [Path], recurse: Bool, filt
         for l in leafs
         {
             if (recurse || !l.isFolder) {
-                try loadSongsFromPathRecursive(n: l, &v, recurse: recurse, filterIntent: filterIntent);
+                try loadSongsFromPathRecursive(n: l, &v, recurse: recurse, filterIntent: filterIntent, loadPlaylists: loadPlaylists);
             }
         }
     }
     else if (n.hasSuffix(".playlist"))// && globals.storageModel.fileDownloadedByNH(node))
     {
-        if (recurse) {
+        if (recurse && loadPlaylists) {
             let json = try getPlaylistFileAsJSON(n, editedIfAvail: true);
             loadSongsFromPlaylistRecursive(json: json, &v, recurse: recurse, filterIntent: filterIntent);
         }
@@ -182,9 +182,9 @@ class FolderManager
 {
     var alreadyCreatedFolders : Set<String> = [];
 
-    func assureFolderExists(_ url : String, doneName : String) -> Void
+    func assureFolderExists(_ url : String, doneName : String) -> Bool
     {
-        if (doneName != "" && alreadyCreatedFolders.contains(doneName)) { return; }
+        if (doneName != "" && alreadyCreatedFolders.contains(doneName)) { return true; }
         do {
             if !FileManager.default.fileExists(atPath: url) {
                 try FileManager.default.createDirectory(atPath: url, withIntermediateDirectories: true, attributes: nil);
@@ -198,7 +198,9 @@ class FolderManager
         catch
         {
             print("directory does not exist and could not be created or could not be set non-backup: \(url)")
+            return false;
         }
+        return true;
     }
     
     func storageBasePath() -> String
@@ -472,7 +474,8 @@ class IntentHandler: NSObject, INPlayMediaIntentHandling {
         print("Full intent media search object:");
         print(intent.mediaSearch!);
 
-        let searchLocation = intent.mediaSearch!.mediaType == .playlist ?
+        let isPlaylists = intent.mediaSearch!.mediaType == .playlist;
+        let searchLocation = isPlaylists ?
             Path(rp: "", r: Path.RootType.PlaylistRoot, f: true) :
             Path(rp: "", r: Path.RootType.MusicSyncFolder, f: true);
         
@@ -488,7 +491,7 @@ class IntentHandler: NSObject, INPlayMediaIntentHandling {
         switch (intent.mediaSearch!.mediaType) {
         case .album, .playlist, .song, .music, .unknown:
             do {
-                try loadSongsFromPathRecursive(n: searchLocation, &v, recurse: true, filterIntent: intent);
+                try loadSongsFromPathRecursive(n: searchLocation, &v, recurse: true, filterIntent: intent, loadPlaylists: isPlaylists);
             }
             catch {
             }
@@ -555,7 +558,7 @@ class IntentHandler: NSObject, INPlayMediaIntentHandling {
 
         for n in foundNodes {
             do {
-                try loadSongsFromPathRecursive(n: n, &expanded, recurse: true, filterIntent: nil);
+                try loadSongsFromPathRecursive(n: n, &expanded, recurse: true, filterIntent: nil, loadPlaylists: true);
             }
             catch {
             }
@@ -580,7 +583,7 @@ class IntentHandler: NSObject, INPlayMediaIntentHandling {
         {
             let aaa = expanded;
             DispatchQueue.main.asyncAfter(deadline: .now()) {
-                globals.playQueue.queueSongs(front: true, songs: aaa, uic: app().playQueueTVC!, reportQueueLimit: false);
+                globals.playQueue.queueSongs(front: true, songs: aaa, uic: app().playQueueTVC!, reportQueueLimit: false, loadPlaylists: false);
             }
         }
 
@@ -803,6 +806,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var playQueueTVC : PlayQueueTVC? = nil;
     var browseMusicTVC : BrowseTVC? = nil;
     var browsePlaylistsTVC : BrowseTVC? = nil;
+    var playlistTVC : PlaylistTVC? = nil;
     
     var tabBarContoller : MainTabBarController? = nil;
     
@@ -961,16 +965,16 @@ func menuAction_playRightNow(_ n : Path) -> UIAlertAction
         { (UIAlertAction) -> () in globals.playQueue.playRightNow(n); });
 }
 
-func menuAction_playNext(_ n : Path, uic : UIViewController) -> UIAlertAction
+func menuAction_playNext(_ n : Path, uic : UIViewController, loadPlaylists : Bool) -> UIAlertAction
 {
     return UIAlertAction(title: "Play next", style: .default, handler:
-        { (UIAlertAction) -> () in globals.playQueue.queueSong(front: true, song: n, uic: uic); });
+                            { (UIAlertAction) -> () in globals.playQueue.queueSong(front: true, song: n, uic: uic, loadPlaylists: loadPlaylists); });
 }
 
-func menuAction_playLast(_ n : Path, uic : UIViewController) -> UIAlertAction
+func menuAction_playLast(_ n : Path, uic : UIViewController, loadPlaylists : Bool) -> UIAlertAction
 {
     UIAlertAction(title: "Play last", style: .default, handler:
-        { (UIAlertAction) -> () in globals.playQueue.queueSong(front: false, song: n, uic: uic); });
+                    { (UIAlertAction) -> () in globals.playQueue.queueSong(front: false, song: n, uic: uic, loadPlaylists: loadPlaylists); });
 }
 
 func menuAction_songInfo(_ node : Path, viewController : UIViewController) -> UIAlertAction

@@ -394,6 +394,40 @@ shared_ptr<scanQueue> curScan;
 ::mega::MegaApi thumbnailSdk("appKey");
 static atomic<int> tmpJpg {0};
 
+NSString *
+objcString(char const *s)
+{
+  return [NSString stringWithCString:s encoding:NSUTF8StringEncoding];
+}
+
+class myMIS : public MegaInputStream
+{
+public:
+    int64_t size;
+    ifstream ifs;
+
+    myMIS(const char* filename)
+        : ifs(filename, ios::binary)
+    {
+        ifs.seekg(0, ios::end);
+        size = ifs.tellg();
+        ifs.seekg(0, ios::beg);
+    }
+    virtual int64_t getSize() { return size; }
+
+    virtual bool read(char *buffer, size_t size) {
+        if (buffer)
+        {
+            ifs.read(buffer, size);
+        }
+        else
+        {
+            ifs.seekg(size, ios::cur);
+        }
+        return !ifs.fail();
+    }
+};
+
 bool generateThumbnailAndFingerprint(const std::string& pictureFile, std::string& fp_str)
 {
     std::string thumbnailJpg = tmpPath + "/" + std::to_string(++tmpJpg) + "-thumb.jpg";
@@ -401,12 +435,14 @@ bool generateThumbnailAndFingerprint(const std::string& pictureFile, std::string
     {
         return false;
     }
-    const char * fp = thumbnailSdk.getFingerprint(thumbnailJpg.c_str());
+
+    myMIS mfis(thumbnailJpg.c_str());
+    unique_ptr<char[]> fp(thumbnailSdk.getFingerprint(&mfis, 0)); // strip out fingerprint's date
     if (fp)
     {
-        std::string fpJpg = thumbPath + "/" + fp + ".jpg";
+        std::string fpJpg = thumbPath + "/" + fp.get() + ".jpg";
         rename(thumbnailJpg.c_str(), fpJpg.c_str());
-        fp_str = fp;
+        fp_str = fp.get();
         return true;
     }
     unlink(thumbnailJpg.c_str());
@@ -456,11 +492,15 @@ void doCopyFile(const scanAction& op, scanQueue& sq, bool extractTags)
                 t.title = tag->title().toCString(true);
                 t.artist = tag->artist().toCString(true);
                 
-                TagLib::PropertyMap tags = f.file()->properties();
-                auto it = tags.find("BPM");
-                if (it != tags.end()) {
-                    for (auto& s : it->second) {
-                        t.bpm = s.toCString(true);
+                if (op.rhsPath.toPath().find(".m4a") == std::string::npos)
+                {
+                    // bit crashy for m4a
+                    TagLib::PropertyMap tags = f.file()->properties();
+                    auto it = tags.find("BPM");
+                    if (it != tags.end()) {
+                        for (auto& s : it->second) {
+                            t.bpm = s.toCString(true);
+                        }
                     }
                 }
                 
@@ -516,10 +556,11 @@ void doCopyFile(const scanAction& op, scanQueue& sq, bool extractTags)
     {
         std::string thumbnailJpg = tmpPath + "/" + std::to_string(++tmpJpg) + "-thumb.jpg";
         thumbnailSdk.createThumbnail(op.rhsPath.toPath().c_str(), thumbnailJpg.c_str());
-        const char * fp = thumbnailSdk.getFingerprint(thumbnailJpg.c_str());
+        myMIS mfis(thumbnailJpg.c_str());
+        unique_ptr<char[]> fp(thumbnailSdk.getFingerprint(&mfis, 0));  // strip out fingerprint's date
         if (fp)
         {
-            std::string fpJpg = thumbPath + "/" + fp + ".jpg";
+            std::string fpJpg = thumbPath + "/" + fp.get() + ".jpg";
             rename(thumbnailJpg.c_str(), fpJpg.c_str());
 
             std::lock_guard<std::mutex> g(sq.songTagsMutex);
@@ -530,7 +571,7 @@ void doCopyFile(const scanAction& op, scanQueue& sq, bool extractTags)
             {
                 parent.truncate(index);
                 parent.trimNonDriveTrailingSeparator();
-                sq.newJpegFileThumbsByPath[parent.toPath()] = string(fp);
+                sq.newJpegFileThumbsByPath[parent.toPath()] = string(fp.get());
             }
         }
         else

@@ -38,6 +38,12 @@ class TableViewMusicCell: UITableViewCell {
         songAttr = attr;
         
         var title : String? = attr["title"];
+        if (title == nil) {
+            title = attr["npath"];
+            if title != nil {
+                title = leafName(title!);
+            }
+        }
         if (title == nil) { title = "<unknown>"; }
         titleLabel.text = title!;
 

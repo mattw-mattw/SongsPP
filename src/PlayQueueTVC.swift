@@ -510,10 +510,10 @@ class PlayQueueTVC: UITableViewController {
                 let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
                 
                 alert.addAction(UIAlertAction(title: "Play next", style: .default, handler:
-                                                { (UIAlertAction) -> () in self.playQueue.queueSong(front: true, song: node, uic:self); tableView.reloadData() }));
+                                                { (UIAlertAction) -> () in self.playQueue.queueSong(front: true, song: node, uic:self, loadPlaylists: false); tableView.reloadData() }));
                 
                 alert.addAction(UIAlertAction(title: "Queue song", style: .default, handler:
-                                                { (UIAlertAction) -> () in self.playQueue.queueSong(front: false, song: node, uic: self); tableView.reloadData() }));
+                                                { (UIAlertAction) -> () in self.playQueue.queueSong(front: false, song: node, uic: self, loadPlaylists: false); tableView.reloadData() }));
 
                 alert.addAction(UIAlertAction(title: "Time travel", style: .default, handler:
                                                 { (UIAlertAction) -> () in self.playQueue.timeTravel(index: indexPath.row); self.QueueButtonHit(self); tableView.reloadData() }));

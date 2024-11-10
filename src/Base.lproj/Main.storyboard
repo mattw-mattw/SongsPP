@@ -1484,10 +1484,16 @@
                                 <rect key="frame" x="0.0" y="103" width="430" height="697"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="zxj-iJ-WZB">
-                                        <rect key="frame" x="0.0" y="10" width="430" height="278.66666666666669"/>
+                                        <rect key="frame" x="0.0" y="10" width="430" height="299"/>
                                         <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="253" verticalHuggingPriority="253" verticalCompressionResistancePriority="250" text="~ - ~ - ~ - ~ - ~ - ~ - ~" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8rZ-Hz-hRb">
+                                                <rect key="frame" x="0.0" y="0.0" width="430" height="20.333333333333314"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3ge-PO-31r">
-                                                <rect key="frame" x="0.0" y="0.0" width="430" height="34.333333333333336"/>
+                                                <rect key="frame" x="0.0" y="20.333333333333346" width="430" height="34.333333333333343"/>
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="plain" title="Step 1: Connect to Network Folder"/>
                                                 <connections>
@@ -1495,7 +1501,7 @@
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ZV3-Lf-5BV">
-                                                <rect key="frame" x="0.0" y="34.333333333333343" width="430" height="34.333333333333343"/>
+                                                <rect key="frame" x="0.0" y="54.666666666666657" width="430" height="34.333333333333343"/>
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="plain" title="Step 2: Pick Music Folder in Network Folder"/>
                                                 <connections>
@@ -1503,19 +1509,19 @@
                                                 </connections>
                                             </button>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="&lt;Folder not chosen yet&gt;" textAlignment="center" lineBreakMode="characterWrap" numberOfLines="3" baselineAdjustment="alignBaselines" enabled="NO" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aAa-bz-nuV">
-                                                <rect key="frame" x="0.0" y="68.666666666666657" width="430" height="14.333333333333329"/>
+                                                <rect key="frame" x="0.0" y="89" width="430" height="14.333333333333329"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="253" verticalHuggingPriority="253" verticalCompressionResistancePriority="250" text="~ - ~ - ~ - ~ - ~ - ~ - ~" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="HvB-mj-RrS">
-                                                <rect key="frame" x="0.0" y="83" width="430" height="20.333333333333329"/>
+                                                <rect key="frame" x="0.0" y="103.33333333333334" width="430" height="20.333333333333329"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uS7-mG-qPC">
-                                                <rect key="frame" x="0.0" y="103.33333333333334" width="430" height="34.333333333333343"/>
+                                                <rect key="frame" x="0.0" y="123.66666666666664" width="430" height="34.333333333333329"/>
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="plain" title="Load from Network Folder"/>
                                                 <connections>
@@ -1523,7 +1529,7 @@
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2l5-cx-a4J">
-                                                <rect key="frame" x="0.0" y="137.66666666666666" width="430" height="34.333333333333343"/>
+                                                <rect key="frame" x="0.0" y="158" width="430" height="34.333333333333343"/>
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="plain" title="Export updates to Network Folder"/>
                                                 <connections>
@@ -1531,13 +1537,13 @@
                                                 </connections>
                                             </button>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="253" verticalHuggingPriority="253" verticalCompressionResistancePriority="250" text="~ - ~ - ~ - ~ - ~ - ~ - ~" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fcD-A8-KsX">
-                                                <rect key="frame" x="0.0" y="172" width="430" height="20.333333333333343"/>
+                                                <rect key="frame" x="0.0" y="192.33333333333331" width="430" height="20.333333333333343"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <button opaque="NO" tag="99" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wRn-O1-P0l">
-                                                <rect key="frame" x="0.0" y="192.33333333333331" width="430" height="33"/>
+                                                <rect key="frame" x="0.0" y="212.66666666666669" width="430" height="33"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                 <state key="normal" title="About"/>
@@ -1546,7 +1552,7 @@
                                                 </connections>
                                             </button>
                                             <button opaque="NO" tag="99" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8qc-of-1Yt">
-                                                <rect key="frame" x="0.0" y="225.33333333333331" width="430" height="33"/>
+                                                <rect key="frame" x="0.0" y="245.66666666666669" width="430" height="33"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                                 <state key="normal" title="Factory Reset"/>
@@ -1555,7 +1561,7 @@
                                                 </connections>
                                             </button>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="253" verticalHuggingPriority="253" verticalCompressionResistancePriority="250" text="~ - ~ - ~ - ~ - ~ - ~ - ~" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oIY-nW-Ldz">
-                                                <rect key="frame" x="0.0" y="258.33333333333331" width="430" height="20.333333333333314"/>
+                                                <rect key="frame" x="0.0" y="278.66666666666669" width="430" height="20.333333333333314"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>

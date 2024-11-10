@@ -91,7 +91,11 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
             attr["artist"] = artistText.text!
             attr["bpm"] = bpmText.text!
             attr["notes"] = notesText.text!
-            globals.storageModel.setSongAttr(node!, attr);
+            if (globals.storageModel.setSongAttr(node!, attr, uic: self))
+            {
+                app().browseMusicTVC?.reloadOnAppear = true;
+                app().playlistTVC?.reloadOnAppear();
+            }
         }
     }
     

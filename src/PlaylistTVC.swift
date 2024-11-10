@@ -11,37 +11,7 @@ import UIKit
 import AVKit
 
 
-//class TransferOnFinishDelegate: NSObject, MEGATransferDelegate {
-//    
-//    var finishFunc : ((_ e: MEGAError, _ h: MEGAHandle) -> Void)?;
-//    
-//    init(onFinish : @escaping (_ e: MEGAError, _ h: MEGAHandle) -> Void) {
-//        finishFunc = onFinish;
-//    }
-//    
-//    func onTransferStart(_ api: MEGASdk, transfer: MEGATransfer) {
-//    }
-//    
-//    func onTransferUpdate(_ api: MEGASdk, transfer: MEGATransfer) {
-//    }
-//    
-//    func onTransferFinish(_ api: MEGASdk, transfer request: MEGATransfer, error: MEGAError) {
-//        if (finishFunc != nil ) {
-//            
-//            let requestClone = request.clone();
-//            let errorClone = error.clone();
-//            
-//            DispatchQueue.main.async {
-//                self.finishFunc!(errorClone!, requestClone!.nodeHandle)
-//            }
-//        }
-//    }
-//    
-//    func onTransferTemporaryError(_ api: MEGASdk, transfer request: MEGATransfer, error: MEGAError) {
-//    }
-//}
-
-class PlaylistTVC: UITableViewController {
+class fabisam: UITableViewController {
 
     @IBOutlet weak var folderPathLabelCtrl: UILabel!
 
@@ -56,35 +26,20 @@ class PlaylistTVC: UITableViewController {
         tableView.estimatedRowHeight = 43.5;
         tableView.rowHeight = UITableView.automaticDimension;
         tableView.isEditing = false;
+        app().playlistTVC = self;
     }
 
-    
-    
     override func viewDidAppear(_ animated: Bool) {
         navigationItem.rightBarButtonItem =
             UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
-        
-//        if (!loadedOk)
-//        {
-//            let message = globals.loginState.online ?
-//            "The playlist has not been downloaded yet, please give it a moment and then retry.":
-//            "The playlist has not been downloaded yet.  Please go online so it can download, and it will be available shortly afterward";
-//            
-//            if playlistNode != nil {
-//                _ = globals.storageModel.startPlaylistDownloadIfAbsent(playlistNode!);
-//            }
-//            
-//            let alert = UIAlertController(title: "Playlist absent", message: message, preferredStyle: .alert)
-//            alert.addAction(UIAlertAction(title: "Ok", style: .cancel));
-//            self.present(alert, animated: false, completion: { () -> Void in
-//                self.navigationController?.popViewController(animated: true);
-//            })
-//        }
     }
     
-//    @objc func popVC() {
-//        self.navigationController?.popViewController(animated: true);
-//    }
+    @objc func popVC() {
+        if (self.navigationController?.topViewController == self)
+        {
+            self.navigationController?.popViewController(animated: true);
+        }
+    }
     
     override func viewDidDisappear(_ animated: Bool) {
         navigationItem.rightBarButtonItem = nil;
@@ -316,7 +271,7 @@ class PlaylistTVC: UITableViewController {
             let n = playlistSongs[indexPath.row];
 
             let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
-            alert.addAction(menuAction_playNext(n, uic: self));
+            alert.addAction(menuAction_playNext(n, uic: self, loadPlaylists: true));
             alert.addAction(menuAction_songBrowseTo(n, viewController: self));
             alert.addAction(menuAction_neverMind());
             self.present(alert, animated: false, completion: nil)
