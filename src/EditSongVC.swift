@@ -94,7 +94,7 @@ class EditSongVC: UIViewController, UITextFieldDelegate {
             if (globals.storageModel.setSongAttr(node!, attr, uic: self))
             {
                 app().browseMusicTVC?.reloadOnAppear = true;
-                app().playlistTVC?.reloadOnAppear();
+                //app().playlistTVC?.reloadOnAppear = true;
             }
         }
     }

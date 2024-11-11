@@ -25,13 +25,6 @@
 		84D137D82363F0C0006A2DE0 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137D72363F0BF006A2DE0 /* libc++.tbd */; };
 		84D137E42363F344006A2DE0 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E32363F343006A2DE0 /* CoreServices.framework */; };
 		84D137E62363F37F006A2DE0 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E52363F37F006A2DE0 /* CoreMedia.framework */; };
-		C90A1CA927375C6F009DEB53 /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A1CA627375C27009DEB53 /* libcryptopp.a */; };
-		C90A1CAA27375C6F009DEB53 /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A1CA527375C25009DEB53 /* libcurl.a */; };
-		C90A1CAB27375C6F009DEB53 /* libsodium.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A1CA827375C29009DEB53 /* libsodium.a */; };
-		C90A1CAC27375C6F009DEB53 /* libsqlite3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A1CA227375C22009DEB53 /* libsqlite3.a */; };
-		C90A1CAD27375C70009DEB53 /* libtag_c.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A1CA327375C23009DEB53 /* libtag_c.a */; };
-		C90A1CAE27375C70009DEB53 /* libtag.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A1CA427375C24009DEB53 /* libtag.a */; };
-		C90A1CAF27375C70009DEB53 /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90A1CA727375C28009DEB53 /* libz.a */; };
 		C90A1CB327376513009DEB53 /* libMEGASDK.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C962CA4F25DF6F1B00A77721 /* libMEGASDK.a */; };
 		C90DCBB325FE0E310097792C /* SongsCpp.mm in Sources */ = {isa = PBXBuildFile; fileRef = C90DCBB225FE0E310097792C /* SongsCpp.mm */; };
 		C94FF3892411021800184998 /* EditSongVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C94FF3882411021800184998 /* EditSongVC.swift */; };
@@ -40,9 +33,21 @@
 		C96F3AD923BFDB87008BF07D /* MenuVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3AD823BFDB87008BF07D /* MenuVC.swift */; };
 		C96F3ADD23C01A07008BF07D /* StorageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96F3ADC23C01A07008BF07D /* StorageModel.swift */; };
 		C972610023C72FAC0029871E /* MainTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97260FF23C72FAC0029871E /* MainTabBarController.swift */; };
-		C9A5A14A2733E69200180871 /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C945F8062733E01E006D5CF3 /* libcryptopp.a */; };
 		C9A5A1552733ED8100180871 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D137E12363F272006A2DE0 /* libresolv.tbd */; };
 		C9D30240259834D400D52ADF /* PlaylistTVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D3023F259834D400D52ADF /* PlaylistTVC.swift */; };
+		C9D8AC902CE0DD5C0034E37C /* libtag_c.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D8AC8F2CE0DD5C0034E37C /* libtag_c.a */; };
+		C9D8AC922CE0DD6A0034E37C /* libtag.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D8AC912CE0DD6A0034E37C /* libtag.a */; };
+		C9D8AC942CE0DD740034E37C /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D8AC932CE0DD740034E37C /* libz.a */; };
+		C9D8AC9C2CE0DEE00034E37C /* libtag.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D8AC992CE0DEE00034E37C /* libtag.a */; };
+		C9D8AC9D2CE0DEE00034E37C /* libsodium.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D8AC972CE0DEE00034E37C /* libsodium.a */; };
+		C9D8AC9E2CE0DEE00034E37C /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D8AC9B2CE0DEE00034E37C /* libz.a */; };
+		C9D8AC9F2CE0DEE00034E37C /* libtag_c.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D8AC9A2CE0DEE00034E37C /* libtag_c.a */; };
+		C9D8ACA02CE0DEE00034E37C /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D8AC962CE0DEE00034E37C /* libcurl.a */; };
+		C9D8ACA12CE0DEE00034E37C /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D8AC952CE0DEE00034E37C /* libcryptopp.a */; };
+		C9D8ACA22CE0DEE00034E37C /* libsqlite3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D8AC982CE0DEE00034E37C /* libsqlite3.a */; };
+		C9D8ACA92CE0DF5B0034E37C /* libtag.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D8ACA62CE0DF5B0034E37C /* libtag.a */; };
+		C9D8ACAA2CE0DF5B0034E37C /* libtag_c.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D8ACA72CE0DF5B0034E37C /* libtag_c.a */; };
+		C9D8ACAB2CE0DF5B0034E37C /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9D8ACA82CE0DF5B0034E37C /* libz.a */; };
 		C9ED857F2711373F00D47DBB /* ViewTextVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9ED857E2711373F00D47DBB /* ViewTextVC.swift */; };
 		C9ED8582271189A500D47DBB /* Acknowledgements.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9ED8581271189A500D47DBB /* Acknowledgements.swift */; };
 /* End PBXBuildFile section */
@@ -90,53 +95,34 @@
 		84D137E12363F272006A2DE0 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		84D137E32363F343006A2DE0 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		84D137E52363F37F006A2DE0 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
-		C90A1CA227375C22009DEB53 /* libsqlite3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsqlite3.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/libsqlite3.a"; sourceTree = "<group>"; };
-		C90A1CA327375C23009DEB53 /* libtag_c.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag_c.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/libtag_c.a"; sourceTree = "<group>"; };
-		C90A1CA427375C24009DEB53 /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/libtag.a"; sourceTree = "<group>"; };
-		C90A1CA527375C25009DEB53 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/libcurl.a"; sourceTree = "<group>"; };
-		C90A1CA627375C27009DEB53 /* libcryptopp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcryptopp.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/libcryptopp.a"; sourceTree = "<group>"; };
-		C90A1CA727375C28009DEB53 /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/libz.a"; sourceTree = "<group>"; };
-		C90A1CA827375C29009DEB53 /* libsodium.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsodium.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/libsodium.a"; sourceTree = "<group>"; };
 		C90A1CB127375CB0009DEB53 /* libMEGASDK.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libMEGASDK.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		C90A1CB427376805009DEB53 /* 3rdparty_sdk_ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = 3rdparty_sdk_ios; path = ../../repos/3rdparty_sdk_ios; sourceTree = "<group>"; };
-		C90A1CB5273768D7009DEB53 /* libtag_c.0.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtag_c.0.0.0.dylib; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/libtag_c.0.0.0.dylib"; sourceTree = "<group>"; };
-		C90A1CB6273768D9009DEB53 /* libtag.1.17.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtag.1.17.0.dylib; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/arm64-ios-mega/lib/libtag.1.17.0.dylib"; sourceTree = "<group>"; };
 		C90A1CBC27376A5A009DEB53 /* sdk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = sdk; path = ../../repos/sdk; sourceTree = "<group>"; };
 		C90DCBB125FE0E310097792C /* SongsCpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SongsCpp.h; sourceTree = "<group>"; };
 		C90DCBB225FE0E310097792C /* SongsCpp.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = SongsCpp.mm; sourceTree = "<group>"; };
-		C90DCBBA25FE162A0097792C /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libtag.a"; sourceTree = "<group>"; };
-		C90DCBBB25FE162A0097792C /* libtag_c.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag_c.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libtag_c.a"; sourceTree = "<group>"; };
 		C945F8032733DFE9006D5CF3 /* repos */ = {isa = PBXFileReference; lastKnownFileType = folder; name = repos; path = ../../repos; sourceTree = "<group>"; };
-		C945F8042733E01D006D5CF3 /* libsqlite3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsqlite3.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/x64-ios-mega/lib/libsqlite3.a"; sourceTree = "<group>"; };
-		C945F8052733E01D006D5CF3 /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/x64-ios-mega/lib/libtag.a"; sourceTree = "<group>"; };
-		C945F8062733E01E006D5CF3 /* libcryptopp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcryptopp.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/x64-ios-mega/lib/libcryptopp.a"; sourceTree = "<group>"; };
-		C945F8072733E01F006D5CF3 /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/x64-ios-mega/lib/libz.a"; sourceTree = "<group>"; };
-		C945F8082733E01F006D5CF3 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/x64-ios-mega/lib/libcurl.a"; sourceTree = "<group>"; };
-		C945F8092733E020006D5CF3 /* libtag_c.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag_c.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/x64-ios-mega/lib/libtag_c.a"; sourceTree = "<group>"; };
-		C945F80A2733E020006D5CF3 /* libsodium.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsodium.a; path = "../../repos/3rdparty_sdk_ios/vcpkg/installed/x64-ios-mega/lib/libsodium.a"; sourceTree = "<group>"; };
 		C94FF3882411021800184998 /* EditSongVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditSongVC.swift; sourceTree = "<group>"; };
 		C9551C0D277E9419008BC7C8 /* Songs++Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Songs++Info.plist"; sourceTree = "<group>"; };
-		C962CA2225DF0F0300A77721 /* libsodium.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsodium.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libsodium.a"; sourceTree = "<group>"; };
-		C962CA2725DF0F3400A77721 /* libcares.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcares.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libcares.a"; sourceTree = "<group>"; };
-		C962CA2925DF0F4100A77721 /* libcryptopp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcryptopp.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libcryptopp.a"; sourceTree = "<group>"; };
-		C962CA2B25DF0F4700A77721 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libcurl.a"; sourceTree = "<group>"; };
-		C962CA3025DF0F5000A77721 /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libz.a"; sourceTree = "<group>"; };
 		C962CA4A25DF6F1B00A77721 /* MEGASDK.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = MEGASDK.xcodeproj; path = ../../repos/sdk/bindings/ios/MEGASDK.xcodeproj; sourceTree = "<group>"; };
-		C962CA6125DF76A300A77721 /* libMEGASDK.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMEGASDK.a; path = "../../Library/Developer/Xcode/DerivedData/just-exploring-3-workspace-doaztuijosrjaravhejqxpjnphkm/Build/Products/Debug-iphoneos/libMEGASDK.a"; sourceTree = "<group>"; };
-		C962CA6625DF77F300A77721 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libssl.a"; sourceTree = "<group>"; };
-		C962CA6B25DF783400A77721 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libcrypto.a"; sourceTree = "<group>"; };
-		C962CA7025DF784F00A77721 /* libsqlite3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsqlite3.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libsqlite3.a"; sourceTree = "<group>"; };
-		C962CA7225DF785E00A77721 /* libmediainfo.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmediainfo.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libmediainfo.a"; sourceTree = "<group>"; };
-		C962CA7425DF786600A77721 /* libzen.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzen.a; path = "../../repos/3rdParty_inplace/vcpkg/installed/arm64-ios-mega/lib/libzen.a"; sourceTree = "<group>"; };
 		C96F3AD423BFC799008BF07D /* LoginStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginStateModel.swift; sourceTree = "<group>"; };
 		C96F3AD623BFC995008BF07D /* PlayQueueModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayQueueModel.swift; sourceTree = "<group>"; };
 		C96F3AD823BFDB87008BF07D /* MenuVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuVC.swift; sourceTree = "<group>"; };
 		C96F3ADC23C01A07008BF07D /* StorageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageModel.swift; sourceTree = "<group>"; };
 		C97260FF23C72FAC0029871E /* MainTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabBarController.swift; sourceTree = "<group>"; };
 		C9A5A1512733E78500180871 /* libMega.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMega.a; path = "../../repos/sdk/build-x64-ios-mega-Debug/libMega.a"; sourceTree = "<group>"; };
-		C9A5A1532733EAF900180871 /* libMEGASDK.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libMEGASDK.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		C9B7533B2CCE10A0006BB41C /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libtag.a; sourceTree = "<group>"; };
 		C9D3023F259834D400D52ADF /* PlaylistTVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistTVC.swift; sourceTree = "<group>"; };
+		C9D8AC8F2CE0DD5C0034E37C /* libtag_c.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag_c.a; path = "/Users/matt/repos/vcpkg/installed/x64-ios/lib/libtag_c.a"; sourceTree = "<absolute>"; };
+		C9D8AC912CE0DD6A0034E37C /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag.a; path = "/Users/matt/repos/vcpkg/installed/x64-ios/lib/libtag.a"; sourceTree = "<absolute>"; };
+		C9D8AC932CE0DD740034E37C /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = "/Users/matt/repos/vcpkg/installed/x64-ios/lib/libz.a"; sourceTree = "<absolute>"; };
+		C9D8AC952CE0DEE00034E37C /* libcryptopp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcryptopp.a; path = "/Users/matt/repos/3rdparty_sdk_ios_x64/vcpkg/installed/x64-ios-mega/lib/libcryptopp.a"; sourceTree = "<absolute>"; };
+		C9D8AC962CE0DEE00034E37C /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = "/Users/matt/repos/3rdparty_sdk_ios_x64/vcpkg/installed/x64-ios-mega/lib/libcurl.a"; sourceTree = "<absolute>"; };
+		C9D8AC972CE0DEE00034E37C /* libsodium.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsodium.a; path = "/Users/matt/repos/3rdparty_sdk_ios_x64/vcpkg/installed/x64-ios-mega/lib/libsodium.a"; sourceTree = "<absolute>"; };
+		C9D8AC982CE0DEE00034E37C /* libsqlite3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsqlite3.a; path = "/Users/matt/repos/3rdparty_sdk_ios_x64/vcpkg/installed/x64-ios-mega/lib/libsqlite3.a"; sourceTree = "<absolute>"; };
+		C9D8AC992CE0DEE00034E37C /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag.a; path = "/Users/matt/repos/3rdparty_sdk_ios_x64/vcpkg/installed/x64-ios-mega/lib/libtag.a"; sourceTree = "<absolute>"; };
+		C9D8AC9A2CE0DEE00034E37C /* libtag_c.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag_c.a; path = "/Users/matt/repos/3rdparty_sdk_ios_x64/vcpkg/installed/x64-ios-mega/lib/libtag_c.a"; sourceTree = "<absolute>"; };
+		C9D8AC9B2CE0DEE00034E37C /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = "/Users/matt/repos/3rdparty_sdk_ios_x64/vcpkg/installed/x64-ios-mega/lib/libz.a"; sourceTree = "<absolute>"; };
+		C9D8ACA62CE0DF5B0034E37C /* libtag.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag.a; path = "/Users/matt/repos/vcpkg/installed/x64-ios/lib/libtag.a"; sourceTree = "<absolute>"; };
+		C9D8ACA72CE0DF5B0034E37C /* libtag_c.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtag_c.a; path = "/Users/matt/repos/vcpkg/installed/x64-ios/lib/libtag_c.a"; sourceTree = "<absolute>"; };
+		C9D8ACA82CE0DF5B0034E37C /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = "/Users/matt/repos/vcpkg/installed/x64-ios/lib/libz.a"; sourceTree = "<absolute>"; };
 		C9ED857E2711373F00D47DBB /* ViewTextVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewTextVC.swift; sourceTree = "<group>"; };
 		C9ED8581271189A500D47DBB /* Acknowledgements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Acknowledgements.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -146,21 +132,26 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C90A1CAF27375C70009DEB53 /* libz.a in Frameworks */,
+				C9D8AC942CE0DD740034E37C /* libz.a in Frameworks */,
 				84D137E62363F37F006A2DE0 /* CoreMedia.framework in Frameworks */,
-				C90A1CAD27375C70009DEB53 /* libtag_c.a in Frameworks */,
-				C90A1CA927375C6F009DEB53 /* libcryptopp.a in Frameworks */,
 				C9A5A1552733ED8100180871 /* libresolv.tbd in Frameworks */,
 				C90A1CB327376513009DEB53 /* libMEGASDK.a in Frameworks */,
-				C90A1CAC27375C6F009DEB53 /* libsqlite3.a in Frameworks */,
 				84D137E42363F344006A2DE0 /* CoreServices.framework in Frameworks */,
-				C90A1CAB27375C6F009DEB53 /* libsodium.a in Frameworks */,
 				84D137D82363F0C0006A2DE0 /* libc++.tbd in Frameworks */,
-				C90A1CAA27375C6F009DEB53 /* libcurl.a in Frameworks */,
-				C9A5A14A2733E69200180871 /* libcryptopp.a in Frameworks */,
-				C90A1CAE27375C70009DEB53 /* libtag.a in Frameworks */,
 				84008BC723604D8000BD633F /* AVKit.framework in Frameworks */,
+				C9D8AC902CE0DD5C0034E37C /* libtag_c.a in Frameworks */,
+				C9D8AC922CE0DD6A0034E37C /* libtag.a in Frameworks */,
 				84008BC523604D7000BD633F /* AVFoundation.framework in Frameworks */,
+				C9D8ACA92CE0DF5B0034E37C /* libtag.a in Frameworks */,
+				C9D8ACAA2CE0DF5B0034E37C /* libtag_c.a in Frameworks */,
+				C9D8ACAB2CE0DF5B0034E37C /* libz.a in Frameworks */,
+				C9D8AC9C2CE0DEE00034E37C /* libtag.a in Frameworks */,
+				C9D8AC9D2CE0DEE00034E37C /* libsodium.a in Frameworks */,
+				C9D8AC9E2CE0DEE00034E37C /* libz.a in Frameworks */,
+				C9D8AC9F2CE0DEE00034E37C /* libtag_c.a in Frameworks */,
+				C9D8ACA02CE0DEE00034E37C /* libcurl.a in Frameworks */,
+				C9D8ACA12CE0DEE00034E37C /* libcryptopp.a in Frameworks */,
+				C9D8ACA22CE0DEE00034E37C /* libsqlite3.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -222,43 +213,21 @@
 		84008BC323604D6F00BD633F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				C9B7533B2CCE10A0006BB41C /* libtag.a */,
+				C9D8AC912CE0DD6A0034E37C /* libtag.a */,
+				C9D8AC8F2CE0DD5C0034E37C /* libtag_c.a */,
+				C9D8AC932CE0DD740034E37C /* libz.a */,
 				C90A1CBC27376A5A009DEB53 /* sdk */,
-				C90A1CB5273768D7009DEB53 /* libtag_c.0.0.0.dylib */,
-				C90A1CB6273768D9009DEB53 /* libtag.1.17.0.dylib */,
-				C90A1CB427376805009DEB53 /* 3rdparty_sdk_ios */,
 				C90A1CB127375CB0009DEB53 /* libMEGASDK.a */,
-				C90A1CA627375C27009DEB53 /* libcryptopp.a */,
-				C90A1CA527375C25009DEB53 /* libcurl.a */,
-				C90A1CA827375C29009DEB53 /* libsodium.a */,
-				C90A1CA227375C22009DEB53 /* libsqlite3.a */,
-				C90A1CA327375C23009DEB53 /* libtag_c.a */,
-				C90A1CA427375C24009DEB53 /* libtag.a */,
-				C90A1CA727375C28009DEB53 /* libz.a */,
-				C9A5A1532733EAF900180871 /* libMEGASDK.a */,
 				C9A5A1512733E78500180871 /* libMega.a */,
-				C945F8062733E01E006D5CF3 /* libcryptopp.a */,
-				C945F8082733E01F006D5CF3 /* libcurl.a */,
-				C945F80A2733E020006D5CF3 /* libsodium.a */,
-				C945F8042733E01D006D5CF3 /* libsqlite3.a */,
-				C945F8092733E020006D5CF3 /* libtag_c.a */,
-				C945F8052733E01D006D5CF3 /* libtag.a */,
-				C945F8072733E01F006D5CF3 /* libz.a */,
+				C9D8AC952CE0DEE00034E37C /* libcryptopp.a */,
+				C9D8AC962CE0DEE00034E37C /* libcurl.a */,
+				C9D8AC972CE0DEE00034E37C /* libsodium.a */,
+				C9D8AC982CE0DEE00034E37C /* libsqlite3.a */,
+				C9D8AC992CE0DEE00034E37C /* libtag.a */,
+				C9D8AC9A2CE0DEE00034E37C /* libtag_c.a */,
+				C9D8AC9B2CE0DEE00034E37C /* libz.a */,
 				C945F8032733DFE9006D5CF3 /* repos */,
-				C90DCBBB25FE162A0097792C /* libtag_c.a */,
-				C90DCBBA25FE162A0097792C /* libtag.a */,
-				C962CA7425DF786600A77721 /* libzen.a */,
-				C962CA7225DF785E00A77721 /* libmediainfo.a */,
-				C962CA7025DF784F00A77721 /* libsqlite3.a */,
-				C962CA6B25DF783400A77721 /* libcrypto.a */,
-				C962CA6625DF77F300A77721 /* libssl.a */,
-				C962CA6125DF76A300A77721 /* libMEGASDK.a */,
 				C962CA4A25DF6F1B00A77721 /* MEGASDK.xcodeproj */,
-				C962CA3025DF0F5000A77721 /* libz.a */,
-				C962CA2B25DF0F4700A77721 /* libcurl.a */,
-				C962CA2925DF0F4100A77721 /* libcryptopp.a */,
-				C962CA2725DF0F3400A77721 /* libcares.a */,
-				C962CA2225DF0F0300A77721 /* libsodium.a */,
 				84D137E52363F37F006A2DE0 /* CoreMedia.framework */,
 				84D137E32363F343006A2DE0 /* CoreServices.framework */,
 				84D137E12363F272006A2DE0 /* libresolv.tbd */,
@@ -267,6 +236,9 @@
 				84D137D72363F0BF006A2DE0 /* libc++.tbd */,
 				84008BC623604D8000BD633F /* AVKit.framework */,
 				84008BC423604D7000BD633F /* AVFoundation.framework */,
+				C9D8ACA62CE0DF5B0034E37C /* libtag.a */,
+				C9D8ACA72CE0DF5B0034E37C /* libtag_c.a */,
+				C9D8ACA82CE0DF5B0034E37C /* libz.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -564,7 +536,9 @@
 					"/Users/matt/repos/vcpkg/installed/arm64-ios/include/",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Songs++Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				INFOPLIST_KEY_CFBundleDisplayName = "Songs++";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -573,11 +547,12 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"/Users/matt/repos/3rdParty_sdk_ios_arm64/vcpkg/installed/arm64-ios-mega/lib/",
-					"/Users/matt/repos/sdk/build-arm64-ios-mega-Release",
-					"/Users/matt/repos/vcpkg/installed/arm64-ios/debug/lib",
+					"/Users/matt/repos/3rdParty_sdk_ios_x64/vcpkg/installed/x64-ios-mega/lib/",
+					"/Users/matt/repos/sdk/build-x64-ios-mega-Release",
+					"/Users/matt/repos/vcpkg/installed/x64-ios/debug/lib",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 2.0;
+				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
 				PRODUCT_NAME = SongsPlusPlus;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -605,7 +580,9 @@
 					"/Users/matt/repos/vcpkg/installed/arm64-ios/include/",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/Songs++Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				INFOPLIST_KEY_CFBundleDisplayName = "Songs++";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -618,7 +595,8 @@
 					"/Users/matt/repos/sdk/build-arm64-ios-mega-Release",
 					"/Users/matt/repos/vcpkg/installed/arm64-ios/lib",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 2.0;
+				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
 				PRODUCT_NAME = SongsPlusPlus;
 				PROVISIONING_PROFILE_SPECIFIER = "";

@@ -11,7 +11,7 @@ import UIKit
 import AVKit
 
 
-class fabisam: UITableViewController {
+class PlaylistTVC: UITableViewController {
 
     @IBOutlet weak var folderPathLabelCtrl: UILabel!
 
@@ -19,6 +19,7 @@ class fabisam: UITableViewController {
     var playlistSongs : [Path] = [];
     var playlistToLoad : Path? = nil;
     var loadedOk : Bool = false;
+    var reloadOnAppear : Bool = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,6 +33,15 @@ class fabisam: UITableViewController {
     override func viewDidAppear(_ animated: Bool) {
         navigationItem.rightBarButtonItem =
             UIBarButtonItem(title: "Option", style: .done, target: self, action: #selector(optionButton))
+        
+        if (reloadOnAppear)
+        {
+            if (playlistNode != nil)
+            {
+                loadPlaylist(n: playlistNode!);
+            }
+            reloadOnAppear = false;
+        }
     }
     
     @objc func popVC() {
