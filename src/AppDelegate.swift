@@ -17,18 +17,17 @@ let artworkExtensions = [ ".jpg", ".jpeg", ".png", ".bmp"];
 
 func isPlayable(_ n : Path, orMightContainPlayable : Bool) -> Bool
 {
-    //if (n.name == nil) { return false; }
     if orMightContainPlayable {
-        if //(n.isFile() &&
+        if !n.isFolder &&
             n.relativePath.hasSuffix(".playlist") { return true; }
-        //if (n.isFolder()) { return true; }
+        if n.isFolder { return true; }
     }
-    //if (n.isFile()) {
+    if (!n.isFolder) {
         let name = n.relativePath.lowercased();
         for ext in playableExtensions {
             if name.hasSuffix(ext) { return true; }
         }
-    //}
+    }
     return false;
 }
 
@@ -211,21 +210,21 @@ class FolderManager
         // https://developer.apple.com/library/archive/qa/qa1719/_index.html
         let folderUrls = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask);
         let p = folderUrls[0].standardizedFileURL.path;
-        assureFolderExists(p, doneName: "base");
+        _ = assureFolderExists(p, doneName: "base");
         return p;
     }
     
     func settingsPath() -> String
     {
         let p = storageBasePath() + "/settings";
-        assureFolderExists(p, doneName: "settings");
+        _ = assureFolderExists(p, doneName: "settings");
         return p;
     }
 
     func tmpFolderPath() -> String
     {
         let p = storageBasePath() + "/tmp";
-        assureFolderExists(p, doneName: "tmp");
+        _ = assureFolderExists(p, doneName: "tmp");
         return p;
     }
 
@@ -233,10 +232,10 @@ class FolderManager
     {
        
         let p = storageBasePath() + "/sync";
-        assureFolderExists(p, doneName: "sync")
-        assureFolderExists(p + "/songs++index", doneName: "songs++index")
-        assureFolderExists(p + "/songs++index/thumb", doneName: "thumb")
-        assureFolderExists(p + "/songs++index/playlist", doneName: "playlist")
+        _ = assureFolderExists(p, doneName: "sync")
+        _ = assureFolderExists(p + "/songs++index", doneName: "songs++index")
+        _ = assureFolderExists(p + "/songs++index/thumb", doneName: "thumb")
+        _ = assureFolderExists(p + "/songs++index/playlist", doneName: "playlist")
         return p;
     }
 };

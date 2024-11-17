@@ -466,14 +466,13 @@ void doCopyFile(const scanAction& op, scanQueue& sq, bool extractTags)
     
     copyfile_state_t cfs = ::copyfile_state_alloc();
     auto cfe = copyfile(op.lhsPath.toPath().c_str(), op.rhsPath.toPath().c_str(), cfs, COPYFILE_DATA | COPYFILE_STAT);
+    if (cfe == -1) cfe = errno ? errno : -1;
     copyfile_state_free(cfs);
 
     scanDisplayPaths.removeCopy(op.lhsPath.leafName().toPath());
 
     if (cfe)
     {
-        if (cfe == -1) cfe = errno;
-        
         sq.fail("Error " + errText(cfe) + " copying  " + op.lhsPath.leafName().toPath());
     }
     else if (extractTags && isPlayable(op.rhsPath.toPath()))
@@ -582,7 +581,9 @@ void doCopyFile(const scanAction& op, scanQueue& sq, bool extractTags)
 }
 
 + (bool)StartScanDoubleDirs:(NSString *)lhsPath rhs:(NSString *)rhsPath removeUnmatchedOnRight:(bool)removeUnmatchedOnRight compareMtimeForCopy:(bool)compareMtimeForCopy extractTags:(bool)extractTags {
-    
+
+    mode_t _ = umask(0);  // bits that would be auto-removed
+
     PosixFileSystemAccess fsa;
     
     auto a = LocalPath::fromPath([lhsPath UTF8String], fsa);
@@ -643,6 +644,7 @@ void doCopyFile(const scanAction& op, scanQueue& sq, bool extractTags)
                             string err;
                             //mode_t _ = umask(0);  // bits that would be auto-removed
                             bool mkdir_success = !mkdir(op.rhsPath.toPath().c_str(), 0x1FF);//0777);
+                            //chmod(op.rhsPath.toPath().c_str(), 0777);
                             //umask(mode);
                             
                             if (!mkdir_success)

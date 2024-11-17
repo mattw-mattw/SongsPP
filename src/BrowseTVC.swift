@@ -192,7 +192,14 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         }
         folderPathLabelCtrl.isHidden = filtering;
         filterTextCtrl.isHidden = !filtering;
-        filterTextCtrl.resignFirstResponder();
+        if (!filtering)
+        {
+            filterTextCtrl.resignFirstResponder();
+        }
+        else
+        {
+            filterTextCtrl.becomeFirstResponder();
+        }
     }
     
     func showHideFolderTrackNames()
@@ -220,7 +227,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     
     func reFilter()
     {
-        filterTextCtrl.resignFirstResponder();
+        //filterTextCtrl.resignFirstResponder();
         load(currentFolder);
     }
  
@@ -234,6 +241,12 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
     }
 
     @IBAction func onFilterButton(_ sender: UIButton) {
+        if (!filtering)
+        {
+            // much quicker UI for searching the next thing
+            filterSearchString = "";
+            filterTextCtrl.text = "";
+        }
         showHideFilterElements(filter: !filtering);
         reFilter();
     }
@@ -545,16 +558,21 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         return false;
     }
     
+    func nonTrivialFilter() -> Bool
+    {
+        return filtering && !filterSearchString.isEmpty
+    }
+    
     func AddFilteredNodes(parent : Path) throws
     {
         let leafs = try parent.contentsOfDirectory();
         for l in leafs
         {
-            if (filtering && l.isFolder)
+            if (nonTrivialFilter() && l.isFolder)
             {
                 try AddFilteredNodes(parent: l);
             }
-            else if (!filtering || checkFiltered(l))
+            else if (!nonTrivialFilter() || checkFiltered(l))
             {
                 nodeArray.append(l)
             }
@@ -737,6 +755,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         {
             cell = tableView.dequeueReusableCell(withIdentifier: "FolderCell", for: indexPath)
             cell!.textLabel?.text = leafName(n!) + (isFolder ? "/" : "");
+            cell?.imageView?.image = isFolder ? UIImage(systemName: "folder.fill")! : nil;
         }
         else
         {
@@ -819,7 +838,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
         {
             let node = nodeArray[indexPath.row];
             
-            let alert = UIAlertController(title: nil, message: "Song actions", preferredStyle: .alert)
+            let alert = UIAlertController(title: nil, message: node.isFolder ? "Folder actions" : "Song actions", preferredStyle: .alert)
             
             if isPlayable(node, orMightContainPlayable: true) {
                 alert.addAction(menuAction_playNext(node, uic: self, loadPlaylists: isPlaylists()));
@@ -830,7 +849,7 @@ class BrowseTVC: UITableViewController, UITextFieldDelegate {
             }
             if isArtwork(node) {
                 alert.addAction(UIAlertAction(title: "Set as artwork for songs in this folder", style: .default, handler:
-                      { (UIAlertAction) -> () in self.setArtworkForSongsInFolder(node); }));
+                      { (UIAlertAction) -> () in _ = self.setArtworkForSongsInFolder(node); }));
             }
             if (filtering) {
                 alert.addAction(menuAction_songBrowseTo(node, viewController: self));

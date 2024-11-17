@@ -75,18 +75,60 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         
         let alert = UIAlertController(
             title: "Connect to Network Folder",
-            message: "Use the Files app to connect a Network Folder.   In the Files app, use the '...' menu in the top right.  In that menu, choose 'Connect to Server'.  " +
-            "You will need to have turned on file/folder sharing on your computer, and know its IP or network name.  " +
-            "\nTo get the IP on Mac, click the wifi icon on your menu bar, at top right, and then 'Wifi Settings'. In the dialog that opens, on the connected wifi network, click `Details` and read off the IP Address." +
-            "\nTo get the IP on Windows, click the wifi icon on your task bar, at bottom right, and then the chevron '>' for Wifi.  On the connected wifi network, click the circled 'i' icon and read off the 'IPv4 Address'." +
-            "\nIn the Files app, type that IP into the Server field, prefixed by smb:// (and substiute your computer's IP).  Eg.  smb://192.168.20.20" +
-            "\nEnter your computer Username and Password to connect as a Registered User.  Username is case sensitive." +
-            "\nOnce connected, you will see the IP listed under 'Shared' of the Files App's Browse tab.  Then return to this Songs++ app.", preferredStyle: .alert)
+            message: "Use the Files app to connect a Network Folder. You will need to have turned on file/folder sharing on your computer, and know its IP or network name. Make sure both your computer and iPhone are connected to exactly the same wifi network.\n" +
+            "In the Files app, use the '...' menu in the top right.  In that menu, choose\n\n'Connect to Server'.\n\n" +
+            "In the Files app, type that IP into the Server field, prefixed by smb:// (and substiute your computer's IP).  Eg.\n\nsmb://192.168.20.20\n\n" +
+            "Enter your computer (or share user) Username and Password to connect as a Registered User.  Username is case sensitive.\n" +
+            "Once connected, you will see the IP listed under 'Shared' of the Files App's Browse tab.  Then return to this Songs++ app.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Mac advice", style: .default, handler: { (UIAlertAction) -> () in self.MacFileSharingAdvice() }));
+        alert.addAction(UIAlertAction(title: "Windows advice", style: .default, handler: { (UIAlertAction) -> () in self.WindowsFileSharingAdvice() }));
         alert.addAction(UIAlertAction(title: "Open Files app", style: .default, handler: { (UIAlertAction) -> () in UIApplication.shared.open(URL(string: "shareddocuments://Connect%20to%20Server")!) }));
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (UIAlertAction) -> () in }));
+        alert.addAction(UIAlertAction(title: "Never mind", style: .cancel, handler: { (UIAlertAction) -> () in }));
         self.present(alert, animated: false, completion: nil)
     }
 
+    func MacFileSharingAdvice() {
+        
+        let alert = UIAlertController(
+            title: "Connecting to a Network Folder on Mac",
+            message: "To get the IP of your Mac, click the wifi icon on your menu bar, at top right, and then 'Wifi Settings'. " +
+            "In the dialog that opens, on the connected wifi network, click `Details` and read off the IP Address.\n\n" +
+            "Connecting as a Registered User and using the same username and password as you use to log into your Mac is straightforward, and you will be able to choose a folder inside your Mac home folder as your Network Folder for Songs++ to use.\n\n" +
+            "There is also a more complicated and more secure option that involves setting up a Sharing Only User, which requires quite a bit of technical expertise.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Sharing Only User advice", style: .default, handler: { (UIAlertAction) -> () in self.MacFileSharingOnlyUserAdvice() }));
+        alert.addAction(UIAlertAction(title: "Done", style: .cancel, handler: { (UIAlertAction) -> () in }));
+        self.present(alert, animated: false, completion: nil)
+    }
+    
+    func MacFileSharingOnlyUserAdvice() {
+        
+        let alert = UIAlertController(
+            title: "Steps for setting up a Sharing Only user for Songs++",
+            message: "Open Settings, Users and Groups.\n" +
+            "- Click Add User, and select Sharing Only.  Fill in name and passwords, eg music_user, music_pass.\n" +
+            "- Click Add Group, and choose a name such as songs_group.  Pick the new music_user, and your own account as group members.\n" +
+            "- Find the folder that will be the Network Folder for Songs++ to use, and open Terminal there.  Execute the following in Terminal so that folders and files copied back from Songs++ will be accessible to your user:\n\n" +
+            "chmod +a \"group:songs_group allow list,add_file,search,add_subdirectory,delete_child,readattr,writeattr,readextattr,writeextattr,readsecurity,file_inherit,directory_inherit\" your_music_folder/\n\n" +
+            "- In Finder, Get Info on that folder, and tick the \"Shared folder\" checkbox\n" +
+            "- You can also open Settings, File Sharing to see a summary of your shared folders.  File Sharing should be on, Full disk access for all users is not needed.  Clicking the Options button there, SMB File Sharing should be on.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Done", style: .cancel, handler: { (UIAlertAction) -> () in }));
+        self.present(alert, animated: false, completion: nil)
+    }
+    
+    @IBAction func WindowsFileSharingAdvice() {
+        
+        let alert = UIAlertController(
+            title: "Connect to a Network Folder on Windows",
+            message: "To get the computer IP on Windows, click the wifi icon on your task bar, at bottom right, and then the chevron '>' for Wifi. " +
+            "On the connected wifi network, click the circled 'i' icon and read off the 'IPv4 Address'.\n" +
+            "To share a folder on windows, it's simpler to use a local account.  If you are logging on to Windows with a microsoft account, create a local account by opening 'cmd' with Administrator permissions, and use command:\n\n" +
+            "net user music_user music_pass /add\n\n" +
+            "and then right-click the folder to share (eg c:\\songs++music), open Properties, and on the Sharing tab click Advanced Sharing." +
+            "Tick share, adjust the name to eg. songs_music.  Click Permissions, remove Everyone. Add music_user (and Check Names to confirm), allow Full Control.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Done", style: .cancel, handler: { (UIAlertAction) -> () in }));
+        self.present(alert, animated: false, completion: nil)
+    }
+    
     @IBAction func PickNetworkFolder(_ sender: Any) {
         
         let alert = UIAlertController(
@@ -95,7 +137,7 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
             "Files++ will use the music files in that folder and its subfolders, and will also create a subfolder 'files++index' to keep all the info about those, in JSON format files.  You have the option to edit those directly to set images, update song names, and so on in bulk. " +
             "The path to the music folder, as known in the app, will be displayed in the main Menu.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Pick Network Folder", style: .default, handler: { (UIAlertAction) -> () in self.pickDocument() }));
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (UIAlertAction) -> () in }));
+        alert.addAction(UIAlertAction(title: "Done", style: .cancel, handler: { (UIAlertAction) -> () in }));
         self.present(alert, animated: false, completion: nil)
     }
     

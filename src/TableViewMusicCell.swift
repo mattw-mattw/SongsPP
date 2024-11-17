@@ -46,7 +46,6 @@ class TableViewMusicCell: UITableViewCell {
         }
         if (title == nil) { title = "<unknown>"; }
         titleLabel.text = title!;
-
         var bpm : String? = attr["bpm"]
         if (bpm == nil) { bpm = ""; }
         bpmLabel.text = bpm!;
