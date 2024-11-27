@@ -945,16 +945,16 @@ func reportMessageWithTitle(uic : UIViewController, messageTitle : String, messa
 {
     DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300)) {
         let alert = UIAlertController(title: messageTitle, message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Ok", style: .cancel));
-            uic.present(alert, animated: false, completion: continuation)
+        alert.addAction(UIAlertAction(title: "Ok", style: .cancel));
+        uic.present(alert, animated: false, completion: continuation)
     }
 }
 func reportMessage(uic : UIViewController, message : String, continuation : (() -> Void)? = nil)
 {
     DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(300)) {
         let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Ok", style: .cancel));
-            uic.present(alert, animated: false, completion: continuation)
+        alert.addAction(UIAlertAction(title: "Ok", style: .cancel));
+        uic.present(alert, animated: false, completion: continuation)
     }
 }
 

@@ -290,6 +290,12 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
 
         scanCopyAlertCtrl = UIAlertController(title: "Copying Network Folder music into App", message: "Scanning for files to copy, and copying them into the app", preferredStyle: .actionSheet)
         scanCopyAlertCtrl!.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (UIAlertAction) -> () in self.stopScanCopy() }));
+        
+        // needed for iPad otherwise the UI asserts
+        let tBarView = app().tabBarContoller!.view!;
+        scanCopyAlertCtrl!.popoverPresentationController?.sourceView = tBarView;
+        scanCopyAlertCtrl!.popoverPresentationController?.sourceRect = CGRectMake(tBarView.bounds.size.width / 2.0, tBarView.bounds.size.height - 50, 0.0, 0.0);
+        
         self.present(scanCopyAlertCtrl!, animated: false, completion: nil)
         
         updateScanCopyTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateScanCopy), userInfo: nil, repeats: true)
@@ -405,6 +411,12 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
         {
             scanCopyAlertCtrl = UIAlertController(title: "Task complete", message: "", preferredStyle: .actionSheet)
             scanCopyAlertCtrl!.addAction(UIAlertAction(title: "Close", style: .cancel, handler: nil));
+            
+            // needed for iPad otherwise the UI asserts
+            let tBarView = app().tabBarContoller!.view!;
+            scanCopyAlertCtrl!.popoverPresentationController?.sourceView = tBarView;
+            scanCopyAlertCtrl!.popoverPresentationController?.sourceRect = CGRectMake(tBarView.bounds.size.width / 2.0, tBarView.bounds.size.height - 50, 0.0, 0.0);
+
             self.present(scanCopyAlertCtrl!, animated: false, completion: nil)
             updateScanCopyMessage();
         }
