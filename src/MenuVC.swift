@@ -123,8 +123,8 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
             "On the connected wifi network, click the circled 'i' icon and read off the 'IPv4 Address'.\n" +
             "To share a folder on windows, it's simpler to use a local account.  If you are logging on to Windows with a microsoft account, create a local account by opening 'cmd' with Administrator permissions, and use command:\n\n" +
             "net user music_user music_pass /add\n\n" +
-            "and then right-click the folder to share (eg c:\\songs++music), open Properties, and on the Sharing tab click Advanced Sharing." +
-            "Tick share, adjust the name to eg. songs_music.  Click Permissions, remove Everyone. Add music_user (and Check Names to confirm), allow Full Control.", preferredStyle: .alert)
+            "and then right-click the folder to share (eg c:\\songs++music), open Properties, and on the Sharing tab click Advanced Sharing. " +
+            "Tick share, adjust the name to eg. songs_music.  Click Permissions, remove Everyone. Add music_user (and Check Names to confirm), allow Full Control. You may need to also click Share, and add the new user as Read/Write.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Done", style: .cancel, handler: { (UIAlertAction) -> () in }));
         self.present(alert, animated: false, completion: nil)
     }
