@@ -1030,7 +1030,7 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
     let aboutText =
     """
     Songs++
-    2.0
+    2.0.3
     	
     A simple and reliable music file player:
     * Play your own music files
@@ -1055,6 +1055,9 @@ class MenuVC: UIViewController, UIDocumentPickerDelegate {
     let versionText =
     """
     Version history
+
+    2.0.3
+    * Free version
     
     2.0
     * Swap to using network folder instead of MEGA
