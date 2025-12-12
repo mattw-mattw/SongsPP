@@ -527,7 +527,7 @@
 					"/Users/matt/repos/sdk/build-arm64-ios-mega-Release",
 					"/Users/matt/repos/vcpkg/installed/arm64-ios/debug/lib",
 				);
-				MARKETING_VERSION = 2.0.2;
+				MARKETING_VERSION = 2.0.3;
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
 				PRODUCT_NAME = SongsPlusPlus;
@@ -571,7 +571,7 @@
 					"/Users/matt/repos/sdk/build-arm64-ios-mega-Release",
 					"/Users/matt/repos/vcpkg/installed/arm64-ios/lib",
 				);
-				MARKETING_VERSION = 2.0.2;
+				MARKETING_VERSION = 2.0.3;
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "mattweir.songs-plus-plus";
 				PRODUCT_NAME = SongsPlusPlus;
